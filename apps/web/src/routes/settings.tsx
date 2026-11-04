@@ -1,49 +1,753 @@
+import {
+  CHANNEL_TYPES,
+  type Channel,
+  type ChannelType,
+  ROLES,
+  type Role,
+  UNIT_SYSTEMS,
+  type UserAdmin,
+} from '@axlebook/shared';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { Label, Radio, RadioGroup } from 'react-aria-components';
+import { type FormEvent, type ReactNode, useState } from 'react';
+import { FileTrigger, Form } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
+import { useLogout } from '../api/auth';
+import {
+  channelsQuery,
+  settingsQuery,
+  tokensQuery,
+  useChangePassword,
+  useChannelAction,
+  useRestoreBackup,
+  usersQuery,
+  useSaveSettings,
+  useTokenAction,
+  useUpdateMe,
+  useUserAction,
+} from '../api/resources';
 import { configQuery } from '../api/system';
 import { PageHeader } from '../components/PageHeader';
+import { CheckboxField, Segmented } from '../components/records/RecordForm';
+import { Button, buttonClass } from '../components/ui/Button';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { ErrorNote } from '../components/ui/ErrorNote';
+import { FormDialog } from '../components/ui/FormDialog';
+import { SelectField, TextField } from '../components/ui/fields';
+import { useFormat } from '../lib/format';
+import { useMe } from '../lib/useMe';
 import { type ThemePreference, useTheme } from '../theme/theme';
 
 export const Route = createFileRoute('/settings')({ component: SettingsPage });
 
-const THEMES: ThemePreference[] = ['system', 'light', 'dark'];
+function Section({
+  id,
+  title,
+  intro,
+  children,
+}: {
+  id: string;
+  title: string;
+  intro?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      aria-labelledby={id}
+      className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
+    >
+      <h2 id={id} className="text-heading font-semibold">
+        {title}
+      </h2>
+      {intro && <p className="mt-1 text-ink-muted">{intro}</p>}
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function Saved({ show }: { show: boolean }) {
+  const { t } = useTranslation();
+  return show ? (
+    <span role="status" className="self-center text-caption text-ink-muted">
+      {t('settings.saved')}
+    </span>
+  ) : null;
+}
+
+function Profile() {
+  const { t, i18n } = useTranslation();
+  const me = useMe();
+  const update = useUpdateMe();
+  const { theme, setTheme } = useTheme();
+  const [name, setName] = useState(me?.displayName ?? '');
+  const [email, setEmail] = useState(me?.email ?? '');
+  if (!me) return null;
+  return (
+    <Section id="profile" title={t('settings.profile')}>
+      <Form
+        onSubmit={(e: FormEvent) => {
+          e.preventDefault();
+          update.mutate({ displayName: name, email });
+        }}
+        className="flex flex-col gap-4"
+      >
+        <ErrorNote error={update.error} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField
+            label={t('settings.displayName')}
+            value={name}
+            onChange={setName}
+            autoComplete="name"
+          />
+          <TextField
+            label={t('settings.email')}
+            type="email"
+            value={email}
+            onChange={setEmail}
+            autoComplete="email"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button type="submit" isDisabled={update.isPending}>
+            {t('settings.save')}
+          </Button>
+          <Saved show={update.isSuccess} />
+        </div>
+      </Form>
+      <div className="mt-6 grid gap-4 border-t border-line pt-4 sm:grid-cols-2">
+        <Segmented
+          label={t('theme.label')}
+          value={theme}
+          onChange={(v: ThemePreference) => {
+            setTheme(v);
+            update.mutate({ theme: v });
+          }}
+          options={(['system', 'light', 'dark'] as const).map((v) => ({
+            value: v,
+            label: t(`theme.${v}`),
+          }))}
+        />
+        <SelectField
+          label={t('settings.units')}
+          value={me.unitSystem}
+          onChange={(v) => update.mutate({ unitSystem: v })}
+          options={UNIT_SYSTEMS.map((u) => ({ value: u, label: t(`settings.unitSystems.${u}`) }))}
+        />
+        <SelectField
+          label={t('settings.language')}
+          value={i18n.language}
+          onChange={(v) => {
+            void i18n.changeLanguage(v);
+            update.mutate({ locale: v });
+          }}
+          options={[{ value: 'en', label: t('settings.languages.en') }]}
+        />
+      </div>
+    </Section>
+  );
+}
+
+function Password() {
+  const { t } = useTranslation();
+  const me = useMe();
+  const change = useChangePassword();
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [error, setError] = useState<string>();
+  return (
+    <Section id="password" title={t('settings.password')}>
+      <Form
+        onSubmit={(e: FormEvent) => {
+          e.preventDefault();
+          if (next.length < 10) return setError(t('validation.passwordLength'));
+          setError(undefined);
+          change.mutate(
+            { current: current || undefined, next },
+            {
+              onSuccess: () => {
+                setCurrent('');
+                setNext('');
+              },
+            },
+          );
+        }}
+        className="flex flex-col gap-4"
+      >
+        <ErrorNote error={change.error} />
+        {change.isSuccess && (
+          <p role="status" className="rounded-md bg-surface-sunken px-3 py-2">
+            {t('settings.passwordChanged')}
+          </p>
+        )}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {me?.hasPassword && (
+            <TextField
+              label={t('settings.currentPassword')}
+              type="password"
+              value={current}
+              onChange={setCurrent}
+              autoComplete="current-password"
+            />
+          )}
+          <TextField
+            label={t('settings.newPassword')}
+            description={t('auth.passwordHint')}
+            type="password"
+            value={next}
+            onChange={(v) => {
+              setNext(v);
+              setError(undefined);
+            }}
+            error={error}
+            autoComplete="new-password"
+          />
+        </div>
+        <div>
+          <Button type="submit" isDisabled={change.isPending}>
+            {t('settings.changePassword')}
+          </Button>
+        </div>
+      </Form>
+    </Section>
+  );
+}
+
+function Tokens() {
+  const { t } = useTranslation();
+  const f = useFormat();
+  const tokens = useQuery(tokensQuery).data ?? [];
+  const action = useTokenAction();
+  const [name, setName] = useState('');
+  const [created, setCreated] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  return (
+    <Section id="tokens" title={t('settings.tokens')} intro={t('settings.tokensIntro')}>
+      <Form
+        onSubmit={(e: FormEvent) => {
+          e.preventDefault();
+          if (!name.trim()) return;
+          action.mutate(
+            { create: name },
+            {
+              onSuccess: (r) => {
+                setCreated(r?.token ?? null);
+                setName('');
+                setCopied(false);
+              },
+            },
+          );
+        }}
+        className="flex flex-wrap items-end gap-2"
+      >
+        <TextField
+          label={t('settings.tokenName')}
+          value={name}
+          onChange={setName}
+          className="min-w-48 flex-1"
+        />
+        <Button type="submit" isDisabled={action.isPending || !name.trim()}>
+          {t('settings.createToken')}
+        </Button>
+      </Form>
+      {created && (
+        <div role="status" className="mt-3 rounded-md bg-yellow-soft p-3">
+          <p className="text-caption font-semibold text-yellow">{t('settings.tokenCreated')}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <code className="flex-1 break-all rounded-sm bg-surface-raised px-2 py-1 font-mono text-data">
+              {created}
+            </code>
+            <Button
+              onPress={async () => {
+                await navigator.clipboard?.writeText(created);
+                setCopied(true);
+              }}
+            >
+              {copied ? t('settings.copied') : t('settings.copy')}
+            </Button>
+          </div>
+        </div>
+      )}
+      <ul className="mt-4">
+        {tokens.length === 0 && <li className="text-ink-muted">{t('settings.noTokens')}</li>}
+        {tokens.map((tok) => (
+          <li
+            key={tok.id}
+            className="flex flex-wrap items-center gap-3 border-b border-line py-2 last:border-b-0"
+          >
+            <span className="flex-1">
+              <span className="block font-semibold">{tok.name}</span>
+              <span className="font-mono text-caption text-ink-muted">
+                {`${tok.prefix}… · `}
+                {tok.lastUsedAt
+                  ? t('settings.lastUsed', { date: f.date(tok.lastUsedAt) })
+                  : t('settings.neverUsed')}
+              </span>
+            </span>
+            <Button variant="ghost" onPress={() => action.mutate({ revoke: tok.id })}>
+              {t('settings.revoke')}
+            </Button>
+          </li>
+        ))}
+      </ul>
+      <a
+        href="/api/docs"
+        className="mt-3 inline-block text-label text-orange-text underline-offset-2 hover:underline"
+        target="_blank"
+        rel="noreferrer"
+      >
+        {t('settings.apiDocs')}
+      </a>
+    </Section>
+  );
+}
+
+function ChannelForm({ channel, onDone }: { channel?: Channel; onDone: () => void }) {
+  const { t } = useTranslation();
+  const action = useChannelAction();
+  const cfg = (channel?.config ?? {}) as Record<string, string>;
+  const [type, setType] = useState<ChannelType>(channel?.type ?? 'ntfy');
+  const [name, setName] = useState(channel?.name ?? '');
+  const [enabled, setEnabled] = useState(channel?.enabled ?? true);
+  const [url, setUrl] = useState(cfg.url ?? '');
+  const [to, setTo] = useState(cfg.to ?? '');
+  const [token, setToken] = useState(cfg.token ?? cfg.secret ?? '');
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const config =
+      type === 'email'
+        ? { type, to }
+        : type === 'gotify'
+          ? { type, url, token }
+          : type === 'ntfy'
+            ? { type, url, ...(token && { token }) }
+            : type === 'webhook'
+              ? { type, url, ...(token && { secret: token }) }
+              : { type, url };
+    action.mutate(
+      {
+        id: channel?.id,
+        data: { name: name || t(`settings.channelTypes.${type}`), enabled, config } as never,
+      },
+      { onSuccess: onDone },
+    );
+  };
+  return (
+    <Form onSubmit={submit} className="flex flex-col gap-4">
+      <ErrorNote error={action.error} />
+      <SelectField
+        label={t('settings.channelType')}
+        value={type}
+        onChange={setType}
+        options={CHANNEL_TYPES.map((c) => ({ value: c, label: t(`settings.channelTypes.${c}`) }))}
+      />
+      <TextField label={t('settings.channelName')} value={name} onChange={setName} />
+      {type === 'email' ? (
+        <TextField
+          label={t('settings.channelTo')}
+          type="email"
+          value={to}
+          onChange={setTo}
+          isRequired
+        />
+      ) : (
+        <TextField
+          label={t('settings.channelUrl')}
+          type="url"
+          value={url}
+          onChange={setUrl}
+          isRequired
+          inputClassName="font-mono"
+        />
+      )}
+      {(type === 'ntfy' || type === 'gotify') && (
+        <TextField
+          label={t('settings.channelToken')}
+          value={token}
+          onChange={setToken}
+          isRequired={type === 'gotify'}
+          inputClassName="font-mono"
+        />
+      )}
+      {type === 'webhook' && (
+        <TextField
+          label={t('settings.channelSecret')}
+          value={token}
+          onChange={setToken}
+          inputClassName="font-mono"
+        />
+      )}
+      <CheckboxField
+        label={t('settings.channelEnabled')}
+        isSelected={enabled}
+        onChange={setEnabled}
+      />
+      <div className="flex gap-2">
+        <Button type="submit" variant="primary" isDisabled={action.isPending}>
+          {t('settings.save')}
+        </Button>
+        <Button onPress={onDone}>{t('actions.cancel')}</Button>
+      </div>
+    </Form>
+  );
+}
+
+function Channels() {
+  const { t } = useTranslation();
+  const channels = useQuery(channelsQuery).data ?? [];
+  const action = useChannelAction();
+  const [editing, setEditing] = useState<Channel | 'new' | null>(null);
+  return (
+    <Section
+      id="notifications"
+      title={t('settings.notifications')}
+      intro={t('settings.channelsIntro')}
+    >
+      <ul>
+        {channels.length === 0 && <li className="text-ink-muted">{t('settings.noChannels')}</li>}
+        {channels.map((c) => (
+          <li
+            key={c.id}
+            className="flex flex-wrap items-center gap-2 border-b border-line py-2 last:border-b-0"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">
+                {c.name}{' '}
+                {!c.enabled && (
+                  <span className="text-caption font-normal text-ink-muted">
+                    ({t('settings.disabled')})
+                  </span>
+                )}
+              </span>
+              <span className="text-caption text-ink-muted">
+                {t(`settings.channelTypes.${c.type}`)}
+              </span>
+              {c.lastResult && (
+                <span
+                  className={`block text-caption ${c.lastResult.status === 'failed' ? 'text-red' : 'text-ink-muted'}`}
+                >
+                  {c.lastResult.status === 'sent'
+                    ? t('settings.testSent')
+                    : t('settings.testFailed', { error: c.lastResult.error ?? '' })}
+                </span>
+              )}
+            </span>
+            <Button
+              isDisabled={action.isPending}
+              onPress={() => action.mutate({ id: c.id, action: 'test' })}
+            >
+              {t('settings.test')}
+            </Button>
+            <Button variant="ghost" onPress={() => setEditing(c)}>
+              {t('actions.edit')}
+            </Button>
+            <Button variant="ghost" onPress={() => action.mutate({ id: c.id, action: 'delete' })}>
+              {t('settings.deleteChannel')}
+            </Button>
+          </li>
+        ))}
+      </ul>
+      <Button className="mt-3" onPress={() => setEditing('new')}>
+        {t('settings.addChannel')}
+      </Button>
+      <FormDialog
+        isOpen={editing !== null}
+        onOpenChange={(o) => !o && setEditing(null)}
+        title={t('settings.addChannel')}
+      >
+        {editing !== null && (
+          <ChannelForm
+            channel={editing === 'new' ? undefined : editing}
+            onDone={() => setEditing(null)}
+          />
+        )}
+      </FormDialog>
+    </Section>
+  );
+}
+
+function Data() {
+  const { t } = useTranslation();
+  const me = useMe();
+  const restore = useRestoreBackup();
+  return (
+    <Section id="data" title={t('settings.data')} intro={t('settings.backupHint')}>
+      <a href="/api/v1/backup" className={buttonClass('secondary')} download>
+        {t('settings.backup')}
+      </a>
+      {me?.role === 'admin' && (
+        <div className="mt-4 border-t border-line pt-4">
+          <p className="mb-2 text-caption text-ink-muted">{t('settings.restoreHint')}</p>
+          <FileTrigger
+            acceptedFileTypes={['application/zip', '.zip']}
+            onSelect={(files) => files?.[0] && restore.mutate(files[0])}
+          >
+            <Button isDisabled={restore.isPending}>{t('settings.restore')}</Button>
+          </FileTrigger>
+          <ErrorNote error={restore.error} className="mt-2" />
+          {restore.isSuccess && (
+            <p role="status" className="mt-2 rounded-md bg-surface-sunken px-3 py-2">
+              {t('settings.restoreDone')}
+            </p>
+          )}
+        </div>
+      )}
+    </Section>
+  );
+}
+
+function Instance() {
+  const { t } = useTranslation();
+  const settings = useQuery(settingsQuery).data;
+  const save = useSaveSettings();
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  if (!settings) return null;
+  const val = (k: keyof typeof settings) => draft[k] ?? String(settings[k]);
+  const set = (k: string) => (v: string) => setDraft((d) => ({ ...d, [k]: v }));
+  return (
+    <Section id="instance" title={t('settings.instance')}>
+      <Form
+        onSubmit={(e: FormEvent) => {
+          e.preventDefault();
+          save.mutate({
+            currency: val('currency').toUpperCase(),
+            soonDays: Number(val('soonDays')),
+            soonDistanceMi: Number(val('soonDistanceMi')),
+            soonDistanceKm: Number(val('soonDistanceKm')),
+          });
+        }}
+        className="flex flex-col gap-4"
+      >
+        <ErrorNote error={save.error} />
+        <div className="grid gap-4 sm:grid-cols-4">
+          <TextField
+            label={t('settings.currency')}
+            value={val('currency')}
+            onChange={set('currency')}
+            inputClassName="font-mono uppercase"
+            maxLength={3}
+          />
+          <TextField
+            label={t('settings.soonDays')}
+            value={val('soonDays')}
+            onChange={set('soonDays')}
+            inputMode="numeric"
+            inputClassName="font-mono"
+          />
+          <TextField
+            label={t('settings.soonDistanceMi')}
+            value={val('soonDistanceMi')}
+            onChange={set('soonDistanceMi')}
+            inputMode="numeric"
+            inputClassName="font-mono"
+          />
+          <TextField
+            label={t('settings.soonDistanceKm')}
+            value={val('soonDistanceKm')}
+            onChange={set('soonDistanceKm')}
+            inputMode="numeric"
+            inputClassName="font-mono"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button type="submit" isDisabled={save.isPending}>
+            {t('settings.save')}
+          </Button>
+          <Saved show={save.isSuccess} />
+        </div>
+      </Form>
+    </Section>
+  );
+}
+
+function People() {
+  const { t } = useTranslation();
+  const me = useMe();
+  const users = useQuery(usersQuery).data ?? [];
+  const action = useUserAction();
+  const [adding, setAdding] = useState(false);
+  const [pw, setPw] = useState<UserAdmin | null>(null);
+  const [deleting, setDeleting] = useState<UserAdmin | null>(null);
+  const [form, setForm] = useState({ username: '', password: '', role: 'editor' as Role });
+  const [newPw, setNewPw] = useState('');
+  const roles = ROLES.map((r) => ({ value: r, label: t(`settings.roles.${r}`) }));
+  return (
+    <Section id="people" title={t('settings.users')}>
+      <ErrorNote error={action.error} className="mb-3" />
+      <ul>
+        {users.map((u) => (
+          <li
+            key={u.id}
+            className="flex flex-wrap items-end gap-2 border-b border-line py-3 last:border-b-0"
+          >
+            <span className="min-w-0 flex-1 self-center">
+              <span className="block font-semibold">
+                {u.displayName ?? u.username}{' '}
+                {u.id === me?.id && (
+                  <span className="text-caption font-normal text-ink-muted">
+                    ({t('settings.you')})
+                  </span>
+                )}
+              </span>
+              <span className="font-mono text-caption text-ink-muted">{u.username}</span>
+              {u.disabled && (
+                <span className="ml-2 text-caption font-semibold text-red">
+                  {t('settings.disabled')}
+                </span>
+              )}
+            </span>
+            <SelectField
+              label={t('settings.role')}
+              value={u.role}
+              onChange={(role) => action.mutate({ id: u.id, data: { role } })}
+              options={roles}
+              className="w-36"
+            />
+            {u.id !== me?.id && (
+              <>
+                <Button
+                  variant="ghost"
+                  onPress={() => action.mutate({ id: u.id, data: { disabled: !u.disabled } })}
+                >
+                  {u.disabled ? t('settings.enable') : t('settings.disable')}
+                </Button>
+                <Button
+                  variant="ghost"
+                  onPress={() => {
+                    setNewPw('');
+                    setPw(u);
+                  }}
+                >
+                  {t('settings.resetPassword')}
+                </Button>
+                <Button variant="ghost" onPress={() => setDeleting(u)}>
+                  {t('settings.deleteUser')}
+                </Button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+      <Button className="mt-3" onPress={() => setAdding(true)}>
+        {t('settings.addUser')}
+      </Button>
+      <FormDialog isOpen={adding} onOpenChange={setAdding} title={t('settings.addUser')}>
+        <Form
+          onSubmit={(e: FormEvent) => {
+            e.preventDefault();
+            action.mutate(
+              { data: { ...form, password: form.password || undefined } },
+              {
+                onSuccess: () => {
+                  setAdding(false);
+                  setForm({ username: '', password: '', role: 'editor' });
+                },
+              },
+            );
+          }}
+          className="flex flex-col gap-4"
+        >
+          <ErrorNote error={action.error} />
+          <TextField
+            label={t('settings.username')}
+            value={form.username}
+            onChange={(v) => setForm((f) => ({ ...f, username: v }))}
+            isRequired
+            autoFocus
+          />
+          <TextField
+            label={t('auth.password')}
+            description={t('auth.passwordHint')}
+            type="password"
+            value={form.password}
+            onChange={(v) => setForm((f) => ({ ...f, password: v }))}
+            autoComplete="new-password"
+          />
+          <SelectField
+            label={t('settings.role')}
+            description={t(`settings.roleHints.${form.role}`)}
+            value={form.role}
+            onChange={(v) => setForm((f) => ({ ...f, role: v }))}
+            options={roles}
+          />
+          <div className="flex gap-2">
+            <Button type="submit" variant="primary" isDisabled={action.isPending}>
+              {t('settings.addUser')}
+            </Button>
+            <Button onPress={() => setAdding(false)}>{t('actions.cancel')}</Button>
+          </div>
+        </Form>
+      </FormDialog>
+      <ConfirmDialog
+        isOpen={pw !== null}
+        onOpenChange={(o) => !o && setPw(null)}
+        title={t('settings.resetPassword')}
+        confirmLabel={t('settings.save')}
+        confirmVariant="primary"
+        onConfirm={() =>
+          pw &&
+          newPw.length >= 10 &&
+          action.mutate({ id: pw.id, data: { password: newPw } }, { onSuccess: () => setPw(null) })
+        }
+      >
+        <TextField
+          label={t('settings.newPassword')}
+          description={t('auth.passwordHint')}
+          type="password"
+          value={newPw}
+          onChange={setNewPw}
+          autoComplete="new-password"
+        />
+      </ConfirmDialog>
+      <ConfirmDialog
+        isOpen={deleting !== null}
+        onOpenChange={(o) => !o && setDeleting(null)}
+        title={t('settings.deleteUserTitle', { name: deleting?.username ?? '' })}
+        confirmLabel={t('settings.deleteUser')}
+        onConfirm={() =>
+          deleting &&
+          action.mutate({ id: deleting.id, remove: true }, { onSuccess: () => setDeleting(null) })
+        }
+      >
+        {t('settings.deleteUserBody')}
+      </ConfirmDialog>
+    </Section>
+  );
+}
 
 function SettingsPage() {
   const { t } = useTranslation();
-  const { theme, setTheme } = useTheme();
-  const config = useQuery(configQuery);
-
+  const me = useMe();
+  const config = useQuery(configQuery).data;
+  const logout = useLogout();
   return (
-    <>
+    <div className="flex max-w-3xl flex-col gap-6">
       <PageHeader title={t('nav.settings')} />
-      <section className="max-w-xl rounded-lg border border-line bg-surface-raised p-4">
-        <RadioGroup
-          value={theme}
-          onChange={(v) => setTheme(v as ThemePreference)}
-          orientation="horizontal"
-          className="flex flex-col gap-2"
-        >
-          <Label className="text-label">{t('theme.label')}</Label>
-          <div className="inline-flex w-fit gap-1 rounded-md bg-surface-sunken p-1">
-            {THEMES.map((value) => (
-              <Radio
-                key={value}
-                value={value}
-                className="min-h-9 cursor-pointer rounded-sm px-3 py-1.5 text-label text-ink-muted data-[focus-visible]:outline-2 data-[focus-visible]:outline-offset-2 data-[focus-visible]:outline-focus data-[focus-visible]:outline-solid data-[selected]:bg-surface-raised data-[selected]:text-ink data-[selected]:shadow-card"
-              >
-                {t(`theme.${value}`)}
-              </Radio>
-            ))}
-          </div>
-        </RadioGroup>
-      </section>
-      {config.data && (
-        <p className="mt-6 font-mono text-xs text-ink-muted">
-          {t('settings.version', { version: config.data.version })}
+      <Profile />
+      <Password />
+      <Channels />
+      <Tokens />
+      <Data />
+      {me?.role === 'admin' && <Instance />}
+      {me?.role === 'admin' && <People />}
+      <Section id="about" title={t('settings.about')}>
+        <p className="font-mono text-data">
+          {t('settings.version', { version: config?.version ?? '' })}
         </p>
-      )}
-    </>
+        <p className="mt-1 text-caption text-ink-muted">
+          {t('settings.license')} ·{' '}
+          <a
+            href="https://github.com/aubergine-ux/axlebook"
+            className="text-orange-text underline-offset-2 hover:underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t('settings.source')}
+          </a>
+        </p>
+        <Button className="mt-4 md:hidden" onPress={() => logout.mutate()}>
+          {t('nav.signOut')}
+        </Button>
+      </Section>
+    </div>
   );
 }
