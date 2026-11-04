@@ -420,7 +420,11 @@ export function matchExisting(key: string, vehicles: ExistingVehicle[]): Existin
     )
       return true;
     if (p.model && squash(p.model) === squash(v.model)) {
-      return (!p.year || p.year === v.year) && (!p.make || p.make === v.make);
+      // Two different trims ("EX" vs "Si") are two different cars; "EX" vs "EX-L" may be one.
+      const a = squash(p.trim ?? '');
+      const b = squash(v.trim ?? '');
+      const trimsDiffer = a !== '' && b !== '' && !a.startsWith(b) && !b.startsWith(a);
+      return !trimsDiffer && (!p.year || p.year === v.year) && (!p.make || p.make === v.make);
     }
     return squash(`${v.year}${v.make}${v.model}`) === k || squash(`${v.make}${v.model}`) === k;
   });

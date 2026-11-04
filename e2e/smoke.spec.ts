@@ -97,3 +97,36 @@ test('the API docs and a backup are available', async ({ page }, info) => {
   const backup = await page.request.get('/api/v1/backup');
   expect(backup.headers()['content-type']).toBe('application/zip');
 });
+
+test('import a spreadsheet covering two vehicles, then add a maintenance schedule', async ({
+  page,
+}) => {
+  const p = test.info().project.name;
+  await signIn(page);
+  await page.goto('/import');
+  const csv = [
+    'Date,Vehicle,Odometer,Gallons,Total,Work',
+    `1/5/2024,2018 Honda Civic ${p},40100,9.2,31.20,`,
+    `2/9/2024,2018 Honda Civic ${p},40400,,89.99,Oil change`,
+    `3/1/2024,2019 Ski-Doo Summit ${p},,,120.00,Pre-season check`,
+  ].join('\n');
+  await page
+    .locator('input[type="file"]')
+    .setInputFiles({ name: 'garage.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) });
+  await expect(page.getByText('Columns matched automatically. Check them below.')).toBeVisible();
+  await page.getByRole('button', { name: 'Preview' }).click();
+  await expect(page.getByText('3 of 3 rows are ready to import.')).toBeVisible();
+  await page.getByRole('button', { name: 'Import everything' }).click();
+  await expect(page.getByText('Imported 3 records (0 were already here).')).toBeVisible();
+
+  await page.getByRole('link', { name: `2018 Honda Civic ${p}` }).click();
+  await expect(page.getByRole('heading', { level: 1, name: /Civic/ })).toBeVisible();
+  await page.goto(`${page.url()}/reminders`);
+  await page.getByRole('button', { name: 'Suggest a maintenance schedule' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('Oil and filter change')).toBeVisible();
+  await expect(dialog.getByText(/Last done/).first()).toBeVisible();
+  await dialog.getByRole('button', { name: /^Add \d+ reminders?$/ }).click();
+  await expect(page.getByText(/^Added \d+ reminders?\.$/)).toBeVisible();
+  await expect(page.getByText('Oil and filter change')).toBeVisible();
+});

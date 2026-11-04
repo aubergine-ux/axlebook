@@ -321,6 +321,12 @@ describe('plans', () => {
     expect(matchPlan(wb, opts({ existing })).vehicles[0]?.existingVehicleId).toBe(7);
     const wb2 = [{ name: '2015 Tacoma', rows: wb[0]?.rows ?? [] }];
     expect(matchPlan(wb2, opts({ existing })).vehicles[0]?.existingVehicleId).toBe(7);
+    // A different trim is a different truck.
+    const sr5 = [{ ...existing[0], trim: 'SR5' }] as typeof existing;
+    const trd = [{ name: '2015 Toyota Tacoma TRD Pro', rows: wb[0]?.rows ?? [] }];
+    expect(matchPlan(trd, opts({ existing: sr5 })).vehicles[0]?.existingVehicleId).toBeNull();
+    const sr5Key = [{ name: '2015 Toyota Tacoma SR5', rows: wb[0]?.rows ?? [] }];
+    expect(matchPlan(sr5Key, opts({ existing: sr5 })).vehicles[0]?.existingVehicleId).toBe(7);
   });
 
   it('reads engine-hour logs and kWh charging logs', () => {
