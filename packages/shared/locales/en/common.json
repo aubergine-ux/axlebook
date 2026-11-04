@@ -31,5 +31,8 @@
     "payload_too_large": "That file is too large.",
     "internal": "Something went wrong on the server.",
     "network": "Can't reach the server."
+  },
+  "settings": {
+    "version": "Axlebook {{version}}"
   }
 }

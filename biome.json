@@ -1,6 +1,10 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
     "includes": [
       "**",
@@ -12,8 +16,18 @@
     ]
   },
   "plugins": ["./tools/biome/no-untranslated-attrs.grit"],
-  "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
-  "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "always" } },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always"
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {
@@ -21,7 +35,9 @@
       "style": {
         "noJsxLiterals": {
           "level": "error",
-          "options": { "allowedStrings": ["·", "—", "/", "(", ")", ":", "%", "+", "−", "×"] }
+          "options": {
+            "allowedStrings": ["\u00b7", "\u2014", "/", "(", ")", ":", "%", "+", "\u2212", "\u00d7"]
+          }
         }
       }
     }
@@ -29,8 +45,26 @@
   "overrides": [
     {
       "includes": ["**/*.test.ts", "**/*.test.tsx", "e2e/**", "tools/**", "**/seed/**"],
-      "linter": { "rules": { "style": { "noJsxLiterals": "off" } } }
+      "linter": {
+        "rules": {
+          "style": {
+            "noJsxLiterals": "off"
+          }
+        }
+      }
     }
   ],
-  "assist": { "enabled": true, "actions": { "source": { "organizeImports": "on" } } }
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  }
 }

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#F7F5F0" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#12161C" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/brand/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+    <title>Axlebook</title>
+    <script>
+      // Apply the saved theme before first paint to avoid a flash.
+      try {
+        const saved = localStorage.getItem('axlebook.theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

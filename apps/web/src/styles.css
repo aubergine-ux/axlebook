@@ -1,0 +1,59 @@
+@import "tailwindcss";
+@import "../../../logo-assets/color/tokens.css";
+
+/* Map design tokens (which switch with the theme) to Tailwind utilities. */
+@theme inline {
+  --color-bg: var(--ab-bg);
+  --color-surface: var(--ab-surface);
+  --color-raised: var(--ab-raised);
+  --color-fg: var(--ab-text);
+  --color-muted: var(--ab-muted);
+  --color-line: var(--ab-border);
+  --color-line-strong: var(--ab-border-strong);
+  --color-accent: var(--ab-accent);
+  --color-on-accent: var(--ab-on-accent);
+  --color-accent-fg: var(--ab-accent-text);
+  --color-focus: var(--ab-focus);
+  --color-overdue: var(--ab-overdue);
+  --color-overdue-bg: var(--ab-overdue-bg);
+  --color-soon: var(--ab-soon);
+  --color-soon-bg: var(--ab-soon-bg);
+  --color-ok: var(--ab-ok);
+  --color-ok-bg: var(--ab-ok-bg);
+  --color-info: var(--ab-info);
+  --color-info-bg: var(--ab-info-bg);
+  --font-sans: var(--ab-font-sans);
+  --font-mono: var(--ab-font-mono);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    min-height: 100dvh;
+  }
+  :focus-visible {
+    outline: 3px solid var(--ab-focus);
+    outline-offset: 2px;
+  }
+  /* Header logo: show the variant matching the active theme. */
+  .logo-dark {
+    display: none;
+  }
+  :root[data-theme="dark"] .logo-light {
+    display: none;
+  }
+  :root[data-theme="dark"] .logo-dark {
+    display: inline-block;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .logo-light {
+      display: none;
+    }
+    :root:not([data-theme="light"]) .logo-dark {
+      display: inline-block;
+    }
+  }
+}
