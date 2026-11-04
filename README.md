@@ -1,43 +1,97 @@
-# Axlebook
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="logo-assets/social/readme-banner-dark-1600x400.png">
+  <img alt="Axlebook" src="logo-assets/social/readme-banner-light-1600x400.png">
+</picture>
 
-**A self-hosted logbook for your vehicles.** Track service, repairs, upgrades, fuel, and running
-costs, and get reminded before things are due. Your data stays on your server.
+<h3 align="center">Every mile, on the record.</h3>
 
-> **Status: early development.** The foundation is in place (API server, database, web app
-> shell, Docker image). Features are landing in the order shown under [Roadmap](#roadmap).
-> Don't run it for real records yet.
+<p align="center">
+  A self-hosted, open-source maintenance logbook for your cars, trucks and bikes.<br>
+  Service history, honest fuel economy, reminders that know your odometer, and every receipt in one place, on <b>your</b> server.
+</p>
 
-<!-- Screenshots: add images to docs/screenshots/ and reference them here. -->
-| Garage              | Vehicle history     | Log fuel (phone)    |
-| ------------------- | ------------------- | ------------------- |
-| _screenshot coming_ | _screenshot coming_ | _screenshot coming_ |
+<p align="center">
+  <a href="https://github.com/aubergine-ux/axlebook/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/aubergine-ux/axlebook/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-1c1f22?labelColor=1c1f22&color=ff8a00"></a>
+  <img alt="Self-hosted" src="https://img.shields.io/badge/self--hosted-docker%20compose-1c1f22?labelColor=1c1f22&color=5b6168">
+  <img alt="No telemetry" src="https://img.shields.io/badge/telemetry-none-1c1f22?labelColor=1c1f22&color=5b6168">
+  <img alt="SQLite or Postgres" src="https://img.shields.io/badge/database-SQLite%20%7C%20Postgres-1c1f22?labelColor=1c1f22&color=5b6168">
+</p>
 
-## Features
+<p align="center">
+  <a href="#quick-start"><b>Quick start</b></a> ·
+  <a href="#what-it-does">Features</a> ·
+  <a href="#screenshots">Screenshots</a> ·
+  <a href="#roadmap">Roadmap</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
 
-- **Garage view:** a card for each vehicle with photo, odometer, next reminder, and cost to date.
-- **Records:** service, repairs, upgrades, fuel fill-ups, taxes, registration, insurance, and
-  other costs, each with date, odometer, cost, notes, tags, and attachments (receipts, photos,
-  PDFs).
-- **Accurate fuel economy:** full-to-full MPG (or L/100 km) that handles partial fills and
-  missed fill-ups correctly.
-- **Reminders** by date, distance, or whichever comes first, with recurring intervals. A
-  reminder resets when you log the work. Optional email and webhook notifications (ntfy,
-  Gotify, Discord, generic).
-- **Odometer log** that updates automatically from any record with a reading.
-- **Parts and supplies inventory**, deducted when used in a record.
-- **Planner** for upcoming jobs, which turn into records once done.
-- **Reports:** cost by month and category, cost per mile, MPG trends, and lifetime totals.
-  Printable and exportable.
-- **Import/export:** CSV per record type, full backup and restore, and an experimental
-  LubeLogger importer.
-- **Multi-user:** admin, editor, and viewer roles, per-vehicle sharing, and optional OIDC login
-  (Authentik, Authelia, Keycloak, …).
-- **REST API** for everything, documented with OpenAPI at `/api/docs`.
-- **Phone-first and installable:** logging fuel at the pump takes seconds, and it works as a PWA.
-- Dark and light themes, imperial or metric units, any currency, keyboard-accessible, and
-  translatable.
-- **Private by design:** no telemetry and no calls to outside services unless you configure
-  notifications.
+<br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/garage-dark.png">
+  <img alt="The Axlebook garage: a card for each vehicle with its odometer, next reminder and money spent" src="docs/screenshots/garage-light.png">
+</picture>
+
+> [!NOTE]
+> **Axlebook is in early development.** The foundation and the garage are built; records, fuel,
+> reminders and the rest are landing one by one (see the [roadmap](#roadmap)). Star or watch
+> the repo to follow along, but hold off on trusting it with your only copy of your records.
+
+## Why Axlebook
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <img src="logo-assets/icons/png/orange/garage-96.png" width="32" alt=""><br>
+      <b>Your garage, your server</b><br>
+      One <code>docker compose up</code>. SQLite by default, Postgres if you prefer. No accounts with us, no telemetry, no calls to anyone else's servers. Your logbook stays on your hardware.
+    </td>
+    <td width="33%" valign="top">
+      <img src="logo-assets/icons/png/orange/fuel-96.png" width="32" alt=""><br>
+      <b>Honest fuel economy</b><br>
+      Full-to-full MPG (or L/100 km) that handles partial fills and the fill-up you forgot to log, instead of quietly averaging nonsense.
+    </td>
+    <td width="33%" valign="top">
+      <img src="logo-assets/icons/png/orange/reminder-96.png" width="32" alt=""><br>
+      <b>Reminders that know your odometer</b><br>
+      Due by date, by distance, or whichever comes first. Log the oil change and the next one schedules itself. Email, ntfy, Gotify, Discord or a webhook.
+    </td>
+  </tr>
+</table>
+
+## What it does
+
+|                                                                            | Feature                                                                                                                            |         |
+| :------------------------------------------------------------------------: | ---------------------------------------------------------------------------------------------------------------------------------- | :-----: |
+| <img src="logo-assets/icons/png/orange/vehicle-96.png" width="24" alt="">  | **Garage.** A card per vehicle with photo, odometer, next reminder and cost to date. Archive the ones you've sold.                 |  Ready  |
+| <img src="logo-assets/icons/png/orange/service-96.png" width="24" alt="">  | **Records.** Service, repairs, upgrades, taxes, registration and insurance, with tags, notes, and receipts or photos attached.     | Next up |
+| <img src="logo-assets/icons/png/orange/odometer-96.png" width="24" alt=""> | **Odometer log.** Every record with a reading updates it, shown like the instrument cluster you read it from.                      | Next up |
+|   <img src="logo-assets/icons/png/orange/fuel-96.png" width="24" alt="">   | **Fuel.** Gallons or liters, price, full-tank flag. Logging at the pump takes seconds, even offline.                               | Planned |
+| <img src="logo-assets/icons/png/orange/reminder-96.png" width="24" alt=""> | **Reminders.** Date, distance or both; recurring; upcoming, due soon and overdue at a glance.                                      | Planned |
+|  <img src="logo-assets/icons/png/orange/parts-96.png" width="24" alt="">   | **Parts and supplies.** Inventory with cost, deducted automatically when you use them.                                             | Planned |
+| <img src="logo-assets/icons/png/orange/planner-96.png" width="24" alt="">  | **Planner.** Jobs you mean to do, turned into records when they're done.                                                           | Planned |
+| <img src="logo-assets/icons/png/orange/reports-96.png" width="24" alt="">  | **Reports.** Cost per month and category, cost per mile, MPG trends, lifetime totals. Printable.                                   | Planned |
+|  <img src="logo-assets/icons/png/orange/export-96.png" width="24" alt="">  | **Import and export.** CSV per record type, full backup and restore, and an importer for LubeLogger exports.                       | Planned |
+| <img src="logo-assets/icons/png/orange/settings-96.png" width="24" alt=""> | **Household-ready.** Admin, editor and viewer roles, per-vehicle sharing, optional single sign-on (Authentik, Authelia, Keycloak). | Planned |
+|  <img src="logo-assets/icons/png/orange/search-96.png" width="24" alt="">  | **REST API.** Everything the app can do, documented with OpenAPI at `/api/docs`.                                                   |  Ready  |
+
+Also on the list: dark and light themes, imperial or metric, any currency, installable on your phone as an app, full keyboard access, and every string ready for translation.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="68%" valign="top">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/vehicle-dark.png">
+        <img alt="A vehicle's page with its details" src="docs/screenshots/vehicle-light.png">
+      </picture>
+    </td>
+    <td width="16%" valign="top"><img alt="Garage on a phone, dark theme" src="docs/screenshots/phone-garage.png"></td>
+    <td width="16%" valign="top"><img alt="Adding a vehicle on a phone" src="docs/screenshots/phone-form.png"></td>
+  </tr>
+</table>
 
 ## Quick start
 
@@ -49,16 +103,14 @@ cd axlebook
 docker compose up -d
 ```
 
-Then open **http://localhost:8080**. Data lives in the `axlebook-data` Docker volume.
+Open **http://localhost:8080** and add your first vehicle. Everything lives in the `axlebook-data` volume.
 
-To try it with sample data (a 2015 Toyota Tacoma and a 2018 Honda Civic with a few years of
-history), add `SEED_DEMO_DATA=true` to `.env` before the first start. _(The demo seed ships
-with the first release.)_
+<details>
+<summary><b>Run the published image instead of building</b></summary>
 
-### Using the published image
+<br>
 
-Release images for `linux/amd64` and `linux/arm64` are published to GitHub Container Registry. If
-you don't want to clone the repo, save this as `docker-compose.yml`:
+Release images for `linux/amd64` and `linux/arm64` are published to GitHub Container Registry with every tagged release.
 
 ```yaml
 services:
@@ -74,103 +126,106 @@ services:
 volumes:
   axlebook-data:
 ```
+</details>
 
-### Using Postgres instead of SQLite
+<details>
+<summary><b>Use Postgres instead of SQLite</b></summary>
 
-SQLite is the default and fine for a household. To use Postgres:
+<br>
+
+SQLite is the default and plenty for a household. For Postgres:
 
 ```bash
 POSTGRES_PASSWORD=pick-something docker compose -f docker-compose.yml -f docker-compose.postgres.yml up -d
 ```
 
-Or point `DATABASE_URL` at an existing server. Migrations run automatically on startup with
-either database.
+Or point `DATABASE_URL` at a server you already run. Migrations run automatically on startup either way.
+</details>
 
-### Behind a reverse proxy
+<details>
+<summary><b>Behind a reverse proxy</b></summary>
 
-Set `BASE_URL` to the public URL and `TRUST_PROXY=true`. Axlebook rejects state-changing
-requests whose `Origin` doesn't match `BASE_URL` (CSRF protection), so the URL must match exactly
-what users type: scheme, host, and port.
+<br>
+
+Set `BASE_URL` to the public URL and `TRUST_PROXY=true`. Axlebook rejects state-changing requests whose `Origin` doesn't match `BASE_URL` (CSRF protection), so it must be exactly what people type: scheme, host and port.
+</details>
 
 ## Configuration
 
-All settings are environment variables and all are optional. Put them in `.env` next to
-`docker-compose.yml`. [`.env.example`](.env.example) lists every one with comments.
+Everything is an environment variable and everything is optional. Put them in `.env` next to `docker-compose.yml`; [`.env.example`](.env.example) lists each one with a comment.
 
-| Variable              | Default    | Description                                                                                      |
-| --------------------- | ---------- | ------------------------------------------------------------------------------------------------ |
-| `PORT`                | `8080`     | Port the server listens on inside the container                                                  |
-| `AXLEBOOK_PORT`       | `8080`     | Host port published by `docker-compose.yml`                                                      |
-| `BASE_URL`            | (unset)    | Public URL, e.g. `https://cars.example.com`. Pins the CSRF origin check; used in emails and OIDC |
-| `TRUST_PROXY`         | `false`    | Trust `X-Forwarded-*` headers from a reverse proxy                                               |
-| `LOG_LEVEL`           | `info`     | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`                                     |
-| `DATA_DIR`            | `/data`    | SQLite database and attachments                                                                  |
-| `DATABASE_URL`        | (unset)    | `postgres://…` to use Postgres; unset means SQLite in `DATA_DIR`                                 |
-| `MAX_UPLOAD_MB`       | `25`       | Maximum size of a single attachment                                                              |
-| `DEFAULT_UNIT_SYSTEM` | `imperial` | `imperial` or `metric`, for new users                                                            |
-| `DEFAULT_CURRENCY`    | `USD`      | ISO 4217 code. Instance-wide; admins can change it later                                         |
-| `DEFAULT_LOCALE`      | `en`       | Interface language for new users                                                                 |
-| `SEED_DEMO_DATA`      | `false`    | Seed demo vehicles on startup (skipped if they already exist)                                    |
+| Variable              | Default    | What it does                                                                        |
+| --------------------- | ---------- | ----------------------------------------------------------------------------------- |
+| `PORT`                | `8080`     | Port inside the container                                                           |
+| `AXLEBOOK_PORT`       | `8080`     | Host port published by `docker-compose.yml`                                         |
+| `BASE_URL`            |            | Public URL, e.g. `https://cars.example.com`. Pins the CSRF origin check             |
+| `TRUST_PROXY`         | `false`    | Trust `X-Forwarded-*` headers from a reverse proxy                                  |
+| `LOG_LEVEL`           | `info`     | `fatal` · `error` · `warn` · `info` · `debug` · `trace` · `silent`                  |
+| `DATA_DIR`            | `/data`    | SQLite database, photos and attachments                                             |
+| `DATABASE_URL`        |            | `postgres://…` to use Postgres; unset means SQLite in `DATA_DIR`                    |
+| `MAX_UPLOAD_MB`       | `25`       | Largest single upload                                                               |
+| `DEFAULT_UNIT_SYSTEM` | `imperial` | `imperial` or `metric` for new users                                                |
+| `DEFAULT_CURRENCY`    | `USD`      | ISO 4217 code, used across the instance                                             |
+| `DEFAULT_LOCALE`      | `en`       | Interface language for new users                                                    |
+| `SEED_DEMO_DATA`      | `false`    | Seed a 2015 Tacoma and a 2018 Civic with history _(arrives with the first release)_ |
 
-Settings for login (OIDC), email, and notifications will be added as those features land.
+Settings for sign-in, email and notifications are added as those features land.
 
 ## Backups
 
-Everything Axlebook stores is in the data volume (the SQLite database and the attachments) or,
-with Postgres, the database plus the volume's `attachments/` folder.
-
-**SQLite (default)**
+All of Axlebook's state is in the data volume (with Postgres: the database plus the volume's photos and attachments).
 
 ```bash
-docker compose stop axlebook                       # stop first so the database is consistent
+# SQLite (default): stop, copy, start
+docker compose stop axlebook
 docker compose cp axlebook:/data ./axlebook-backup-$(date +%F)
 docker compose start axlebook
 ```
 
-To restore, stop the container, copy the folder back with
-`docker compose cp ./axlebook-backup-YYYY-MM-DD/. axlebook:/data`, and start it again.
-
-**Postgres**
+Restore by stopping the container, running `docker compose cp ./axlebook-backup-YYYY-MM-DD/. axlebook:/data`, and starting it again.
 
 ```bash
+# Postgres
 docker compose exec db pg_dump -U axlebook axlebook > axlebook-$(date +%F).sql
-docker compose cp axlebook:/data/attachments ./attachments-$(date +%F)
+docker compose cp axlebook:/data ./axlebook-files-$(date +%F)
 ```
 
-A one-click full backup and restore (JSON plus attachments, portable between SQLite and
-Postgres) is planned. See [Roadmap](#roadmap).
+A one-click backup and restore that moves between SQLite and Postgres is on the [roadmap](#roadmap).
 
 ## API
 
-The REST API is under `/api/v1`. Interactive docs are at **`/api/docs`** and the OpenAPI document
-at `/api/openapi.json`. Errors always have the shape `{ "error": { "code": "…", "params": {…} } }`.
+Everything is under `/api/v1`. Browse the interactive docs at **`/api/docs`** on your instance, or grab the spec from `/api/openapi.json`. Errors always look like `{ "error": { "code": "…", "params": { … } } }`.
 
 ## Roadmap
 
-1. ✅ Foundation: API server, SQLite and Postgres, migrations, web shell, PWA, Docker, CI
-2. Vehicles and garage view
-3. Service, repair, upgrade, and expense records with tags and attachments
-4. Odometer log, fuel fill-ups, and fuel economy
-5. Reminders
-6. Parts inventory and planner
-7. Reports
-8. Import/export, backup and restore, LubeLogger import, and search
-9. Accounts, roles, sharing, API tokens, and OIDC
-10. Notifications (email, ntfy, Gotify, Discord, webhooks)
-11. Demo data and first release
-12. Offline fuel entry (queue at the pump, sync later)
+- [x] Foundation: API, SQLite and Postgres, automatic migrations, installable web app, Docker image, CI
+- [x] Garage and vehicles, with photos
+- [ ] Service, repair, upgrade and expense records with tags and attachments
+- [ ] Odometer log, fuel fill-ups and fuel economy
+- [ ] Reminders
+- [ ] Parts inventory and planner
+- [ ] Reports
+- [ ] Import/export, backup and restore, LubeLogger import, search
+- [ ] Accounts, roles, sharing, API tokens and single sign-on
+- [ ] Notifications: email, ntfy, Gotify, Discord, webhooks
+- [ ] Demo data and the first tagged release
+- [ ] Offline fuel entry: log at the pump with no signal, sync later
 
-## Development
+## Built with
 
-```bash
-npm ci
-npm run dev       # API on :8080, web on :5173
-npm test
-```
+TypeScript end to end: [Fastify](https://fastify.dev) and [Kysely](https://kysely.dev) on the server, [React](https://react.dev), [TanStack Router](https://tanstack.com/router) and [React Aria](https://react-spectrum.adobe.com/react-aria/) in the browser, and [Tailwind CSS](https://tailwindcss.com) driven by the [Axlebook brand tokens](logo-assets/tokens.json). Type is set in Archivo and IBM Plex Mono, both self-hosted.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, conventions, and how to add a translation.
+## Contributing
+
+Bug reports, translations, docs and code are all welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the dev setup (`npm ci && npm run dev`), the conventions and how to add a language. Please read the [code of conduct](CODE_OF_CONDUCT.md) too.
 
 ## License
 
-[AGPL-3.0](LICENSE). You can use, modify, and self-host Axlebook freely. If you run a modified
-version as a service for others, you must share your changes under the same license.
+[AGPL-3.0](LICENSE). Use it, change it and host it freely. If you run a modified version as a service for other people, share your changes under the same license.
+
+<br>
+
+<p align="center">
+  <img src="logo-assets/logo/svg/axlebook-mark-flat.svg" width="40" alt=""><br>
+  <sub>Axlebook · every mile, on the record</sub>
+</p>
