@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/dev-dist
+**/coverage
+data
+.git
+.github
+.env
+*.db
+*.db-*
+apps/web/public/brand
+playwright-report
+test-results
+**/.fuse_hidden*

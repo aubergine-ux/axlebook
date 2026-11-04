@@ -1,0 +1,27 @@
+# Optional Postgres backend. Use together with the main file:
+#   docker compose -f docker-compose.yml -f docker-compose.postgres.yml up -d
+services:
+  axlebook:
+    environment:
+      DATABASE_URL: postgres://axlebook:${POSTGRES_PASSWORD:-change-me}@db:5432/axlebook
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: axlebook
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: axlebook
+    volumes:
+      - axlebook-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U axlebook -d axlebook"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  axlebook-pg:

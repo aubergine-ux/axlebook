@@ -1,0 +1,21 @@
+# Quick start: `docker compose up -d`, then open http://localhost:8080
+# This file builds from source. To run the published image instead, see README.md.
+services:
+  axlebook:
+    build:
+      context: .
+      args:
+        AXLEBOOK_VERSION: ${AXLEBOOK_VERSION:-dev}
+    image: axlebook:local
+    container_name: axlebook
+    restart: unless-stopped
+    ports:
+      - "${AXLEBOOK_PORT:-8080}:8080"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - axlebook-data:/data
+
+volumes:
+  axlebook-data:
