@@ -35,6 +35,7 @@ npm run lint         # Biome: lint + format check (npm run lint:fix to auto-fix)
 npm run typecheck
 npm test             # unit + API integration tests (SQLite, in memory)
 npm run test:pg      # same API tests against Postgres (needs TEST_DATABASE_URL)
+npm run e2e          # builds, then runs browser smoke tests (npx playwright install chromium once)
 ```
 
 CI runs all of these, including the Postgres suite.
