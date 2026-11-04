@@ -25,11 +25,15 @@ function apply(theme: ThemePreference) {
 
 const ThemeContext = createContext<{
   theme: ThemePreference;
-  setTheme: (t: ThemePreference) => void;
+  /** `persist: false` applies a theme without recording it as this device's own choice. */
+  setTheme: (t: ThemePreference, opts?: { persist?: boolean }) => void;
+  /** Whether this browser has an explicit choice saved. */
+  hasLocalChoice: boolean;
 } | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemePreference>(readStored);
+  const [hasLocalChoice, setHasLocalChoice] = useState(() => readStored() !== 'system');
 
   useEffect(() => {
     apply(theme);
@@ -40,8 +44,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mq.removeEventListener('change', onChange);
   }, [theme]);
 
-  const setTheme = useCallback((t: ThemePreference) => {
+  const setTheme = useCallback((t: ThemePreference, opts: { persist?: boolean } = {}) => {
     setThemeState(t);
+    if (opts.persist === false) return;
+    setHasLocalChoice(t !== 'system');
     try {
       if (t === 'system') localStorage.removeItem(STORAGE_KEY);
       else localStorage.setItem(STORAGE_KEY, t);
@@ -50,7 +56,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme, hasLocalChoice }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {

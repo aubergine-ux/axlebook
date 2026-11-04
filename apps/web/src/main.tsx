@@ -1,14 +1,30 @@
 import './styles.css';
 import './i18n';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { ApiRequestError } from './api/client';
 import { routeTree } from './routeTree.gen';
 import { ThemeProvider } from './theme/theme';
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
+  defaultOptions: {
+    queries: {
+      // Don't retry auth or permission failures.
+      retry: (count, err) =>
+        !(err instanceof ApiRequestError && err.status >= 400 && err.status < 500) && count < 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+  queryCache: new QueryCache({
+    // A session that expired mid-use sends everyone back to sign in.
+    onError: (err, query) => {
+      if (err instanceof ApiRequestError && err.status === 401 && query.queryKey[0] !== 'auth') {
+        void queryClient.invalidateQueries({ queryKey: ['auth'] });
+      }
+    },
+  }),
 });
 
 const router = createRouter({
