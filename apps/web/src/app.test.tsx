@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { routeTree } from './routeTree.gen';
+import { mockApi } from './test-utils';
 import { ThemeProvider } from './theme/theme';
 
 function renderAt(path: string) {
@@ -23,17 +24,18 @@ function renderAt(path: string) {
 }
 
 beforeEach(() => {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async () =>
-      Response.json({
-        version: 'test',
-        currency: 'USD',
-        defaultUnitSystem: 'imperial',
-        defaultLocale: 'en',
-      }),
-    ),
-  );
+  mockApi({
+    'GET /api/v1/vehicles': [],
+    'GET /api/v1/me/tokens': [],
+    'GET /api/v1/me/channels': [],
+    'GET /api/v1/settings': {
+      currency: 'USD',
+      soonDays: 30,
+      soonDistanceMi: 500,
+      soonDistanceKm: 800,
+    },
+    'GET /api/v1/users': [],
+  });
 });
 afterEach(() => {
   vi.unstubAllGlobals();

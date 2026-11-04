@@ -32,7 +32,11 @@ function GaragePage() {
           </LinkButton>
         }
       />
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <LinkButton to="/parts" variant="ghost">
+          <Icon name="parts" size={16} />
+          {t('garage.parts')}
+        </LinkButton>
         <Switch
           isSelected={archived}
           onChange={(on) => navigate({ search: on ? { archived: true } : {}, replace: true })}

@@ -10,16 +10,46 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LogRouteImport } from './routes/log'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PartsRouteImport } from './routes/parts'
 import { Route as RemindersRouteImport } from './routes/reminders'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SetupRouteImport } from './routes/setup'
+import { Route as RecordsRecordIdRouteImport } from './routes/records/$recordId'
+import { Route as VehiclesVehicleIdRouteRouteImport } from './routes/vehicles/$vehicleId/route'
 import { Route as VehiclesNewRouteImport } from './routes/vehicles/new'
 import { Route as VehiclesVehicleIdIndexRouteImport } from './routes/vehicles/$vehicleId/index'
 import { Route as VehiclesVehicleIdEditRouteImport } from './routes/vehicles/$vehicleId/edit'
+import { Route as VehiclesVehicleIdFuelRouteImport } from './routes/vehicles/$vehicleId/fuel'
+import { Route as VehiclesVehicleIdImportRouteImport } from './routes/vehicles/$vehicleId/import'
+import { Route as VehiclesVehicleIdOdometerRouteImport } from './routes/vehicles/$vehicleId/odometer'
+import { Route as VehiclesVehicleIdPlanRouteImport } from './routes/vehicles/$vehicleId/plan'
+import { Route as VehiclesVehicleIdRemindersRouteImport } from './routes/vehicles/$vehicleId/reminders'
+import { Route as VehiclesVehicleIdSharingRouteImport } from './routes/vehicles/$vehicleId/sharing'
+import { Route as VehiclesVehicleIdRecordsIndexRouteImport } from './routes/vehicles/$vehicleId/records/index'
+import { Route as VehiclesVehicleIdRecordsNewRouteImport } from './routes/vehicles/$vehicleId/records/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogRoute = LogRouteImport.update({
+  id: '/log',
+  path: '/log',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartsRoute = PartsRouteImport.update({
+  id: '/parts',
+  path: '/parts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RemindersRoute = RemindersRouteImport.update({
@@ -32,9 +62,29 @@ const ReportsRoute = ReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecordsRecordIdRoute = RecordsRecordIdRouteImport.update({
+  id: '/records/$recordId',
+  path: '/records/$recordId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VehiclesVehicleIdRouteRoute = VehiclesVehicleIdRouteRouteImport.update({
+  id: '/vehicles/$vehicleId',
+  path: '/vehicles/$vehicleId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VehiclesNewRoute = VehiclesNewRouteImport.update({
@@ -43,82 +93,220 @@ const VehiclesNewRoute = VehiclesNewRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const VehiclesVehicleIdIndexRoute = VehiclesVehicleIdIndexRouteImport.update({
-  id: '/vehicles/$vehicleId/',
-  path: '/vehicles/$vehicleId/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => VehiclesVehicleIdRouteRoute,
 } as any)
 const VehiclesVehicleIdEditRoute = VehiclesVehicleIdEditRouteImport.update({
-  id: '/vehicles/$vehicleId/edit',
-  path: '/vehicles/$vehicleId/edit',
-  getParentRoute: () => rootRouteImport,
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => VehiclesVehicleIdRouteRoute,
 } as any)
+const VehiclesVehicleIdFuelRoute = VehiclesVehicleIdFuelRouteImport.update({
+  id: '/fuel',
+  path: '/fuel',
+  getParentRoute: () => VehiclesVehicleIdRouteRoute,
+} as any)
+const VehiclesVehicleIdImportRoute = VehiclesVehicleIdImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => VehiclesVehicleIdRouteRoute,
+} as any)
+const VehiclesVehicleIdOdometerRoute =
+  VehiclesVehicleIdOdometerRouteImport.update({
+    id: '/odometer',
+    path: '/odometer',
+    getParentRoute: () => VehiclesVehicleIdRouteRoute,
+  } as any)
+const VehiclesVehicleIdPlanRoute = VehiclesVehicleIdPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => VehiclesVehicleIdRouteRoute,
+} as any)
+const VehiclesVehicleIdRemindersRoute =
+  VehiclesVehicleIdRemindersRouteImport.update({
+    id: '/reminders',
+    path: '/reminders',
+    getParentRoute: () => VehiclesVehicleIdRouteRoute,
+  } as any)
+const VehiclesVehicleIdSharingRoute =
+  VehiclesVehicleIdSharingRouteImport.update({
+    id: '/sharing',
+    path: '/sharing',
+    getParentRoute: () => VehiclesVehicleIdRouteRoute,
+  } as any)
+const VehiclesVehicleIdRecordsIndexRoute =
+  VehiclesVehicleIdRecordsIndexRouteImport.update({
+    id: '/records/',
+    path: '/records/',
+    getParentRoute: () => VehiclesVehicleIdRouteRoute,
+  } as any)
+const VehiclesVehicleIdRecordsNewRoute =
+  VehiclesVehicleIdRecordsNewRouteImport.update({
+    id: '/records/new',
+    path: '/records/new',
+    getParentRoute: () => VehiclesVehicleIdRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/log': typeof LogRoute
+  '/login': typeof LoginRoute
+  '/parts': typeof PartsRoute
   '/reminders': typeof RemindersRoute
   '/reports': typeof ReportsRoute
+  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/setup': typeof SetupRoute
+  '/vehicles/$vehicleId': typeof VehiclesVehicleIdRouteRouteWithChildren
+  '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
+  '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
+  '/vehicles/$vehicleId/import': typeof VehiclesVehicleIdImportRoute
+  '/vehicles/$vehicleId/odometer': typeof VehiclesVehicleIdOdometerRoute
+  '/vehicles/$vehicleId/plan': typeof VehiclesVehicleIdPlanRoute
+  '/vehicles/$vehicleId/reminders': typeof VehiclesVehicleIdRemindersRoute
+  '/vehicles/$vehicleId/sharing': typeof VehiclesVehicleIdSharingRoute
   '/vehicles/$vehicleId/': typeof VehiclesVehicleIdIndexRoute
+  '/vehicles/$vehicleId/records/new': typeof VehiclesVehicleIdRecordsNewRoute
+  '/vehicles/$vehicleId/records/': typeof VehiclesVehicleIdRecordsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/log': typeof LogRoute
+  '/login': typeof LoginRoute
+  '/parts': typeof PartsRoute
   '/reminders': typeof RemindersRoute
   '/reports': typeof ReportsRoute
+  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/setup': typeof SetupRoute
+  '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
+  '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
+  '/vehicles/$vehicleId/import': typeof VehiclesVehicleIdImportRoute
+  '/vehicles/$vehicleId/odometer': typeof VehiclesVehicleIdOdometerRoute
+  '/vehicles/$vehicleId/plan': typeof VehiclesVehicleIdPlanRoute
+  '/vehicles/$vehicleId/reminders': typeof VehiclesVehicleIdRemindersRoute
+  '/vehicles/$vehicleId/sharing': typeof VehiclesVehicleIdSharingRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdIndexRoute
+  '/vehicles/$vehicleId/records/new': typeof VehiclesVehicleIdRecordsNewRoute
+  '/vehicles/$vehicleId/records': typeof VehiclesVehicleIdRecordsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/log': typeof LogRoute
+  '/login': typeof LoginRoute
+  '/parts': typeof PartsRoute
   '/reminders': typeof RemindersRoute
   '/reports': typeof ReportsRoute
+  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/setup': typeof SetupRoute
+  '/vehicles/$vehicleId': typeof VehiclesVehicleIdRouteRouteWithChildren
+  '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
+  '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
+  '/vehicles/$vehicleId/import': typeof VehiclesVehicleIdImportRoute
+  '/vehicles/$vehicleId/odometer': typeof VehiclesVehicleIdOdometerRoute
+  '/vehicles/$vehicleId/plan': typeof VehiclesVehicleIdPlanRoute
+  '/vehicles/$vehicleId/reminders': typeof VehiclesVehicleIdRemindersRoute
+  '/vehicles/$vehicleId/sharing': typeof VehiclesVehicleIdSharingRoute
   '/vehicles/$vehicleId/': typeof VehiclesVehicleIdIndexRoute
+  '/vehicles/$vehicleId/records/new': typeof VehiclesVehicleIdRecordsNewRoute
+  '/vehicles/$vehicleId/records/': typeof VehiclesVehicleIdRecordsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/log'
+    | '/login'
+    | '/parts'
     | '/reminders'
     | '/reports'
+    | '/search'
     | '/settings'
+    | '/setup'
+    | '/vehicles/$vehicleId'
+    | '/records/$recordId'
     | '/vehicles/new'
     | '/vehicles/$vehicleId/edit'
+    | '/vehicles/$vehicleId/fuel'
+    | '/vehicles/$vehicleId/import'
+    | '/vehicles/$vehicleId/odometer'
+    | '/vehicles/$vehicleId/plan'
+    | '/vehicles/$vehicleId/reminders'
+    | '/vehicles/$vehicleId/sharing'
     | '/vehicles/$vehicleId/'
+    | '/vehicles/$vehicleId/records/new'
+    | '/vehicles/$vehicleId/records/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/log'
+    | '/login'
+    | '/parts'
     | '/reminders'
     | '/reports'
+    | '/search'
     | '/settings'
+    | '/setup'
+    | '/records/$recordId'
     | '/vehicles/new'
     | '/vehicles/$vehicleId/edit'
+    | '/vehicles/$vehicleId/fuel'
+    | '/vehicles/$vehicleId/import'
+    | '/vehicles/$vehicleId/odometer'
+    | '/vehicles/$vehicleId/plan'
+    | '/vehicles/$vehicleId/reminders'
+    | '/vehicles/$vehicleId/sharing'
     | '/vehicles/$vehicleId'
+    | '/vehicles/$vehicleId/records/new'
+    | '/vehicles/$vehicleId/records'
   id:
     | '__root__'
     | '/'
+    | '/log'
+    | '/login'
+    | '/parts'
     | '/reminders'
     | '/reports'
+    | '/search'
     | '/settings'
+    | '/setup'
+    | '/vehicles/$vehicleId'
+    | '/records/$recordId'
     | '/vehicles/new'
     | '/vehicles/$vehicleId/edit'
+    | '/vehicles/$vehicleId/fuel'
+    | '/vehicles/$vehicleId/import'
+    | '/vehicles/$vehicleId/odometer'
+    | '/vehicles/$vehicleId/plan'
+    | '/vehicles/$vehicleId/reminders'
+    | '/vehicles/$vehicleId/sharing'
     | '/vehicles/$vehicleId/'
+    | '/vehicles/$vehicleId/records/new'
+    | '/vehicles/$vehicleId/records/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LogRoute: typeof LogRoute
+  LoginRoute: typeof LoginRoute
+  PartsRoute: typeof PartsRoute
   RemindersRoute: typeof RemindersRoute
   ReportsRoute: typeof ReportsRoute
+  SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
+  SetupRoute: typeof SetupRoute
+  VehiclesVehicleIdRouteRoute: typeof VehiclesVehicleIdRouteRouteWithChildren
+  RecordsRecordIdRoute: typeof RecordsRecordIdRoute
   VehiclesNewRoute: typeof VehiclesNewRoute
-  VehiclesVehicleIdEditRoute: typeof VehiclesVehicleIdEditRoute
-  VehiclesVehicleIdIndexRoute: typeof VehiclesVehicleIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -128,6 +316,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/log': {
+      id: '/log'
+      path: '/log'
+      fullPath: '/log'
+      preLoaderRoute: typeof LogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parts': {
+      id: '/parts'
+      path: '/parts'
+      fullPath: '/parts'
+      preLoaderRoute: typeof PartsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reminders': {
@@ -144,11 +353,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/records/$recordId': {
+      id: '/records/$recordId'
+      path: '/records/$recordId'
+      fullPath: '/records/$recordId'
+      preLoaderRoute: typeof RecordsRecordIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vehicles/$vehicleId': {
+      id: '/vehicles/$vehicleId'
+      path: '/vehicles/$vehicleId'
+      fullPath: '/vehicles/$vehicleId'
+      preLoaderRoute: typeof VehiclesVehicleIdRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/vehicles/new': {
@@ -160,29 +397,122 @@ declare module '@tanstack/react-router' {
     }
     '/vehicles/$vehicleId/': {
       id: '/vehicles/$vehicleId/'
-      path: '/vehicles/$vehicleId'
+      path: '/'
       fullPath: '/vehicles/$vehicleId/'
       preLoaderRoute: typeof VehiclesVehicleIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
     }
     '/vehicles/$vehicleId/edit': {
       id: '/vehicles/$vehicleId/edit'
-      path: '/vehicles/$vehicleId/edit'
+      path: '/edit'
       fullPath: '/vehicles/$vehicleId/edit'
       preLoaderRoute: typeof VehiclesVehicleIdEditRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
+    '/vehicles/$vehicleId/fuel': {
+      id: '/vehicles/$vehicleId/fuel'
+      path: '/fuel'
+      fullPath: '/vehicles/$vehicleId/fuel'
+      preLoaderRoute: typeof VehiclesVehicleIdFuelRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
+    '/vehicles/$vehicleId/import': {
+      id: '/vehicles/$vehicleId/import'
+      path: '/import'
+      fullPath: '/vehicles/$vehicleId/import'
+      preLoaderRoute: typeof VehiclesVehicleIdImportRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
+    '/vehicles/$vehicleId/odometer': {
+      id: '/vehicles/$vehicleId/odometer'
+      path: '/odometer'
+      fullPath: '/vehicles/$vehicleId/odometer'
+      preLoaderRoute: typeof VehiclesVehicleIdOdometerRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
+    '/vehicles/$vehicleId/plan': {
+      id: '/vehicles/$vehicleId/plan'
+      path: '/plan'
+      fullPath: '/vehicles/$vehicleId/plan'
+      preLoaderRoute: typeof VehiclesVehicleIdPlanRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
+    '/vehicles/$vehicleId/reminders': {
+      id: '/vehicles/$vehicleId/reminders'
+      path: '/reminders'
+      fullPath: '/vehicles/$vehicleId/reminders'
+      preLoaderRoute: typeof VehiclesVehicleIdRemindersRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
+    '/vehicles/$vehicleId/sharing': {
+      id: '/vehicles/$vehicleId/sharing'
+      path: '/sharing'
+      fullPath: '/vehicles/$vehicleId/sharing'
+      preLoaderRoute: typeof VehiclesVehicleIdSharingRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
+    '/vehicles/$vehicleId/records/': {
+      id: '/vehicles/$vehicleId/records/'
+      path: '/records'
+      fullPath: '/vehicles/$vehicleId/records/'
+      preLoaderRoute: typeof VehiclesVehicleIdRecordsIndexRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
+    '/vehicles/$vehicleId/records/new': {
+      id: '/vehicles/$vehicleId/records/new'
+      path: '/records/new'
+      fullPath: '/vehicles/$vehicleId/records/new'
+      preLoaderRoute: typeof VehiclesVehicleIdRecordsNewRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
     }
   }
 }
 
+interface VehiclesVehicleIdRouteRouteChildren {
+  VehiclesVehicleIdEditRoute: typeof VehiclesVehicleIdEditRoute
+  VehiclesVehicleIdFuelRoute: typeof VehiclesVehicleIdFuelRoute
+  VehiclesVehicleIdImportRoute: typeof VehiclesVehicleIdImportRoute
+  VehiclesVehicleIdOdometerRoute: typeof VehiclesVehicleIdOdometerRoute
+  VehiclesVehicleIdPlanRoute: typeof VehiclesVehicleIdPlanRoute
+  VehiclesVehicleIdRemindersRoute: typeof VehiclesVehicleIdRemindersRoute
+  VehiclesVehicleIdSharingRoute: typeof VehiclesVehicleIdSharingRoute
+  VehiclesVehicleIdIndexRoute: typeof VehiclesVehicleIdIndexRoute
+  VehiclesVehicleIdRecordsNewRoute: typeof VehiclesVehicleIdRecordsNewRoute
+  VehiclesVehicleIdRecordsIndexRoute: typeof VehiclesVehicleIdRecordsIndexRoute
+}
+
+const VehiclesVehicleIdRouteRouteChildren: VehiclesVehicleIdRouteRouteChildren =
+  {
+    VehiclesVehicleIdEditRoute: VehiclesVehicleIdEditRoute,
+    VehiclesVehicleIdFuelRoute: VehiclesVehicleIdFuelRoute,
+    VehiclesVehicleIdImportRoute: VehiclesVehicleIdImportRoute,
+    VehiclesVehicleIdOdometerRoute: VehiclesVehicleIdOdometerRoute,
+    VehiclesVehicleIdPlanRoute: VehiclesVehicleIdPlanRoute,
+    VehiclesVehicleIdRemindersRoute: VehiclesVehicleIdRemindersRoute,
+    VehiclesVehicleIdSharingRoute: VehiclesVehicleIdSharingRoute,
+    VehiclesVehicleIdIndexRoute: VehiclesVehicleIdIndexRoute,
+    VehiclesVehicleIdRecordsNewRoute: VehiclesVehicleIdRecordsNewRoute,
+    VehiclesVehicleIdRecordsIndexRoute: VehiclesVehicleIdRecordsIndexRoute,
+  }
+
+const VehiclesVehicleIdRouteRouteWithChildren =
+  VehiclesVehicleIdRouteRoute._addFileChildren(
+    VehiclesVehicleIdRouteRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LogRoute: LogRoute,
+  LoginRoute: LoginRoute,
+  PartsRoute: PartsRoute,
   RemindersRoute: RemindersRoute,
   ReportsRoute: ReportsRoute,
+  SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
+  SetupRoute: SetupRoute,
+  VehiclesVehicleIdRouteRoute: VehiclesVehicleIdRouteRouteWithChildren,
+  RecordsRecordIdRoute: RecordsRecordIdRoute,
   VehiclesNewRoute: VehiclesNewRoute,
-  VehiclesVehicleIdEditRoute: VehiclesVehicleIdEditRoute,
-  VehiclesVehicleIdIndexRoute: VehiclesVehicleIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

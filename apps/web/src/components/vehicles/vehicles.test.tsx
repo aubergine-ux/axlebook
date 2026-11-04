@@ -116,28 +116,51 @@ describe('vehicle form', () => {
 
 describe('navigation', () => {
   it('keeps Garage active on vehicle pages', async () => {
-    mockApi({ 'GET /api/v1/vehicles/1': base });
+    mockApi({ 'GET /api/v1/vehicles/1': base, 'GET /api/v1/vehicles/1/odometer': [] });
     renderApp('/vehicles/1');
     await screen.findByRole('heading', { level: 1, name: '2015 Toyota Tacoma SR5' });
     const [desktopNav] = screen.getAllByRole('navigation', { name: 'Main navigation' });
-    expect(within(desktopNav as HTMLElement).getByRole('link', { name: 'Garage' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
-    expect(
-      within(desktopNav as HTMLElement).getByRole('link', { name: 'Settings' }),
-    ).not.toHaveAttribute('aria-current');
+    const nav = within(desktopNav as HTMLElement);
+    expect(nav.getByRole('link', { name: 'Garage' })).toHaveAttribute('aria-current', 'page');
+    expect(nav.getByRole('link', { name: 'Reminders' })).not.toHaveAttribute('aria-current');
   });
-});
 
-describe('navigation on other pages', () => {
   it('marks only Settings active on /settings', async () => {
     mockApi({});
     renderApp('/settings');
     await screen.findByRole('heading', { level: 1, name: 'Settings' });
-    const [desktopNav] = screen.getAllByRole('navigation', { name: 'Main navigation' });
-    const nav = within(desktopNav as HTMLElement);
-    expect(nav.getByRole('link', { name: 'Settings' })).toHaveAttribute('aria-current', 'page');
-    expect(nav.getByRole('link', { name: 'Garage' })).not.toHaveAttribute('aria-current');
+    for (const link of screen.getAllByRole('link', { name: 'Settings' })) {
+      expect(link).toHaveAttribute('aria-current', 'page');
+    }
+    for (const link of screen.getAllByRole('link', { name: 'Garage' })) {
+      expect(link).not.toHaveAttribute('aria-current');
+    }
+  });
+});
+
+describe('vehicle tabs', () => {
+  it('marks only the current section active', async () => {
+    mockApi({
+      'GET /api/v1/vehicles/1': base,
+      'GET /api/v1/vehicles/1/odometer': [],
+      'GET /api/v1/vehicles/1/fuel-economy': {
+        fills: [],
+        average: null,
+        last: null,
+        totalDistance: 0,
+        totalVolume: 0,
+        totalCost: 0,
+        costPerDistance: null,
+      },
+    });
+    renderApp('/vehicles/1/fuel');
+    const tabs = await screen.findByRole('navigation', { name: 'Details' });
+    expect(within(tabs).getByRole('link', { name: 'Fuel' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(within(tabs).getByRole('link', { name: 'Overview' })).not.toHaveAttribute(
+      'aria-current',
+    );
   });
 });

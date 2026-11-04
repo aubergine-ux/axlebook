@@ -3,10 +3,15 @@
   "nav": {
     "garage": "Garage",
     "reminders": "Reminders",
+    "parts": "Parts",
     "reports": "Reports",
     "settings": "Settings",
+    "search": "Search",
+    "logFuel": "Log fuel",
     "main": "Main navigation",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "signOut": "Sign out",
+    "account": "Account"
   },
   "theme": {
     "label": "Theme",
@@ -25,10 +30,9 @@
     "costToDate": "Spent",
     "noReading": "No reading yet",
     "noReminder": "Nothing scheduled",
-    "photoAlt": "Photo of the {{name}}"
-  },
-  "placeholder": {
-    "comingSoon": "This section is on the way."
+    "photoAlt": "Photo of the {{name}}",
+    "parts": "Parts and supplies",
+    "shared": "Shared with you"
   },
   "errors": {
     "validation_failed": "Some fields need attention.",
@@ -51,15 +55,102 @@
     "restore_not_empty": "Restore only works on an empty instance. Remove existing vehicles first."
   },
   "settings": {
-    "version": "Axlebook {{version}}"
+    "profile": "Profile",
+    "password": "Password",
+    "tokens": "API tokens",
+    "notifications": "Notifications",
+    "data": "Your data",
+    "instance": "Instance",
+    "users": "People",
+    "about": "About",
+    "displayName": "Name",
+    "email": "Email",
+    "save": "Save",
+    "saved": "Saved.",
+    "units": "Units",
+    "unitSystems": {
+      "imperial": "Imperial (mi, gal, mpg)",
+      "metric": "Metric (km, L, L/100 km)"
+    },
+    "language": "Language",
+    "languages": {
+      "en": "English"
+    },
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "changePassword": "Change password",
+    "passwordChanged": "Password changed. Other devices were signed out.",
+    "tokensIntro": "Tokens let scripts and other apps use the API. Send one as “Authorization: Bearer …”.",
+    "tokenName": "Token name",
+    "createToken": "Create token",
+    "tokenCreated": "Copy this token now. You won't see it again.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "revoke": "Revoke",
+    "lastUsed": "Last used {{date}}",
+    "neverUsed": "Never used",
+    "noTokens": "No tokens yet.",
+    "apiDocs": "API documentation",
+    "channelsIntro": "Get a message when a reminder becomes due soon or overdue.",
+    "addChannel": "Add channel",
+    "channelName": "Name",
+    "channelType": "Send with",
+    "channelTypes": {
+      "email": "Email",
+      "ntfy": "ntfy",
+      "gotify": "Gotify",
+      "discord": "Discord",
+      "webhook": "Webhook"
+    },
+    "channelUrl": "URL",
+    "channelTo": "Email address",
+    "channelToken": "Token",
+    "channelSecret": "Signing secret",
+    "channelEnabled": "Enabled",
+    "test": "Send test",
+    "testSent": "Test sent.",
+    "testFailed": "Test failed: {{error}}",
+    "noChannels": "No channels yet.",
+    "deleteChannel": "Remove",
+    "backup": "Download backup",
+    "backupHint": "A zip with everything: records, reminders, parts, photos and receipts.",
+    "restore": "Restore a backup",
+    "restoreHint": "Only on an empty instance (no vehicles yet).",
+    "restoreDone": "Backup restored.",
+    "currency": "Currency",
+    "soonDays": "Default warning (days)",
+    "soonDistanceMi": "Default warning (mi)",
+    "soonDistanceKm": "Default warning (km)",
+    "addUser": "Add person",
+    "username": "Username",
+    "role": "Role",
+    "roles": {
+      "admin": "Admin",
+      "editor": "Editor",
+      "viewer": "Viewer"
+    },
+    "roleHints": {
+      "admin": "Everything, including people and instance settings.",
+      "editor": "Their own vehicles, and vehicles shared with them.",
+      "viewer": "Read-only."
+    },
+    "disabled": "Disabled",
+    "disable": "Disable",
+    "enable": "Enable",
+    "resetPassword": "Set password",
+    "deleteUser": "Delete",
+    "deleteUserTitle": "Delete {{name}}?",
+    "deleteUserBody": "Their vehicles and records are deleted too.",
+    "you": "you",
+    "version": "Axlebook {{version}}",
+    "source": "Source code",
+    "license": "AGPL-3.0 licensed"
   },
   "vehicle": {
     "newTitle": "Add a vehicle",
     "editTitle": "Edit {{name}}",
     "backToGarage": "Garage",
     "details": "Details",
-    "history": "History",
-    "historyEmpty": "Records, fuel and reminders for this vehicle will show up here.",
     "notes": "Notes",
     "edit": "Edit",
     "archive": "Archive",
@@ -113,6 +204,30 @@
       "lpg": "LPG",
       "cng": "CNG",
       "other": "Other"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "records": "Records",
+      "fuel": "Fuel",
+      "reminders": "Reminders",
+      "odometer": "Odometer",
+      "plan": "Planner",
+      "sharing": "Sharing"
+    },
+    "stats": {
+      "odometer": "Odometer",
+      "economy": "Average economy",
+      "costPerDistance": "Cost per {{unit}}",
+      "spent": "Spent to date"
+    },
+    "upcoming": "Coming up",
+    "recent": "Recent records",
+    "viewAll": "View all",
+    "sharedBy": "Shared with you ({{access}})",
+    "access": {
+      "view": "view only",
+      "edit": "can edit",
+      "owner": "owner"
     }
   },
   "units": {
@@ -128,13 +243,27 @@
     "distance": {
       "mi": "{{value}} mi",
       "km": "{{value}} km"
-    }
+    },
+    "economy": {
+      "mpg_us": "{{value}} mpg",
+      "mpg_uk": "{{value}} mpg (UK)",
+      "l_per_100km": "{{value}} L/100 km",
+      "km_per_l": "{{value}} km/L"
+    },
+    "fuelShort": {
+      "gal_us": "gal",
+      "gal_uk": "gal",
+      "l": "L"
+    },
+    "kb": "{{value}} KB"
   },
   "actions": {
     "save": "Save",
     "saving": "Saving…",
     "cancel": "Cancel",
-    "create": "Add vehicle"
+    "create": "Add vehicle",
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "validation": {
     "required": "Required",
@@ -144,11 +273,317 @@
     "invalid": "Not a valid value",
     "number": "Enter a number",
     "money": "Enter an amount like 1234.56",
-    "image": "That file isn't a JPEG, PNG or WebP image."
+    "image": "That file isn't a JPEG, PNG or WebP image.",
+    "passwordLength": "Use at least 10 characters.",
+    "username": "Letters, numbers, dots, dashes and underscores only."
   },
   "common": {
     "loading": "Loading…",
     "retry": "Try again",
-    "notSet": "—"
+    "notSet": "—",
+    "offline": "You're offline. Changes can't be saved right now."
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "username": "Username",
+    "password": "Password",
+    "sso": "Continue with {{label}}",
+    "or": "or",
+    "setupTitle": "Set up Axlebook",
+    "setupIntro": "Create the admin account. You can add other people later in Settings.",
+    "displayName": "Your name",
+    "confirmPassword": "Confirm password",
+    "passwordHint": "At least 10 characters.",
+    "passwordsDiffer": "The passwords don't match.",
+    "createAccount": "Create account",
+    "tagline": "Every mile, on the record."
+  },
+  "record": {
+    "add": "Add record",
+    "newTitle": "New record",
+    "editTitle": "Edit record",
+    "save": "Save record",
+    "delete": "Delete record",
+    "deleteTitle": "Delete this record?",
+    "deleteBody": "Parts it used go back into stock, and reminders it completed are restored.",
+    "kinds": {
+      "service": "Service",
+      "repair": "Repair",
+      "upgrade": "Upgrade",
+      "fuel": "Fuel",
+      "expense": "Expense"
+    },
+    "kindLabel": "Type",
+    "categories": {
+      "tax": "Tax",
+      "registration": "Registration",
+      "insurance": "Insurance",
+      "parking": "Parking",
+      "toll": "Toll",
+      "loan": "Loan payment",
+      "other": "Other"
+    },
+    "fields": {
+      "date": "Date",
+      "odometer": "Odometer ({{unit}})",
+      "title": "What was done",
+      "cost": "Cost",
+      "notes": "Notes",
+      "tags": "Tags",
+      "category": "Category",
+      "volume": "Fuel ({{unit}})",
+      "pricePerUnit": "Price per {{unit}}",
+      "total": "Total",
+      "isFull": "Filled the tank",
+      "missedPrevious": "I missed logging the previous fill-up",
+      "grade": "Grade",
+      "station": "Station"
+    },
+    "hints": {
+      "tags": "Separate with commas.",
+      "twoOfThree": "Enter any two of fuel, price and total; the third is worked out.",
+      "missed": "Keeps your average honest by skipping the gap."
+    },
+    "parts": "Parts used",
+    "addPart": "Add a part",
+    "partQuantity": "Quantity",
+    "removePart": "Remove",
+    "noParts": "Nothing in your parts list yet.",
+    "completes": "This completes",
+    "attachments": "Receipts and photos",
+    "attach": "Attach files",
+    "attachHint": "JPEG, PNG, WebP, HEIC or PDF.",
+    "removeAttachment": "Remove {{name}}",
+    "empty": "No records yet.",
+    "emptyFiltered": "No records match these filters.",
+    "filterAll": "All",
+    "searchPlaceholder": "Search records",
+    "clearFilters": "Clear filters",
+    "count": "{{count}} records",
+    "totalCost": "Total {{amount}}",
+    "export": "Export CSV",
+    "import": "Import CSV",
+    "loadMore": "Show more",
+    "fuelTitle": "Fuel fill-up"
+  },
+  "fuel": {
+    "log": "Log fuel",
+    "average": "Average",
+    "last": "Last fill-up",
+    "costPerDistance": "Fuel cost per {{unit}}",
+    "total": "Fuel spent",
+    "empty": "No fill-ups yet. Log one at the pump to start tracking economy.",
+    "status": {
+      "baseline": "First fill",
+      "partial": "Partial",
+      "missed": "Missed fill-up",
+      "invalid": "Check odometer"
+    },
+    "columns": {
+      "date": "Date",
+      "odometer": "Odometer",
+      "volume": "Fuel",
+      "price": "Price",
+      "cost": "Total",
+      "economy": "Economy"
+    },
+    "quickTitle": "Log fuel",
+    "vehicle": "Vehicle",
+    "saved": "Fill-up logged.",
+    "savedOffline": "No connection. Saved on this device and it'll sync when you're back online.",
+    "pending": "{{count}} fill-ups waiting to sync",
+    "syncNow": "Sync now",
+    "lastReading": "Last reading {{value}}",
+    "noVehicles": "Add a vehicle first."
+  },
+  "reminder": {
+    "add": "Add reminder",
+    "newTitle": "New reminder",
+    "editTitle": "Edit reminder",
+    "save": "Save reminder",
+    "delete": "Delete",
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "markDone": "Mark done",
+    "empty": "No reminders. Add one for the next oil change, registration or inspection.",
+    "emptyAll": "Nothing due. Nice.",
+    "showArchived": "Show archived",
+    "status": {
+      "overdue": "Overdue",
+      "due_soon": "Due soon",
+      "upcoming": "Upcoming",
+      "inactive": "Archived"
+    },
+    "fields": {
+      "title": "Reminder",
+      "dueMode": "Due by",
+      "dueDate": "Due date",
+      "dueOdometer": "Due at ({{unit}})",
+      "intervalMonths": "Repeat every (months)",
+      "intervalDistance": "Repeat every ({{unit}})",
+      "notes": "Notes",
+      "soonDays": "Warn this many days ahead",
+      "soonDistance": "Warn this many {{unit}} ahead"
+    },
+    "modes": {
+      "date": "Date",
+      "distance": "Distance",
+      "either": "Whichever comes first"
+    },
+    "repeatHint": "Leave empty for a one-off reminder.",
+    "daysLeft_one": "in {{count}} day",
+    "daysLeft_other": "in {{count}} days",
+    "daysOver_one": "{{count}} day overdue",
+    "daysOver_other": "{{count}} days overdue",
+    "dueToday": "due today",
+    "distanceLeft": "{{distance}} to go",
+    "distanceOver": "{{distance}} overdue",
+    "dueOn": "Due {{date}}",
+    "dueAt": "Due at {{odometer}}",
+    "repeats": "Repeats",
+    "doneTitle": "Mark “{{title}}” done",
+    "doneBody": "Recurring reminders schedule the next one from this date and reading.",
+    "doneConfirm": "Mark done"
+  },
+  "odometer": {
+    "title": "Odometer log",
+    "add": "Add reading",
+    "reading": "Reading ({{unit}})",
+    "date": "Date",
+    "notes": "Notes",
+    "manual": "Manual reading",
+    "empty": "No readings yet. Every record with an odometer value adds one.",
+    "delete": "Delete reading",
+    "lowerWarning": "That's lower than an earlier reading. Saved anyway; check for a typo."
+  },
+  "plan": {
+    "add": "Plan a job",
+    "save": "Save job",
+    "empty": "Nothing planned. Jot down jobs you mean to get to.",
+    "fields": {
+      "title": "Job",
+      "description": "Details",
+      "kind": "Type",
+      "priority": "Priority",
+      "status": "Status",
+      "estimatedCost": "Estimated cost",
+      "targetDate": "Target date"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High"
+    },
+    "status": {
+      "backlog": "Someday",
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "done": "Done"
+    },
+    "convert": "Log as done",
+    "convertTitle": "Log “{{title}}” as a record",
+    "convertConfirm": "Create record",
+    "converted": "Logged",
+    "delete": "Delete job",
+    "deleteTitle": "Delete this job?",
+    "edit": "Edit"
+  },
+  "parts": {
+    "title": "Parts and supplies",
+    "add": "Add part",
+    "save": "Save part",
+    "empty": "No parts yet. Track oil, filters and spares here and they're deducted when you use them.",
+    "fields": {
+      "name": "Name",
+      "partNumber": "Part number",
+      "manufacturer": "Brand",
+      "vehicle": "For vehicle",
+      "quantity": "In stock",
+      "unitCost": "Cost each",
+      "location": "Where it's kept",
+      "notes": "Notes"
+    },
+    "anyVehicle": "Any vehicle",
+    "increase": "Add one {{name}}",
+    "decrease": "Remove one {{name}}",
+    "low": "Out of stock",
+    "delete": "Delete part",
+    "deleteTitle": "Delete this part?",
+    "edit": "Edit"
+  },
+  "reports": {
+    "title": "Reports",
+    "vehicle": "Vehicle",
+    "allVehicles": "All vehicles",
+    "period": "Period",
+    "periods": {
+      "12m": "Last 12 months",
+      "ytd": "This year",
+      "last_year": "Last year",
+      "all": "All time"
+    },
+    "totalSpent": "Total spent",
+    "distance": "Distance driven",
+    "costPerDistance": "Cost per {{unit}}",
+    "records": "Records",
+    "monthly": "Spending by month",
+    "byCategory": "Where the money went",
+    "fuelTrend": "Fuel economy",
+    "noData": "Nothing logged in this period.",
+    "print": "Print",
+    "downloadCsv": "Download CSV",
+    "month": "Month",
+    "total": "Total",
+    "table": "Show as table",
+    "series": {
+      "maintenance": "Maintenance",
+      "fuel": "Fuel",
+      "running": "Running costs"
+    }
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search titles, notes, tags and stations",
+    "hint": "Type to search every record in your garage.",
+    "results": "{{count}} results",
+    "none": "No records match “{{q}}”."
+  },
+  "sharing": {
+    "title": "Sharing",
+    "intro": "Share this vehicle with other people on this Axlebook.",
+    "person": "Person",
+    "permission": "Access",
+    "permissions": {
+      "view": "Can view",
+      "edit": "Can edit"
+    },
+    "add": "Share",
+    "remove": "Stop sharing",
+    "empty": "Not shared with anyone.",
+    "nobody": "There's nobody else to share with yet. An admin can add people in Settings."
+  },
+  "import": {
+    "title": "Import records",
+    "intro": "Import a CSV exported from Axlebook or LubeLogger (experimental). Columns are matched by name.",
+    "file": "CSV file",
+    "kind": "Record type",
+    "kindHint": "Used when the file has no type column.",
+    "dateOrder": "Dates look like",
+    "dateOrders": {
+      "mdy": "Month/Day/Year",
+      "dmy": "Day/Month/Year"
+    },
+    "preview": "Preview",
+    "run": "Import {{count}} records",
+    "result": "{{imported}} imported, {{skipped}} already here, {{errors}} with problems.",
+    "format": "Detected format: {{format}}",
+    "formats": {
+      "axlebook": "Axlebook",
+      "lubelogger": "LubeLogger",
+      "custom": "custom columns"
+    },
+    "rowError": "Row {{row}}: {{message}}"
   }
 }

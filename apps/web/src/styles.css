@@ -55,8 +55,9 @@
   --text-label--line-height: 18px;
   --text-caption: 12px;
   --text-caption--line-height: 16px;
-  --text-readout: 32px;
-  --text-readout--line-height: 36px;
+  /* "readout" is also a colour token, so the size is named readout-num. */
+  --text-readout-num: 32px;
+  --text-readout-num--line-height: 36px;
   --text-figure: 20px;
   --text-figure--line-height: 26px;
   --text-data: 14px;

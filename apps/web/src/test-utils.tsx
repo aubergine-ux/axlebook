@@ -11,6 +11,24 @@ export const testConfig = {
   defaultUnitSystem: 'imperial',
   defaultLocale: 'en',
 };
+export const testMe = {
+  id: 1,
+  username: 'casey',
+  displayName: 'Casey',
+  email: null,
+  role: 'admin',
+  unitSystem: 'imperial',
+  locale: 'en',
+  theme: 'system',
+  hasPassword: true,
+  oidcLinked: false,
+};
+export const signedIn = {
+  setupRequired: false,
+  localLogin: true,
+  oidc: { enabled: false, label: '' },
+  user: testMe,
+};
 
 type Handler = (req: { method: string; url: string; body: unknown }) => unknown;
 
@@ -29,6 +47,7 @@ export function mockApi(routes: Record<string, unknown | Handler>) {
       calls.push({ method, url: String(input), body });
       const key = `${method} ${url}`;
       if (key === 'GET /api/v1/config' && !(key in routes)) return Response.json(testConfig);
+      if (key === 'GET /api/v1/auth/status' && !(key in routes)) return Response.json(signedIn);
       if (!(key in routes)) return Response.json({ error: { code: 'not_found' } }, { status: 404 });
       const r = routes[key];
       const data = typeof r === 'function' ? (r as Handler)({ method, url, body }) : r;

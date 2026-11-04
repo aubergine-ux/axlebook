@@ -76,7 +76,11 @@ export function useDeleteVehicle() {
     mutationFn: (id: number) => api<void>(`/vehicles/${id}`, { method: 'DELETE' }),
     onSuccess: (_d, id) => {
       qc.removeQueries({ queryKey: vehicleKeys.detail(id) });
-      return qc.invalidateQueries({ queryKey: vehicleKeys.list('false') });
+      return Promise.all(
+        [['vehicles', 'list'], ['records'], ['reminders'], ['reports']].map((queryKey) =>
+          qc.invalidateQueries({ queryKey }),
+        ),
+      );
     },
   });
 }

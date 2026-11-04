@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useFormat } from '../../lib/format';
 import { Icon } from '../Icon';
 import { OdometerReadout } from '../ui/OdometerReadout';
+import { StatusBadge } from '../ui/StatusBadge';
 
 export function VehicleCard({ vehicle }: { vehicle: VehicleSummary }) {
   const { t } = useTranslation();
@@ -40,6 +41,9 @@ export function VehicleCard({ vehicle }: { vehicle: VehicleSummary }) {
             </Link>
           </h2>
           {vehicle.nickname && <p className="text-caption text-ink-muted">{title}</p>}
+          {vehicle.access !== 'owner' && (
+            <p className="text-caption text-ink-muted">{t('garage.shared')}</p>
+          )}
           {vehicle.archivedAt && (
             <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-surface-sunken px-2 py-0.5 text-caption font-semibold text-ink-muted">
               {t('garage.archivedBadge')}
@@ -64,8 +68,19 @@ export function VehicleCard({ vehicle }: { vehicle: VehicleSummary }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <dt className="text-label text-ink-muted">{t('garage.nextReminder')}</dt>
-              <dd className="truncate text-body">
-                {vehicle.nextReminder?.title ?? t('garage.noReminder')}
+              <dd className="mt-0.5">
+                {vehicle.nextReminder ? (
+                  <span className="flex flex-col items-start gap-1">
+                    <span className="max-w-full truncate">{vehicle.nextReminder.title}</span>
+                    {vehicle.nextReminder.status !== 'upcoming' && (
+                      <StatusBadge status={vehicle.nextReminder.status}>
+                        {t(`reminder.status.${vehicle.nextReminder.status}`)}
+                      </StatusBadge>
+                    )}
+                  </span>
+                ) : (
+                  <span className="text-ink-muted">{t('garage.noReminder')}</span>
+                )}
               </dd>
             </div>
             <div>

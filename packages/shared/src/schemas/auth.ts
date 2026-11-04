@@ -103,6 +103,7 @@ export const DirectoryUser = z.object({
   username: z.string(),
   displayName: z.string().nullable(),
 });
+export type DirectoryUser = z.infer<typeof DirectoryUser>;
 
 export const ApiToken = z.object({
   id: z.number().int(),
@@ -112,6 +113,7 @@ export const ApiToken = z.object({
   expiresAt: z.string().nullable(),
   createdAt: z.string(),
 });
+export type ApiToken = z.infer<typeof ApiToken>;
 export const ApiTokenCreate = z.object({
   name: z.string().trim().min(1).max(80),
   expiresInDays: z.number().int().min(1).max(3650).nullable().optional(),

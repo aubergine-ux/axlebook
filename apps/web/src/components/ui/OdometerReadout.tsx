@@ -2,7 +2,7 @@ import type { OdometerUnit } from '@axlebook/shared';
 import { useFormat } from '../../lib/format';
 
 const SIZES = {
-  lg: { cell: 'h-11 w-8 text-readout', gap: 'gap-1', unit: 'text-figure' },
+  lg: { cell: 'h-11 w-8 text-readout-num', gap: 'gap-1', unit: 'text-figure' },
   sm: { cell: 'h-7 w-5 text-data font-semibold', gap: 'gap-0.5', unit: 'text-caption' },
 } as const;
 

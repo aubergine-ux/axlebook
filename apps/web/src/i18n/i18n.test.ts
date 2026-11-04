@@ -43,7 +43,10 @@ const enKeys = loadNamespace('en', 'common');
 describe('translations', () => {
   it('every key used in the web app exists in en', () => {
     const { literal } = usedKeys();
-    const missing = [...literal].filter((k) => !enKeys.includes(k));
+    // Plural keys live as key_one / key_other.
+    const missing = [...literal].filter(
+      (k) => !enKeys.includes(k) && !enKeys.includes(`${k}_other`),
+    );
     expect(missing).toEqual([]);
   });
 
@@ -51,9 +54,10 @@ describe('translations', () => {
     const { literal, prefixes } = usedKeys();
     // Error messages are looked up dynamically from API error codes.
     prefixes.add('errors.');
-    const unused = enKeys.filter(
-      (k) => !literal.has(k) && ![...prefixes].some((p) => p && k.startsWith(p)),
-    );
+    const unused = enKeys.filter((k) => {
+      const base = k.replace(/_(zero|one|two|few|many|other)$/, '');
+      return !literal.has(base) && ![...prefixes].some((p) => p && base.startsWith(p));
+    });
     expect(unused).toEqual([]);
   });
 
