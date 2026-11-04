@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<title>Axlebook</title>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b6168"/><stop offset="1" stop-color="#16191c"/></linearGradient>
+  <radialGradient id="glow" cx=".28" cy=".18" r=".75"><stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2=".35" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.34"/><stop offset="1" stop-color="#ffffff" stop-opacity="0.1"/></linearGradient>
+  <linearGradient id="rim" x1="0" y1="0" x2=".2" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.85"/><stop offset=".45" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#fff" stop-opacity="0.425"/></linearGradient>
+  <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb340"/><stop offset="1" stop-color="#ff7a00"/></linearGradient>
+  <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <filter id="drop" x="-20%" y="-20%" width="140%" height="150%"><feGaussianBlur in="SourceAlpha" stdDeviation="18"/><feOffset dy="16"/><feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="soft" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur in="SourceAlpha" stdDeviation="14"/><feOffset dy="14"/><feComponentTransfer><feFuncA type="linear" slope=".35"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="glowf" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10"/></filter>
+  <clipPath id="sqc"><path d="M0 0H1024V1024H0Z"/></clipPath>
+</defs>
+<path d="M0 0H1024V1024H0Z" fill="url(#bg)"/>
+<g clip-path="url(#sqc)">
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#glow)"/>
+  <g transform="translate(66.6 66.6) scale(0.8699)">
+  <!-- page block behind the cover -->
+  <rect x="290" y="210" width="480" height="640" rx="60" fill="#ffffff" fill-opacity="0.20400000000000001"/>
+  <path d="M756 282V792" stroke="#fff" stroke-opacity="0.425" stroke-width="2"/>
+  <path d="M763 282V802" stroke="#fff" stroke-opacity="0.2975" stroke-width="2"/>
+  <!-- the logbook: a glass slab -->
+  <g filter="url(#soft)">
+    <rect x="268" y="192" width="480" height="640" rx="60" fill="url(#glass)"/>
+  </g>
+  <rect x="268" y="192" width="74" height="640" rx="60" fill="#ffffff" fill-opacity="0.18"/>
+  <rect x="322" y="192" width="20" height="640" fill="#ffffff" fill-opacity="0.18"/>
+  <path d="M342 194V830" stroke="#fff" stroke-opacity="0.4675" stroke-width="3"/>
+  <rect x="269.5" y="193.5" width="477" height="637" rx="58.5" fill="none" stroke="url(#rim)" stroke-width="3"/>
+  <!-- gauge on the cover -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M434.5 628.4A150 150 0 1 1 657.5 628.4" stroke="#f2f4f5" stroke-opacity="0.96" stroke-width="34"/>
+    <path d="M467.2 598.9L456.8 608.3M440.1 524.3L426.1 523.8M472.4 451.7L462.6 441.7M546.0 422.0L546.0 408.0M619.6 451.7L629.4 441.7M651.9 524.3L665.9 523.8M624.8 598.9L635.2 608.3" stroke="#f2f4f5" stroke-opacity="0.528" stroke-width="10"/>
+    <path d="M546 528L632.2 450.4" stroke="url(#acc)" stroke-width="54" stroke-opacity=".45" filter="url(#glowf)"/>
+    <path d="M546 528L632.2 450.4" stroke="url(#acc)" stroke-width="28"/>
+  </g>
+  <circle cx="546" cy="528" r="32" fill="url(#acc)"/>
+  <circle cx="546" cy="528" r="11" fill="#16191c"/>
+  <!-- bookmark ribbon -->
+  <g filter="url(#soft)"><path d="M640 172h58V392l-29.0 -28l-29.0 28z" fill="url(#acc)"/></g>
+  <path d="M646 172V376" stroke="#fff" stroke-opacity=".35" stroke-width="5" stroke-linecap="round"/>
+  <!-- specular sheen across the top -->
+  </g><path d="M0 0H1024V420C760 360 520 340 0 400Z" fill="url(#sheen)"/>
+</g>
+
+</svg>

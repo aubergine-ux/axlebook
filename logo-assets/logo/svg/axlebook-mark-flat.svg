@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><title>Axlebook</title><rect width="512" height="512" rx="116" fill="#1c1f22"/>
+<g transform="scale(0.62136) translate(-100 -100)">
+<rect x="268" y="192" width="480" height="640" rx="60" fill="#f2f4f5"/>
+<path d="M342 192V832" stroke="#1c1f22" stroke-width="16"/>
+<g fill="none" stroke-linecap="round"><path d="M434.5 628.4A150 150 0 1 1 657.5 628.4" stroke="#1c1f22" stroke-width="36"/>
+<path d="M546 528L632.2 450.4" stroke="#ff8a00" stroke-width="32"/></g>
+<circle cx="546" cy="528" r="34" fill="#ff8a00"/>
+<path d="M640 172h58V392l-29.0 -28l-29.0 28z" fill="#ff8a00" stroke="#1c1f22" stroke-width="14" paint-order="stroke"/>
+</g></svg>

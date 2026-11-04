@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><title>Axlebook</title><g transform="scale(0.62136) translate(-100 -100)">
+<mask id="mm" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/>
+<path d="M342 192V832" stroke="#000" stroke-width="16"/>
+<path d="M434.5 628.4A150 150 0 1 1 657.5 628.4" stroke="#000" stroke-width="36" fill="none" stroke-linecap="round"/>
+<path d="M546 528L632.2 450.4" stroke="#000" stroke-width="32" stroke-linecap="round"/><circle cx="546" cy="528" r="34" fill="#000"/>
+<path d="M640 172h58V392l-29.0 -28l-29.0 28z" fill="#000" stroke="#000" stroke-width="28"/></mask>
+<rect x="268" y="192" width="480" height="640" rx="60" fill="#1c1f22" mask="url(#mm)"/>
+<path fill="#1c1f22" d="M640 172h58V392l-29.0 -28l-29.0 28z"/></g></svg>
