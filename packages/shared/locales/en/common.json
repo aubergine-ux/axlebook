@@ -16,7 +16,16 @@
   },
   "garage": {
     "title": "Garage",
-    "empty": "No vehicles yet. Add your first one to start the logbook."
+    "empty": "No vehicles yet. Add your first one to start the logbook.",
+    "add": "Add vehicle",
+    "showArchived": "Show archived",
+    "archivedBadge": "Archived",
+    "odometer": "Odometer",
+    "nextReminder": "Next due",
+    "costToDate": "Spent",
+    "noReading": "No reading yet",
+    "noReminder": "Nothing scheduled",
+    "photoAlt": "Photo of the {{name}}"
   },
   "placeholder": {
     "comingSoon": "This section is on the way."
@@ -34,5 +43,103 @@
   },
   "settings": {
     "version": "Axlebook {{version}}"
+  },
+  "vehicle": {
+    "newTitle": "Add a vehicle",
+    "editTitle": "Edit {{name}}",
+    "backToGarage": "Garage",
+    "details": "Details",
+    "history": "History",
+    "historyEmpty": "Records, fuel and reminders for this vehicle will show up here.",
+    "notes": "Notes",
+    "edit": "Edit",
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "delete": "Delete",
+    "archivedNotice": "Archived on {{date}}. It's hidden from the garage but nothing is deleted.",
+    "deleteTitle": "Delete this vehicle?",
+    "deleteBody": "This permanently removes the {{name}} and everything recorded for it. To just hide a vehicle you sold, archive it instead.",
+    "deleteConfirm": "Delete permanently",
+    "fields": {
+      "year": "Year",
+      "make": "Make",
+      "model": "Model",
+      "trim": "Trim",
+      "nickname": "Nickname",
+      "vin": "VIN",
+      "licensePlate": "License plate",
+      "color": "Color",
+      "odometerUnit": "Odometer reads in",
+      "fuelUnit": "Fuel measured in",
+      "fuelType": "Fuel type",
+      "purchaseDate": "Purchase date",
+      "purchasePrice": "Purchase price",
+      "notes": "Notes"
+    },
+    "hints": {
+      "nickname": "Optional. Shown instead of the model name on cards.",
+      "units": "Units the vehicle's own gauges use. You can still view everything in your preferred units.",
+      "purchasePrice": "Optional. Counts toward cost of ownership in reports."
+    },
+    "sections": {
+      "identity": "Vehicle",
+      "units": "Units",
+      "purchase": "Purchase",
+      "photo": "Photo"
+    },
+    "photo": {
+      "choose": "Choose photo",
+      "replace": "Replace photo",
+      "remove": "Remove photo",
+      "none": "No photo",
+      "processing": "Preparing photo…"
+    },
+    "fuelType": {
+      "gasoline": "Gasoline",
+      "diesel": "Diesel",
+      "hybrid": "Hybrid",
+      "plugin_hybrid": "Plug-in hybrid",
+      "electric": "Electric",
+      "flex": "Flex fuel",
+      "lpg": "LPG",
+      "cng": "CNG",
+      "other": "Other"
+    }
+  },
+  "units": {
+    "odometer": {
+      "mi": "Miles",
+      "km": "Kilometers"
+    },
+    "fuel": {
+      "gal_us": "US gallons",
+      "gal_uk": "Imperial gallons",
+      "l": "Liters"
+    },
+    "distance": {
+      "mi": "{{value}} mi",
+      "km": "{{value}} km"
+    }
+  },
+  "actions": {
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "create": "Add vehicle"
+  },
+  "validation": {
+    "required": "Required",
+    "min": "Must be at least {{min}}",
+    "max": "Must be at most {{max}}",
+    "tooLong": "Too long (max {{max}} characters)",
+    "invalid": "Not a valid value",
+    "number": "Enter a number",
+    "money": "Enter an amount like 1234.56",
+    "image": "That file isn't a JPEG, PNG or WebP image."
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "notSet": "—"
   }
 }

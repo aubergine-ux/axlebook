@@ -9,7 +9,7 @@ function Page() {
   return (
     <>
       <PageHeader title={t('nav.reports')} />
-      <p className="text-muted">{t('placeholder.comingSoon')}</p>
+      <p className="text-ink-muted">{t('placeholder.comingSoon')}</p>
     </>
   );
 }

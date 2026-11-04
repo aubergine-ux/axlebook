@@ -13,6 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as RemindersRouteImport } from './routes/reminders'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as VehiclesNewRouteImport } from './routes/vehicles/new'
+import { Route as VehiclesVehicleIdIndexRouteImport } from './routes/vehicles/$vehicleId/index'
+import { Route as VehiclesVehicleIdEditRouteImport } from './routes/vehicles/$vehicleId/edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +37,39 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VehiclesNewRoute = VehiclesNewRouteImport.update({
+  id: '/vehicles/new',
+  path: '/vehicles/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VehiclesVehicleIdIndexRoute = VehiclesVehicleIdIndexRouteImport.update({
+  id: '/vehicles/$vehicleId/',
+  path: '/vehicles/$vehicleId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VehiclesVehicleIdEditRoute = VehiclesVehicleIdEditRouteImport.update({
+  id: '/vehicles/$vehicleId/edit',
+  path: '/vehicles/$vehicleId/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/reminders': typeof RemindersRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/vehicles/new': typeof VehiclesNewRoute
+  '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
+  '/vehicles/$vehicleId/': typeof VehiclesVehicleIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/reminders': typeof RemindersRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/vehicles/new': typeof VehiclesNewRoute
+  '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
+  '/vehicles/$vehicleId': typeof VehiclesVehicleIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +77,38 @@ export interface FileRoutesById {
   '/reminders': typeof RemindersRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/vehicles/new': typeof VehiclesNewRoute
+  '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
+  '/vehicles/$vehicleId/': typeof VehiclesVehicleIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/reminders' | '/reports' | '/settings'
+  fullPaths:
+    | '/'
+    | '/reminders'
+    | '/reports'
+    | '/settings'
+    | '/vehicles/new'
+    | '/vehicles/$vehicleId/edit'
+    | '/vehicles/$vehicleId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/reminders' | '/reports' | '/settings'
-  id: '__root__' | '/' | '/reminders' | '/reports' | '/settings'
+  to:
+    | '/'
+    | '/reminders'
+    | '/reports'
+    | '/settings'
+    | '/vehicles/new'
+    | '/vehicles/$vehicleId/edit'
+    | '/vehicles/$vehicleId'
+  id:
+    | '__root__'
+    | '/'
+    | '/reminders'
+    | '/reports'
+    | '/settings'
+    | '/vehicles/new'
+    | '/vehicles/$vehicleId/edit'
+    | '/vehicles/$vehicleId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +116,9 @@ export interface RootRouteChildren {
   RemindersRoute: typeof RemindersRoute
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
+  VehiclesNewRoute: typeof VehiclesNewRoute
+  VehiclesVehicleIdEditRoute: typeof VehiclesVehicleIdEditRoute
+  VehiclesVehicleIdIndexRoute: typeof VehiclesVehicleIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +151,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vehicles/new': {
+      id: '/vehicles/new'
+      path: '/vehicles/new'
+      fullPath: '/vehicles/new'
+      preLoaderRoute: typeof VehiclesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vehicles/$vehicleId/': {
+      id: '/vehicles/$vehicleId/'
+      path: '/vehicles/$vehicleId'
+      fullPath: '/vehicles/$vehicleId/'
+      preLoaderRoute: typeof VehiclesVehicleIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vehicles/$vehicleId/edit': {
+      id: '/vehicles/$vehicleId/edit'
+      path: '/vehicles/$vehicleId/edit'
+      fullPath: '/vehicles/$vehicleId/edit'
+      preLoaderRoute: typeof VehiclesVehicleIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +180,9 @@ const rootRouteChildren: RootRouteChildren = {
   RemindersRoute: RemindersRoute,
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
+  VehiclesNewRoute: VehiclesNewRoute,
+  VehiclesVehicleIdEditRoute: VehiclesVehicleIdEditRoute,
+  VehiclesVehicleIdIndexRoute: VehiclesVehicleIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
