@@ -1,0 +1,64 @@
+import path from 'node:path';
+import { UNIT_SYSTEMS } from '@axlebook/shared';
+import { z } from 'zod';
+
+const bool = z
+  .enum(['true', 'false', '1', '0', 'yes', 'no', ''])
+  .optional()
+  .transform((v) => v === 'true' || v === '1' || v === 'yes');
+
+const EnvSchema = z.object({
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
+  HOST: z.string().default('0.0.0.0'),
+  PORT: z.coerce.number().int().min(1).max(65535).default(8080),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+  DATA_DIR: z.string().default('./data'),
+  DATABASE_URL: z.string().optional(),
+  BASE_URL: z.url().optional(),
+  TRUST_PROXY: bool,
+  DEFAULT_UNIT_SYSTEM: z.enum(UNIT_SYSTEMS).default('imperial'),
+  DEFAULT_CURRENCY: z
+    .string()
+    .regex(/^[A-Z]{3}$/)
+    .default('USD'),
+  DEFAULT_LOCALE: z.string().default('en'),
+  MAX_UPLOAD_MB: z.coerce.number().positive().default(25),
+  SEED_DEMO_DATA: bool,
+  WEB_DIR: z.string().optional(),
+});
+
+export type Config = ReturnType<typeof loadConfig>;
+
+export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
+  const parsed = EnvSchema.safeParse(env);
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((i) => `  ${i.path.join('.')}: ${i.message}`).join('\n');
+    throw new Error(`Invalid configuration:\n${issues}`);
+  }
+  const e = parsed.data;
+  const dataDir = path.resolve(e.DATA_DIR);
+  const databaseUrl = e.DATABASE_URL?.trim() || undefined;
+  return {
+    env: e.NODE_ENV,
+    host: e.HOST,
+    port: e.PORT,
+    logLevel: e.LOG_LEVEL,
+    dataDir,
+    attachmentsDir: path.join(dataDir, 'attachments'),
+    database: databaseUrl?.startsWith('postgres')
+      ? ({ kind: 'postgres', url: databaseUrl } as const)
+      : ({ kind: 'sqlite', file: databaseUrl ?? path.join(dataDir, 'axlebook.db') } as const),
+    baseUrl: e.BASE_URL ? new URL(e.BASE_URL) : undefined,
+    trustProxy: e.TRUST_PROXY,
+    defaults: {
+      unitSystem: e.DEFAULT_UNIT_SYSTEM,
+      currency: e.DEFAULT_CURRENCY,
+      locale: e.DEFAULT_LOCALE,
+    },
+    maxUploadBytes: Math.round(e.MAX_UPLOAD_MB * 1024 * 1024),
+    seedDemoData: e.SEED_DEMO_DATA,
+    webDir: e.WEB_DIR
+      ? path.resolve(e.WEB_DIR)
+      : path.resolve(import.meta.dirname, '../../web/dist'),
+  };
+}

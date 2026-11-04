@@ -1,0 +1,17 @@
+// Axlebook i18n guard: user-visible JSX attributes must not be hardcoded strings.
+// Complements Biome's built-in style/noJsxLiterals, which only checks text children.
+language js
+
+JsxAttribute(name=$name, initializer=JsxAttributeInitializerClause(value=JsxString())) as $attr where {
+  $name <: or {
+    `aria-label`,
+    `aria-description`,
+    `aria-placeholder`,
+    `aria-valuetext`,
+    `placeholder`,
+    `title`,
+    `alt`,
+    `label`
+  },
+  register_diagnostic(span=$attr, message="Hardcoded user-visible text in a JSX attribute. Use t('…') from react-i18next.", severity="error")
+}

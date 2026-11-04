@@ -1,0 +1,35 @@
+{
+  "appName": "Axlebook",
+  "nav": {
+    "garage": "Garage",
+    "reminders": "Reminders",
+    "reports": "Reports",
+    "settings": "Settings",
+    "main": "Main navigation",
+    "skipToContent": "Skip to content"
+  },
+  "theme": {
+    "label": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "garage": {
+    "title": "Garage",
+    "empty": "No vehicles yet. Add your first one to start the logbook."
+  },
+  "placeholder": {
+    "comingSoon": "This section is on the way."
+  },
+  "errors": {
+    "validation_failed": "Some fields need attention.",
+    "not_found": "That item could not be found.",
+    "unauthorized": "Please sign in.",
+    "forbidden": "You don't have access to that.",
+    "csrf_origin_mismatch": "Request blocked: it didn't come from this site.",
+    "conflict": "That conflicts with existing data.",
+    "payload_too_large": "That file is too large.",
+    "internal": "Something went wrong on the server.",
+    "network": "Can't reach the server."
+  }
+}
