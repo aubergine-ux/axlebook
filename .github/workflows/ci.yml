@@ -32,11 +32,17 @@ jobs:
           git diff --exit-code apps/web/src/theme/tokens.css apps/web/src/components/icons.gen.ts
 
   test:
-    name: Test (Node ${{ matrix.node }}, SQLite)
-    runs-on: ubuntu-latest
+    name: Test (${{ matrix.os }}, Node ${{ matrix.node }}, SQLite)
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         node: [22, 24]
+        include:
+          # Running from source on Windows (Docker Desktop users run the Linux image).
+          - os: windows-latest
+            node: 24
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -45,6 +51,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - run: npm run build
 
   test-postgres:
     name: Test (Postgres)
