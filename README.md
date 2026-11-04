@@ -33,11 +33,6 @@
   <img alt="The Axlebook garage: a card for each vehicle with its odometer, next reminder and money spent" src="docs/screenshots/garage-light.png">
 </picture>
 
-> [!NOTE]
-> **Axlebook is in early development.** The foundation and the garage are built; records, fuel,
-> reminders and the rest are landing one by one (see the [roadmap](#roadmap)). Star or watch
-> the repo to follow along, but hold off on trusting it with your only copy of your records.
-
 ## Why Axlebook
 
 <table>
