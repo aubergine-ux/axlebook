@@ -10,3 +10,7 @@ playwright-report
 test-results
 .vite
 *.tsbuildinfo
+.fuse_hidden*
+apps/web/public/brand/
+apps/web/src/routeTree.gen.ts
+dev-dist
