@@ -11,6 +11,15 @@ export const ERROR_CODES = [
   'conflict',
   'payload_too_large',
   'internal',
+  'invalid_credentials',
+  'rate_limited',
+  'setup_required',
+  'already_set_up',
+  'oidc_failed',
+  'local_login_disabled',
+  'insufficient_stock',
+  'unsupported_file',
+  'restore_not_empty',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

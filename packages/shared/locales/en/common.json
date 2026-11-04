@@ -39,7 +39,16 @@
     "conflict": "That conflicts with existing data.",
     "payload_too_large": "That file is too large.",
     "internal": "Something went wrong on the server.",
-    "network": "Can't reach the server."
+    "network": "Can't reach the server.",
+    "invalid_credentials": "That username and password don't match.",
+    "rate_limited": "Too many attempts. Wait a few minutes and try again.",
+    "setup_required": "Create the first account to get started.",
+    "already_set_up": "This instance already has an admin account.",
+    "oidc_failed": "Single sign-on didn't complete. Try again or use your password.",
+    "local_login_disabled": "Password sign-in is turned off on this instance.",
+    "insufficient_stock": "Not enough of that part in stock.",
+    "unsupported_file": "That file type isn't supported.",
+    "restore_not_empty": "Restore only works on an empty instance. Remove existing vehicles first."
   },
   "settings": {
     "version": "Axlebook {{version}}"

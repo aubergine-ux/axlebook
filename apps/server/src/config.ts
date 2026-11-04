@@ -25,6 +25,26 @@ const EnvSchema = z.object({
   MAX_UPLOAD_MB: z.coerce.number().positive().default(25),
   SEED_DEMO_DATA: bool,
   WEB_DIR: z.string().optional(),
+  ADMIN_USERNAME: z.string().optional(),
+  ADMIN_PASSWORD: z.string().optional(),
+  DISABLE_LOCAL_LOGIN: bool,
+  SESSION_DAYS: z.coerce.number().int().min(1).max(365).default(30),
+  OIDC_ISSUER: z.url().optional(),
+  OIDC_CLIENT_ID: z.string().optional(),
+  OIDC_CLIENT_SECRET: z.string().optional(),
+  OIDC_SCOPES: z.string().default('openid profile email'),
+  OIDC_LABEL: z.string().default('Single sign-on'),
+  OIDC_AUTO_CREATE_USERS: z.enum(['true', 'false']).default('true'),
+  OIDC_DEFAULT_ROLE: z.enum(['admin', 'editor', 'viewer']).default('editor'),
+  OIDC_ADMIN_GROUP: z.string().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().default(587),
+  SMTP_SECURE: bool,
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().optional(),
+  REMINDER_SCAN_INTERVAL_MIN: z.coerce.number().int().min(1).max(1440).default(60),
+  TZ: z.string().optional(),
 });
 
 export type Config = ReturnType<typeof loadConfig>;
@@ -57,6 +77,39 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     },
     maxUploadBytes: Math.round(e.MAX_UPLOAD_MB * 1024 * 1024),
     seedDemoData: e.SEED_DEMO_DATA,
+    timeZone: e.TZ,
+    auth: {
+      bootstrapAdmin:
+        e.ADMIN_USERNAME && e.ADMIN_PASSWORD
+          ? { username: e.ADMIN_USERNAME, password: e.ADMIN_PASSWORD }
+          : undefined,
+      localLogin: !e.DISABLE_LOCAL_LOGIN,
+      sessionDays: e.SESSION_DAYS,
+      oidc:
+        e.OIDC_ISSUER && e.OIDC_CLIENT_ID
+          ? {
+              issuer: e.OIDC_ISSUER,
+              clientId: e.OIDC_CLIENT_ID,
+              clientSecret: e.OIDC_CLIENT_SECRET,
+              scopes: e.OIDC_SCOPES,
+              label: e.OIDC_LABEL,
+              autoCreate: e.OIDC_AUTO_CREATE_USERS === 'true',
+              defaultRole: e.OIDC_DEFAULT_ROLE,
+              adminGroup: e.OIDC_ADMIN_GROUP,
+            }
+          : undefined,
+    },
+    smtp: e.SMTP_HOST
+      ? {
+          host: e.SMTP_HOST,
+          port: e.SMTP_PORT,
+          secure: e.SMTP_SECURE,
+          user: e.SMTP_USER,
+          pass: e.SMTP_PASS,
+          from: e.SMTP_FROM ?? 'Axlebook <axlebook@localhost>',
+        }
+      : undefined,
+    reminderScanMinutes: e.REMINDER_SCAN_INTERVAL_MIN,
     webDir: e.WEB_DIR
       ? path.resolve(e.WEB_DIR)
       : path.resolve(import.meta.dirname, '../../web/dist'),
