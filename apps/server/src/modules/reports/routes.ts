@@ -2,6 +2,7 @@ import {
   computeFuelEconomy,
   convertDistance,
   displayUnitsFor,
+  isDistanceUnit,
   monthKey,
   RECORD_KINDS,
   type RecordKind,
@@ -127,7 +128,9 @@ export const reportRoutes =
           const econ = computeFuelEconomy(fills);
           const dates = new Map(fills.map((f) => [f.id, f.date]));
           const distance = spans.get(v.id) ?? 0;
-          totals.distance += convertDistance(distance, v.odometer_unit, unit);
+          // Hour meters can't be added to a distance total.
+          if (isDistanceUnit(v.odometer_unit))
+            totals.distance += convertDistance(distance, v.odometer_unit, unit);
           return {
             id: v.id,
             title: v.nickname ?? vehicleTitle(v),

@@ -9,6 +9,8 @@ import { mockApi, renderApp, signedIn } from './test-utils';
 const tacoma: Vehicle = {
   id: 3,
   ownerId: 1,
+  category: 'car',
+  unitNumber: null,
   year: 2015,
   make: 'Toyota',
   model: 'Tacoma',

@@ -2,6 +2,7 @@ import type { Migration } from 'kysely/migration';
 import * as m0001 from './0001_init';
 import * as m0002 from './0002_vehicles';
 import * as m0003 from './0003_logbook';
+import * as m0004 from './0004_types_and_tools';
 
 /**
  * Ordered list of migrations. Statically imported so the server can be bundled.
@@ -12,4 +13,5 @@ export const migrations: Record<string, Migration> = {
   '0001_init': m0001,
   '0002_vehicles': m0002,
   '0003_logbook': m0003,
+  '0004_types_and_tools': m0004,
 };

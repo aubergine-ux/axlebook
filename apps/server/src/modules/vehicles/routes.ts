@@ -37,7 +37,7 @@ export const vehicleRoutes =
           response: { 200: z.array(VehicleSummary) },
         },
       },
-      async (req) => svc.list(user(req), req.query.archived),
+      async (req) => svc.list(user(req), req.query.archived, req.query.section),
     );
 
     app.post(

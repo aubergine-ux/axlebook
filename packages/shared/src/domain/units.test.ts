@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { computeEconomy, convertDistance, convertVolume, displayUnitsFor } from './units';
+import {
+  computeEconomy,
+  convertDistance,
+  convertVolume,
+  displayUnitsFor,
+  nativeEconomy,
+} from './units';
 
 describe('conversions', () => {
   it('converts distance both ways', () => {
@@ -28,5 +34,25 @@ describe('computeEconomy', () => {
   it('picks display units', () => {
     expect(displayUnitsFor('imperial').economy).toBe('mpg_us');
     expect(displayUnitsFor('metric').distance).toBe('km');
+  });
+});
+
+describe('hour meters and kWh', () => {
+  it('never converts hours to distance or kWh to liquid volume', () => {
+    expect(convertDistance(10, 'hr', 'mi')).toBeNaN();
+    expect(convertDistance(10, 'hr', 'hr')).toBe(10);
+    expect(convertVolume(10, 'kwh', 'l')).toBeNaN();
+    expect(computeEconomy(300, 'hr', 10, 'gal_us', 'mpg_us')).toBeNull();
+    expect(computeEconomy(300, 'mi', 10, 'kwh', 'mpg_us')).toBeNull();
+  });
+  it('reports native economy as fuel per hour or distance per kWh', () => {
+    // 20 hours on 30 gallons: 0.667 hours per gallon → 1.5 gal/h
+    expect(nativeEconomy(20 / 30, 'hr', 'gal_us')).toEqual({
+      kind: 'per_hour',
+      value: 1.5,
+      unit: 'gal_us',
+    });
+    expect(nativeEconomy(3.6, 'mi', 'kwh')).toEqual({ kind: 'per_kwh', value: 3.6, unit: 'mi' });
+    expect(nativeEconomy(30, 'mi', 'gal_us')).toBeNull();
   });
 });

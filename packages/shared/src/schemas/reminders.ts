@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DUE_MODES } from '../domain/reminder-status';
+import { ODOMETER_UNITS } from '../domain/units';
 import { IsoDateString, Odometer, optionalText } from './text';
 
 export const ReminderInput = z
@@ -29,7 +30,7 @@ export const Reminder = z
     id: z.number().int(),
     vehicleId: z.number().int(),
     vehicleTitle: z.string(),
-    odometerUnit: z.enum(['mi', 'km']),
+    odometerUnit: z.enum(ODOMETER_UNITS),
     title: z.string(),
     notes: z.string().nullable(),
     dueMode: z.enum(DUE_MODES),

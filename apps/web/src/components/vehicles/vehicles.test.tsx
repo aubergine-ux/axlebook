@@ -7,6 +7,8 @@ import { mockApi, renderApp } from '../../test-utils';
 const base: Vehicle = {
   id: 1,
   ownerId: 1,
+  category: 'car',
+  unitNumber: null,
   year: 2015,
   make: 'Toyota',
   model: 'Tacoma',

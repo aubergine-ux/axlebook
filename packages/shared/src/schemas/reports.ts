@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { FUEL_UNITS, ODOMETER_UNITS } from '../domain/units';
 import { RECORD_KINDS } from './records';
 
 export const ReportQuery = z.object({
@@ -38,8 +39,8 @@ export const Report = z
       z.object({
         id: z.number().int(),
         title: z.string(),
-        odometerUnit: z.enum(['mi', 'km']),
-        fuelUnit: z.enum(['gal_us', 'gal_uk', 'l']),
+        odometerUnit: z.enum(ODOMETER_UNITS),
+        fuelUnit: z.enum(FUEL_UNITS),
         cost: z.number().int(),
         distance: z.number().int(),
         averageEconomy: z.number().nullable(),

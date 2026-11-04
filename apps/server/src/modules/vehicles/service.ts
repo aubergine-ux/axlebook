@@ -1,5 +1,12 @@
-import type { Vehicle, VehicleInput, VehicleSummary, VehicleUpdate } from '@axlebook/shared';
+import type {
+  Vehicle,
+  VehicleInput,
+  VehicleSection,
+  VehicleSummary,
+  VehicleUpdate,
+} from '@axlebook/shared';
 import {
+  VEHICLE_SECTIONS,
   VehicleInput as VehicleInputSchema,
   VehicleUpdate as VehicleUpdateSchema,
 } from '@axlebook/shared';
@@ -14,11 +21,13 @@ export function toVehicle(row: VehicleRow, access: VehicleAccess): Vehicle {
   return {
     id: row.id,
     ownerId: row.owner_id,
+    category: row.category,
     year: row.year,
     make: row.make,
     model: row.model,
     trim: row.trim,
     nickname: row.nickname,
+    unitNumber: row.unit_number,
     vin: row.vin,
     licensePlate: row.license_plate,
     color: row.color,
@@ -46,11 +55,13 @@ type Columns = Partial<
 function toColumns(input: VehicleUpdate): Columns {
   const parsed = VehicleUpdateSchema.parse(input);
   const map: Record<string, keyof Columns> = {
+    category: 'category',
     year: 'year',
     make: 'make',
     model: 'model',
     trim: 'trim',
     nickname: 'nickname',
+    unitNumber: 'unit_number',
     vin: 'vin',
     licensePlate: 'license_plate',
     color: 'color',
@@ -88,7 +99,11 @@ export class VehicleService {
   }
 
   /** The user's garage: vehicles they own plus vehicles shared with them. */
-  async list(user: User, archived: 'false' | 'true' | 'all'): Promise<VehicleSummary[]> {
+  async list(
+    user: User,
+    archived: 'false' | 'true' | 'all',
+    section?: VehicleSection,
+  ): Promise<VehicleSummary[]> {
     const access = await garageVehicleIds(this.db, user);
     if (access.size === 0) return [];
     let q = this.db
@@ -97,6 +112,7 @@ export class VehicleService {
       .where('id', 'in', [...access.keys()]);
     if (archived === 'false') q = q.where('archived_at', 'is', null);
     if (archived === 'true') q = q.where('archived_at', 'is not', null);
+    if (section) q = q.where('category', 'in', [...VEHICLE_SECTIONS[section]]);
     const rows = await q
       .orderBy('archived_at')
       .orderBy('year', 'desc')

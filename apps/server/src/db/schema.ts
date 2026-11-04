@@ -20,6 +20,7 @@ export interface UsersTable {
   unit_system: 'imperial' | 'metric' | null;
   theme: 'system' | 'light' | 'dark';
   disabled: number;
+  calendar_token: Generated<string | null>;
   created_at: string;
   updated_at: string;
 }
@@ -34,6 +35,10 @@ export interface InstanceSettingsTable {
 export interface VehiclesTable {
   id: Generated<number>;
   owner_id: number;
+  category: Generated<
+    'car' | 'motorcycle' | 'dirtbike' | 'atv' | 'snowmobile' | 'semi' | 'trailer'
+  >;
+  unit_number: string | null;
   year: number;
   make: string;
   model: string;
@@ -42,8 +47,8 @@ export interface VehiclesTable {
   vin: string | null;
   license_plate: string | null;
   color: string | null;
-  odometer_unit: 'mi' | 'km';
-  fuel_unit: 'gal_us' | 'gal_uk' | 'l';
+  odometer_unit: 'mi' | 'km' | 'hr';
+  fuel_unit: 'gal_us' | 'gal_uk' | 'l' | 'kwh';
   fuel_type: string;
   purchase_date: string | null;
   purchase_price: number | null;
@@ -70,6 +75,7 @@ export interface RecordsTable {
   missed_previous: number | null;
   fuel_grade: string | null;
   station: string | null;
+  jurisdiction: string | null;
   client_id: string | null;
   created_by: number | null;
   created_at: string;
@@ -106,6 +112,7 @@ export interface OdometerReadingsTable {
   odometer: number;
   record_id: number | null;
   notes: string | null;
+  jurisdiction: Generated<string | null>;
   created_at: string;
   updated_at: string;
 }
@@ -225,7 +232,35 @@ export interface NotificationLogTable {
   sent_at: string;
 }
 
+export interface InspectionsTable {
+  id: Generated<number>;
+  vehicle_id: number;
+  type: 'pre_trip' | 'post_trip' | 'annual';
+  date: string;
+  odometer: number | null;
+  inspector: string | null;
+  /** JSON: [{ item, ok, note }] */
+  items: string;
+  defects: number;
+  notes: string | null;
+  corrected_at: string | null;
+  corrected_by: string | null;
+  correction_notes: string | null;
+  created_by: number | null;
+  created_at: string;
+}
+
+export interface VehicleInsightsTable {
+  vehicle_id: number;
+  kind: 'mpg' | 'schedule' | 'tips';
+  data: string;
+  model: string;
+  created_at: string;
+}
+
 export interface Database {
+  inspections: InspectionsTable;
+  vehicle_insights: VehicleInsightsTable;
   users: UsersTable;
   instance_settings: InstanceSettingsTable;
   vehicles: VehiclesTable;
