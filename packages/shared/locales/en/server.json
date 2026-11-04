@@ -10,5 +10,11 @@
     "distanceLeft": "{{distance}} {{unit}} to go.",
     "testTitle": "Axlebook test notification",
     "testBody": "If you can read this, notifications from Axlebook are working."
+  },
+  "calendar": {
+    "name": "Axlebook reminders",
+    "event": "{{title}} ({{vehicle}})",
+    "overdue": "Overdue: {{title}} ({{vehicle}})",
+    "dueAt": "Also due at {{odometer}} {{unit}}."
   }
 }

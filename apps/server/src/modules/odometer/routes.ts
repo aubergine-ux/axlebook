@@ -120,6 +120,7 @@ export const odometerRoutes =
             'o.odometer',
             'o.record_id',
             'o.notes',
+            'o.jurisdiction',
             'r.kind',
             'r.title',
           ])
@@ -136,6 +137,7 @@ export const odometerRoutes =
           recordKind: r.kind ?? null,
           recordTitle: r.title ?? null,
           notes: r.notes,
+          jurisdiction: r.jurisdiction ?? null,
         }));
       },
     );
@@ -161,6 +163,7 @@ export const odometerRoutes =
             date: req.body.date,
             odometer: req.body.odometer,
             notes: req.body.notes ?? null,
+            jurisdiction: req.body.jurisdiction ?? null,
             created_at: ts,
             updated_at: ts,
           })
@@ -175,6 +178,7 @@ export const odometerRoutes =
           recordKind: null,
           recordTitle: null,
           notes: row.notes,
+          jurisdiction: row.jurisdiction ?? null,
         });
       },
     );
@@ -212,6 +216,7 @@ export const odometerRoutes =
             date: req.body.date,
             odometer: req.body.odometer,
             notes: req.body.notes ?? null,
+            jurisdiction: req.body.jurisdiction ?? null,
             updated_at: nowIso(),
           })
           .where('id', '=', req.params.id)
@@ -226,6 +231,7 @@ export const odometerRoutes =
           recordKind: null,
           recordTitle: null,
           notes: row.notes,
+          jurisdiction: row.jurisdiction ?? null,
         };
       },
     );

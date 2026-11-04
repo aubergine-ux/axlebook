@@ -112,6 +112,7 @@ export class RecordService {
               missedPrevious: Boolean(r.missed_previous),
               grade: r.fuel_grade,
               station: r.station,
+              jurisdiction: r.jurisdiction,
             }
           : null,
       parts: (partsBy.get(r.id) ?? []).map((p) => ({
@@ -345,6 +346,7 @@ export class RecordService {
       missed_previous: fuel ? (fuel.missedPrevious ? 1 : 0) : null,
       fuel_grade: fuel?.grade ?? null,
       station: fuel?.station ?? null,
+      jurisdiction: fuel?.jurisdiction ?? null,
     };
   }
 
@@ -442,7 +444,12 @@ export class RecordService {
     if (existing) {
       await trx
         .updateTable('odometer_readings')
-        .set({ date: row.date, odometer: row.odometer, updated_at: ts })
+        .set({
+          date: row.date,
+          odometer: row.odometer,
+          jurisdiction: row.jurisdiction,
+          updated_at: ts,
+        })
         .where('id', '=', existing.id)
         .execute();
     } else {
@@ -453,6 +460,8 @@ export class RecordService {
           record_id: row.id,
           date: row.date,
           odometer: row.odometer,
+          // A fill-up's jurisdiction also marks where the vehicle was (IFTA worksheet).
+          jurisdiction: row.jurisdiction,
           created_at: ts,
           updated_at: ts,
         })

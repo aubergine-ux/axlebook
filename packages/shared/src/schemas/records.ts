@@ -23,6 +23,15 @@ export const FuelInput = z.object({
   missedPrevious: z.boolean().default(false),
   grade: optionalText(40),
   station: optionalText(120),
+  /** IFTA jurisdiction of the purchase (e.g. TX, ON). */
+  jurisdiction: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{2,3}$/)
+    .nullable()
+    .optional()
+    .or(z.literal('').transform(() => null)),
 });
 
 export const RecordPartUse = z.object({
@@ -103,6 +112,7 @@ export const LogRecord = z
         missedPrevious: z.boolean(),
         grade: z.string().nullable(),
         station: z.string().nullable(),
+        jurisdiction: z.string().nullable(),
       })
       .nullable(),
     parts: z.array(
@@ -162,6 +172,7 @@ export const OdometerReading = z
     recordKind: z.enum(RECORD_KINDS).nullable(),
     recordTitle: z.string().nullable(),
     notes: z.string().nullable(),
+    jurisdiction: z.string().nullable(),
   })
   .meta({ id: 'OdometerReading' });
 export type OdometerReading = z.infer<typeof OdometerReading>;
@@ -170,6 +181,15 @@ export const OdometerInput = z.object({
   date: IsoDateString,
   odometer: Odometer,
   notes: optionalText(500),
+  /** Jurisdiction entered at this reading (state-line crossing), for the IFTA worksheet. */
+  jurisdiction: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{2,3}$/)
+    .nullable()
+    .optional()
+    .or(z.literal('').transform(() => null)),
 });
 export type OdometerInput = z.input<typeof OdometerInput>;
 
