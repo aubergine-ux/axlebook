@@ -8,7 +8,11 @@ data
 .env
 *.db
 *.db-*
-apps/web/public/brand
+apps/web/public
+logo-assets/brand-guide
+logo-assets/social
+logo-assets/logo/png
+logo-assets/icons/png
 playwright-report
 test-results
 **/.fuse_hidden*

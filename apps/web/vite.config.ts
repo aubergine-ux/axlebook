@@ -14,7 +14,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false,
-      includeAssets: ['brand/favicon.svg', 'brand/favicon.ico', 'brand/apple-touch-icon.png'],
+      includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon-180.png'],
       manifest: {
         name: 'Axlebook',
         short_name: 'Axlebook',
@@ -44,12 +44,13 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
-        // Fonts ship many unicode-range subsets; cache the ones actually used on demand.
+        // Brand fonts are cached the first time they load.
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        // Store/desktop icon sources in public/ aren't needed offline.
+        globIgnores: ['**/ios-*.png', '**/macos-*.png', '**/avatar-*.png', '**/favicon-*.png'],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) =>
-              url.pathname.startsWith('/assets/') && /\.woff2?$/.test(url.pathname),
+            urlPattern: ({ url }) => url.pathname.startsWith('/brand/fonts/'),
             handler: 'CacheFirst',
             options: { cacheName: 'fonts', expiration: { maxEntries: 30 } },
           },

@@ -21,8 +21,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:pg": "node -e \"if(!process.env.TEST_DATABASE_URL){console.error('Set TEST_DATABASE_URL, e.g. postgres://postgres:dev@localhost:5432/postgres');process.exit(1)}\" && vitest run --project server",
-    "tokens": "node logo-assets/source/tokens.mjs",
-    "brand:sync": "node tools/brand-sync.mjs"
+    "tokens": "node tools/tokens.mjs",
+    "brand:sync": "node tools/brand-sync.mjs",
+    "icons": "node tools/icons.mjs",
+    "brand": "node tools/tokens.mjs && node tools/icons.mjs && node tools/brand-sync.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",

@@ -1,8 +1,11 @@
 // Axlebook i18n guard: user-visible JSX attributes must not be hardcoded strings.
 // Complements Biome's built-in style/noJsxLiterals, which only checks text children.
+// Empty strings are allowed (alt="" marks a decorative image).
 language js
 
-JsxAttribute(name=$name, initializer=JsxAttributeInitializerClause(value=JsxString())) as $attr where {
+JsxAttribute(name=$name, initializer=JsxAttributeInitializerClause(value=$value)) as $attr where {
+  $value <: JsxString(),
+  $value <: not r"^[\"'][\"']$",
   $name <: or {
     `aria-label`,
     `aria-description`,

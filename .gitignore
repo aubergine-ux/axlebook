@@ -11,5 +11,5 @@ test-results
 .vite
 *.tsbuildinfo
 .fuse_hidden*
-apps/web/public/brand/
+apps/web/public/
 dev-dist
