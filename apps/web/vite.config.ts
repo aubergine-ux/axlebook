@@ -22,19 +22,14 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         display: 'standalone',
-        background_color: '#F7F5F0',
-        theme_color: '#1A212B',
+        // Brand kit: surface (light) and graphite.
+        background_color: '#f4f5f6',
+        theme_color: '#1c1f22',
         icons: [
-          { src: '/brand/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/brand/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
           {
-            src: '/brand/maskable-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
-          {
-            src: '/brand/maskable-512.png',
+            src: '/pwa-maskable-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
