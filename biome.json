@@ -13,9 +13,10 @@
       "!**/routeTree.gen.ts",
       "!**/playwright-report",
       "!**/test-results",
-      "!logo-assets/color/tokens.css",
-      "!logo-assets/color/palette.svg",
-      "!apps/web/brand-placeholder"
+      "!logo-assets",
+      "!apps/web/src/theme/tokens.css",
+      "!apps/web/public",
+      "!apps/web/src/components/icons.gen.ts"
     ]
   },
   "plugins": ["./tools/biome/no-untranslated-attrs.grit"],
@@ -39,7 +40,7 @@
         "noJsxLiterals": {
           "level": "error",
           "options": {
-            "allowedStrings": ["·", "—", "/", "(", ")", ":", "%", "+", "−", "×"]
+            "allowedStrings": ["·", "—", "/", "(", ")", ":", "%", "+", "−", "×", "←"]
           }
         }
       }

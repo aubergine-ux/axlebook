@@ -1,29 +1,75 @@
 @import "tailwindcss";
-@import "../../../logo-assets/color/tokens.css";
+@import "./theme/tokens.css";
 
-/* Map design tokens (which switch with the theme) to Tailwind utilities. */
+/*
+ * Tailwind is limited to the brand kit (logo-assets/tokens.json → theme/tokens.css).
+ * The default palette is cleared so only token colours exist. Radius (--radius-*) and
+ * font (--font-sans/--font-mono) tokens share Tailwind's own variable names; tokens.css is
+ * unlayered, so the kit's values override Tailwind's defaults and rounded-md, font-mono
+ * and friends use them directly.
+ */
 @theme inline {
-  --color-bg: var(--ab-bg);
-  --color-surface: var(--ab-surface);
-  --color-raised: var(--ab-raised);
-  --color-fg: var(--ab-text);
-  --color-muted: var(--ab-muted);
-  --color-line: var(--ab-border);
-  --color-line-strong: var(--ab-border-strong);
-  --color-accent: var(--ab-accent);
-  --color-on-accent: var(--ab-on-accent);
-  --color-accent-fg: var(--ab-accent-text);
-  --color-focus: var(--ab-focus);
-  --color-overdue: var(--ab-overdue);
-  --color-overdue-bg: var(--ab-overdue-bg);
-  --color-soon: var(--ab-soon);
-  --color-soon-bg: var(--ab-soon-bg);
-  --color-ok: var(--ab-ok);
-  --color-ok-bg: var(--ab-ok-bg);
-  --color-info: var(--ab-info);
-  --color-info-bg: var(--ab-info-bg);
-  --font-sans: var(--ab-font-sans);
-  --font-mono: var(--ab-font-mono);
+  --color-*: initial;
+  --color-black: #000;
+  --color-white: #fff;
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-graphite: var(--graphite);
+  --color-graphite-light: var(--graphite-light);
+  --color-on-graphite: var(--on-graphite);
+  --color-readout: var(--readout);
+  --color-on-readout: var(--on-readout);
+  --color-orange: var(--orange);
+  --color-orange-strong: var(--orange-strong);
+  --color-orange-text: var(--orange-text);
+  --color-orange-soft: var(--orange-soft);
+  --color-on-orange: var(--on-orange);
+  --color-yellow: var(--yellow);
+  --color-yellow-soft: var(--yellow-soft);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-soft);
+  --color-on-red: var(--on-red);
+  --color-focus: var(--focus);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+
+  /* Type scale from the brand kit. */
+  --text-display-xl: 64px;
+  --text-display-xl--line-height: 62px;
+  --text-display: 40px;
+  --text-display--line-height: 40px;
+  --text-title: 24px;
+  --text-title--line-height: 30px;
+  --text-heading: 17px;
+  --text-heading--line-height: 24px;
+  --text-body: 15px;
+  --text-body--line-height: 22px;
+  --text-label: 13px;
+  --text-label--line-height: 18px;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-readout: 32px;
+  --text-readout--line-height: 36px;
+  --text-figure: 20px;
+  --text-figure--line-height: 26px;
+  --text-data: 14px;
+  --text-data--line-height: 20px;
+}
+
+/* Archivo at its widest, extra-bold: page titles and display text. */
+@utility ax-display {
+  font-family: var(--font-sans);
+  font-stretch: 125%;
+  font-variation-settings: "wdth" 125;
+  font-weight: 800;
+  letter-spacing: -0.015em;
 }
 
 @layer base {
@@ -31,28 +77,29 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-bg text-fg font-sans antialiased;
+    @apply bg-surface text-body text-ink font-sans antialiased;
     min-height: 100dvh;
   }
+  /* Focus ring: 2px solid, offset 2px (brand kit). */
   :focus-visible {
-    outline: 3px solid var(--ab-focus);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
-  /* Header logo: show the variant matching the active theme. */
-  .logo-dark {
+  /* Header logo: show the variant for the active theme. */
+  .on-dark {
     display: none;
   }
-  :root[data-theme="dark"] .logo-light {
+  :root[data-theme="dark"] .on-light {
     display: none;
   }
-  :root[data-theme="dark"] .logo-dark {
+  :root[data-theme="dark"] .on-dark {
     display: inline-block;
   }
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .logo-light {
+    :root:not([data-theme="light"]) .on-light {
       display: none;
     }
-    :root:not([data-theme="light"]) .logo-dark {
+    :root:not([data-theme="light"]) .on-dark {
       display: inline-block;
     }
   }

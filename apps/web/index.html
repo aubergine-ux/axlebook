@@ -4,18 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#F7F5F0" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#12161C" media="(prefers-color-scheme: dark)" />
-    <link rel="icon" href="/brand/favicon.ico" sizes="48x48" />
-    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+    <meta name="theme-color" content="#f4f5f6" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121416" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180.png" />
     <title>Axlebook</title>
     <script>
-      // Apply the saved theme before first paint to avoid a flash.
+      // Resolve the theme before first paint (no flash). "system" follows the OS.
       try {
         const saved = localStorage.getItem('axlebook.theme');
-        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
-      } catch {}
+        const dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      } catch {
+        document.documentElement.dataset.theme = 'light';
+      }
     </script>
   </head>
   <body>

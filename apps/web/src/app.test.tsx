@@ -57,8 +57,9 @@ describe('app shell', () => {
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(localStorage.getItem('axlebook.theme')).toBe('dark');
 
+    // "System" resolves to the OS preference (light in jsdom) and forgets the saved choice.
     await userEvent.click(screen.getByRole('radio', { name: 'System' }));
-    expect(document.documentElement.dataset.theme).toBeUndefined();
+    expect(document.documentElement.dataset.theme).toBe('light');
     expect(localStorage.getItem('axlebook.theme')).toBeNull();
   });
 

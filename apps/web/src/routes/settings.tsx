@@ -18,20 +18,20 @@ function SettingsPage() {
   return (
     <>
       <PageHeader title={t('nav.settings')} />
-      <section className="max-w-xl rounded-lg border border-line bg-surface p-4">
+      <section className="max-w-xl rounded-lg border border-line bg-surface-raised p-4">
         <RadioGroup
           value={theme}
           onChange={(v) => setTheme(v as ThemePreference)}
           orientation="horizontal"
           className="flex flex-col gap-2"
         >
-          <Label className="text-sm font-medium">{t('theme.label')}</Label>
-          <div className="flex gap-2">
+          <Label className="text-label">{t('theme.label')}</Label>
+          <div className="inline-flex w-fit gap-1 rounded-md bg-surface-sunken p-1">
             {THEMES.map((value) => (
               <Radio
                 key={value}
                 value={value}
-                className="cursor-pointer rounded-md border border-line-strong px-3 py-1.5 text-sm data-[focus-visible]:outline-3 data-[focus-visible]:outline-focus data-[selected]:border-accent data-[selected]:bg-accent data-[selected]:text-on-accent"
+                className="min-h-9 cursor-pointer rounded-sm px-3 py-1.5 text-label text-ink-muted data-[focus-visible]:outline-2 data-[focus-visible]:outline-offset-2 data-[focus-visible]:outline-focus data-[focus-visible]:outline-solid data-[selected]:bg-surface-raised data-[selected]:text-ink data-[selected]:shadow-card"
               >
                 {t(`theme.${value}`)}
               </Radio>
@@ -40,7 +40,7 @@ function SettingsPage() {
         </RadioGroup>
       </section>
       {config.data && (
-        <p className="mt-6 font-mono text-xs text-muted">
+        <p className="mt-6 font-mono text-xs text-ink-muted">
           {t('settings.version', { version: config.data.version })}
         </p>
       )}

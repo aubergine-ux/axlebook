@@ -25,8 +25,11 @@ jobs:
       - run: npm ci
       - run: npx biome ci .
       - run: npm run typecheck
-      - name: Design token contrast check
-        run: npm run tokens && git diff --exit-code logo-assets/color
+      - name: Brand outputs are current (tokens + contrast, icons)
+        run: |
+          npm run tokens
+          npm run icons
+          git diff --exit-code apps/web/src/theme/tokens.css apps/web/src/components/icons.gen.ts
 
   test:
     name: Test (Node ${{ matrix.node }}, SQLite)

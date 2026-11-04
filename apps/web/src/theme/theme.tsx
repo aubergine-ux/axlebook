@@ -2,6 +2,7 @@ import { createContext, type ReactNode, useCallback, useContext, useEffect, useS
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 const STORAGE_KEY = 'axlebook.theme';
+const DARK_QUERY = '(prefers-color-scheme: dark)';
 
 function readStored(): ThemePreference {
   try {
@@ -12,10 +13,14 @@ function readStored(): ThemePreference {
   }
 }
 
+function systemPrefersDark(): boolean {
+  return typeof matchMedia === 'function' && matchMedia(DARK_QUERY).matches;
+}
+
+/** data-theme is always "light" or "dark"; "system" is resolved here. */
 function apply(theme: ThemePreference) {
-  const root = document.documentElement;
-  if (theme === 'system') delete root.dataset.theme;
-  else root.dataset.theme = theme;
+  const resolved = theme === 'system' ? (systemPrefersDark() ? 'dark' : 'light') : theme;
+  document.documentElement.dataset.theme = resolved;
 }
 
 const ThemeContext = createContext<{
@@ -26,7 +31,14 @@ const ThemeContext = createContext<{
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemePreference>(readStored);
 
-  useEffect(() => apply(theme), [theme]);
+  useEffect(() => {
+    apply(theme);
+    if (theme !== 'system' || typeof matchMedia !== 'function') return;
+    const mq = matchMedia(DARK_QUERY);
+    const onChange = () => apply('system');
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, [theme]);
 
   const setTheme = useCallback((t: ThemePreference) => {
     setThemeState(t);
