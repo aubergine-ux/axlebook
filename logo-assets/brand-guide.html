@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Axlebook brand guide</title>
+<link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+<link rel="stylesheet" href="color/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ab-bg); color: var(--ab-text);
+    font: 15px/1.55 var(--ab-font-sans);
+  }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 80px; }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 28px; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ab-muted); margin: 48px 0 12px; font-weight: 600; }
+  p { max-width: 68ch; }
+  .muted { color: var(--ab-muted); }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .card { background: var(--ab-surface); border: 1px solid var(--ab-border); border-radius: var(--ab-radius-lg); padding: 20px; }
+  .card.dark { background: var(--ab-brand-tile); border-color: var(--ab-brand-tile); color: var(--ab-brand-paper); }
+  .card.paper { background: var(--ab-brand-paper); color: var(--ab-brand-ink); }
+  .card img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  .card figcaption { margin-top: 12px; font-size: 12px; font-family: var(--ab-font-mono); opacity: .75; text-align: center; }
+  .sizes { display: flex; align-items: end; gap: 20px; flex-wrap: wrap; }
+  .sizes figure { margin: 0; text-align: center; font: 11px var(--ab-font-mono); color: var(--ab-muted); }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .sw { border-radius: var(--ab-radius-md); overflow: hidden; border: 1px solid var(--ab-border); background: var(--ab-surface); }
+  .sw div { height: 64px; }
+  .sw p { margin: 0; padding: 8px 10px; font-size: 12px; }
+  .sw code { font-family: var(--ab-font-mono); color: var(--ab-muted); }
+  .type-sample { font-size: 34px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  .mono { font-family: var(--ab-font-mono); font-variant-numeric: tabular-nums; }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 500; }
+  .b-overdue { background: var(--ab-overdue-bg); color: var(--ab-overdue); }
+  .b-soon { background: var(--ab-soon-bg); color: var(--ab-soon); }
+  .b-ok { background: var(--ab-ok-bg); color: var(--ab-ok); }
+  .b-info { background: var(--ab-info-bg); color: var(--ab-info); }
+  .btn { font: inherit; font-weight: 600; border-radius: var(--ab-radius-md); padding: 8px 16px; border: 1px solid transparent; cursor: pointer; }
+  .btn-primary { background: var(--ab-accent); color: var(--ab-on-accent); }
+  .btn-secondary { background: var(--ab-surface); color: var(--ab-text); border-color: var(--ab-border-strong); }
+  .btn:focus-visible, button:focus-visible { outline: 3px solid var(--ab-focus); outline-offset: 2px; }
+  .dont { list-style: none; padding: 0; }
+  .dont li::before { content: "✕  "; color: var(--ab-overdue); font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--ab-border); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .theme-toggle { display: flex; gap: 4px; border: 0; margin: 0; padding: 0; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="svg/lockup-horizontal.svg" alt="Axlebook" height="40" id="lockup">
+    <fieldset class="theme-toggle"><legend class="sr-only">Theme</legend>
+      <button type="button" class="btn btn-secondary" data-set-theme="light">Light</button>
+      <button type="button" class="btn btn-secondary" data-set-theme="dark">Dark</button>
+      <button type="button" class="btn btn-secondary" data-set-theme="">System</button>
+    </fieldset>
+  </header>
+
+  <h2>Mark</h2>
+  <p>An "A" whose crossbar becomes an axle, with an amber wheel at each end. It's the first letter of the name and the one part every vehicle shares. The amber comes from the oil-change sticker in the corner of the windshield.</p>
+  <div class="grid">
+    <figure class="card"><img src="svg/mark-tile.svg" alt="Tile mark" width="120"><figcaption>mark-tile.svg</figcaption></figure>
+    <figure class="card paper"><img src="svg/mark.svg" alt="Mark for light backgrounds" width="120"><figcaption>mark.svg</figcaption></figure>
+    <figure class="card dark"><img src="svg/mark-dark.svg" alt="Mark for dark backgrounds" width="120"><figcaption>mark-dark.svg</figcaption></figure>
+    <figure class="card paper"><img src="svg/mark-mono-black.svg" alt="Monochrome black mark" width="120"><figcaption>mark-mono-black.svg</figcaption></figure>
+  </div>
+
+  <h2>Lockups</h2>
+  <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+    <figure class="card paper"><img src="svg/lockup-horizontal.svg" alt="Horizontal lockup" height="56"><figcaption>lockup-horizontal.svg</figcaption></figure>
+    <figure class="card dark"><img src="svg/lockup-horizontal-dark.svg" alt="Horizontal lockup, dark" height="56"><figcaption>lockup-horizontal-dark.svg</figcaption></figure>
+    <figure class="card paper"><img src="svg/lockup-stacked.svg" alt="Stacked lockup" height="140"><figcaption>lockup-stacked.svg</figcaption></figure>
+    <figure class="card dark"><img src="svg/lockup-stacked-dark.svg" alt="Stacked lockup, dark" height="140"><figcaption>lockup-stacked-dark.svg</figcaption></figure>
+  </div>
+
+  <h2>Icon sizes</h2>
+  <div class="card sizes">
+    <figure><img src="icons/favicon-16.png" alt="" width="16" height="16"><br>16</figure>
+    <figure><img src="icons/favicon-32.png" alt="" width="32" height="32"><br>32</figure>
+    <figure><img src="icons/favicon-48.png" alt="" width="48" height="48"><br>48</figure>
+    <figure><img src="icons/apple-touch-icon.png" alt="" width="90" height="90"><br>apple-touch (180)</figure>
+    <figure><img src="icons/icon-192.png" alt="" width="96" height="96"><br>pwa any (192)</figure>
+    <figure><img src="icons/maskable-192.png" alt="" width="96" height="96" style="border-radius:50%"><br>maskable (circle crop)</figure>
+  </div>
+
+  <h2>Color</h2>
+  <div class="swatches" id="swatches"></div>
+  <p class="muted">Amber is a fill, and text on it is always Ink. For amber-colored text, use <code>accent-text</code>. Every pair in <code>tokens.json</code> is checked against WCAG AA in both themes.</p>
+
+  <h2>Status</h2>
+  <div class="card">
+    <div class="badges">
+      <span class="badge b-overdue">⚠ Overdue · 312 mi</span>
+      <span class="badge b-soon">◷ Due soon · 12 days</span>
+      <span class="badge b-ok">✓ Done</span>
+      <span class="badge b-info">↻ Upcoming · Mar 2027</span>
+    </div>
+    <p class="muted" style="margin-bottom:0">Status always pairs color with an icon and words. Color is never the only signal.</p>
+  </div>
+
+  <h2>Type</h2>
+  <div class="card">
+    <p class="type-sample">Rear brake pads and rotors</p>
+    <p>IBM Plex Sans for the interface: 400 for text, 500 for labels, 600 for headings and the wordmark.</p>
+    <table>
+      <thead><tr><th>Date</th><th>Odometer</th><th>Item</th><th style="text-align:right">Cost</th></tr></thead>
+      <tbody>
+        <tr><td>2026-03-14</td><td class="mono">118,402 mi</td><td>Oil and filter, 0W-20</td><td class="num">$64.18</td></tr>
+        <tr><td>2026-01-09</td><td class="mono">115,977 mi</td><td>Tire rotation</td><td class="num">$25.00</td></tr>
+        <tr><td>2025-11-21</td><td class="mono">113,310 mi</td><td>Front pads and rotors</td><td class="num">$412.90</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">IBM Plex Mono for stamped values: odometer readings, VINs, part numbers. Numbers in tables use tabular figures.</p>
+  </div>
+
+  <h2>Buttons</h2>
+  <div class="card" style="display:flex; gap:12px; flex-wrap:wrap">
+    <button type="button" class="btn btn-primary">Log fill-up</button>
+    <button type="button" class="btn btn-secondary">Add record</button>
+  </div>
+
+  <h2>Don't</h2>
+  <ul class="dont">
+    <li>Recolor the wheels or add a second accent color to the mark</li>
+    <li>Rotate, skew, outline, or add drop shadows to the mark</li>
+    <li>Set the logo in another typeface. In sentences, write it as "Axlebook"</li>
+    <li>Use the tile-less mark on photos or busy backgrounds</li>
+    <li>Use the detailed mark below 32 px. Use favicon-small instead</li>
+  </ul>
+</main>
+<script>
+  const root = document.documentElement;
+  const lockup = document.getElementById('lockup');
+  function apply(theme) {
+    if (theme) root.dataset.theme = theme; else delete root.dataset.theme;
+    const dark = theme === 'dark' || (!theme && matchMedia('(prefers-color-scheme: dark)').matches);
+    lockup.src = dark ? 'svg/lockup-horizontal-dark.svg' : 'svg/lockup-horizontal.svg';
+  }
+  for (const b of document.querySelectorAll('[data-set-theme]')) {
+    b.addEventListener('click', () => apply(b.dataset.setTheme));
+  }
+  apply('');
+  const keys = ['bg','surface','raised','text','muted','border','border-strong','accent','accent-text','focus','overdue','soon','ok','info'];
+  const host = document.getElementById('swatches');
+  for (const k of keys) {
+    const el = document.createElement('div');
+    el.className = 'sw';
+    el.innerHTML = `<div style="background:var(--ab-${k})"></div><p>${k}<br><code></code></p>`;
+    host.append(el);
+  }
+  function refreshHex() {
+    const cs = getComputedStyle(root);
+    host.querySelectorAll('.sw').forEach((el, i) => { el.querySelector('code').textContent = cs.getPropertyValue(`--ab-${keys[i]}`).trim(); });
+  }
+  new MutationObserver(refreshHex).observe(root, { attributes: true });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', refreshHex);
+  refreshHex();
+</script>
+</body>
+</html>

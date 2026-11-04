@@ -1,0 +1,81 @@
+/* Generated from tokens.json by source/tokens.mjs. Do not edit by hand. */
+:root {
+  --ab-brand-ink: #161b22;
+  --ab-brand-tile: #1a212b;
+  --ab-brand-paper: #f7f5f0;
+  --ab-brand-amber: #e8890c;
+  --ab-font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ab-font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --ab-radius-sm: 4px;
+  --ab-radius-md: 8px;
+  --ab-radius-lg: 12px;
+  --ab-radius-tile: 22%;
+  color-scheme: light;
+  --ab-bg: #f7f5f0;
+  --ab-surface: #ffffff;
+  --ab-raised: #f0ede6;
+  --ab-text: #161b22;
+  --ab-muted: #55606c;
+  --ab-border: #e2ded6;
+  --ab-border-strong: #7d7a73;
+  --ab-accent: #e8890c;
+  --ab-on-accent: #161b22;
+  --ab-accent-text: #9a5200;
+  --ab-focus: #2f5f94;
+  --ab-overdue: #b3261e;
+  --ab-overdue-bg: #fbe9e7;
+  --ab-soon: #8a6100;
+  --ab-soon-bg: #fbf0d6;
+  --ab-ok: #276b43;
+  --ab-ok-bg: #e3f2e8;
+  --ab-info: #2f5f94;
+  --ab-info-bg: #e5eef8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ab-bg: #12161c;
+    --ab-surface: #1a2028;
+    --ab-raised: #232b35;
+    --ab-text: #eceff3;
+    --ab-muted: #9aa5b1;
+    --ab-border: #2e3742;
+    --ab-border-strong: #6b7785;
+    --ab-accent: #e8890c;
+    --ab-on-accent: #161b22;
+    --ab-accent-text: #f5a33a;
+    --ab-focus: #f5a33a;
+    --ab-overdue: #ff8a80;
+    --ab-overdue-bg: #3a1f1e;
+    --ab-soon: #f2c14e;
+    --ab-soon-bg: #3a3018;
+    --ab-ok: #6fcf97;
+    --ab-ok-bg: #1b3326;
+    --ab-info: #8ab4f8;
+    --ab-info-bg: #1c2c44;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ab-bg: #12161c;
+  --ab-surface: #1a2028;
+  --ab-raised: #232b35;
+  --ab-text: #eceff3;
+  --ab-muted: #9aa5b1;
+  --ab-border: #2e3742;
+  --ab-border-strong: #6b7785;
+  --ab-accent: #e8890c;
+  --ab-on-accent: #161b22;
+  --ab-accent-text: #f5a33a;
+  --ab-focus: #f5a33a;
+  --ab-overdue: #ff8a80;
+  --ab-overdue-bg: #3a1f1e;
+  --ab-soon: #f2c14e;
+  --ab-soon-bg: #3a3018;
+  --ab-ok: #6fcf97;
+  --ab-ok-bg: #1b3326;
+  --ab-info: #8ab4f8;
+  --ab-info-bg: #1c2c44;
+}
