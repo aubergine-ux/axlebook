@@ -24,6 +24,8 @@ export const PublicConfig = z
     currency: z.string(),
     defaultUnitSystem: z.enum(UNIT_SYSTEMS),
     defaultLocale: z.string(),
+    /** AI features (spreadsheet import help, MPG estimate, maintenance schedule) are configured. */
+    ai: z.boolean(),
   })
   .meta({ id: 'PublicConfig' });
 export type PublicConfig = z.infer<typeof PublicConfig>;

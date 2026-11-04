@@ -44,6 +44,10 @@ const EnvSchema = z.object({
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().optional(),
   REMINDER_SCAN_INTERVAL_MIN: z.coerce.number().int().min(1).max(1440).default(60),
+  AI_URL: z.url().optional(),
+  AI_MODEL: z.string().default('qwen2.5:3b'),
+  AI_PULL: z.enum(['true', 'false']).default('true'),
+  AI_TIMEOUT_SEC: z.coerce.number().int().min(10).max(3600).default(300),
   TZ: z.string().optional(),
 });
 
@@ -110,6 +114,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
         }
       : undefined,
     reminderScanMinutes: e.REMINDER_SCAN_INTERVAL_MIN,
+    ai: e.AI_URL
+      ? {
+          url: e.AI_URL.replace(/\/+$/, ''),
+          model: e.AI_MODEL,
+          pull: e.AI_PULL === 'true',
+          timeoutMs: e.AI_TIMEOUT_SEC * 1000,
+        }
+      : undefined,
     webDir: e.WEB_DIR
       ? path.resolve(e.WEB_DIR)
       : path.resolve(import.meta.dirname, '../../web/dist'),

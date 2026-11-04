@@ -1,6 +1,7 @@
 /** RFC 4180 CSV: quoted fields, embedded commas, quotes and newlines; CRLF or LF. */
 
-export function parseCsv(text: string): string[][] {
+/** `delimiter` defaults to comma; tab and semicolon files are common exports too. */
+export function parseCsv(text: string, delimiter = ','): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = '';
@@ -16,7 +17,7 @@ export function parseCsv(text: string): string[][] {
         } else quoted = false;
       } else field += c;
     } else if (c === '"' && field === '') quoted = true;
-    else if (c === ',') {
+    else if (c === delimiter) {
       row.push(field);
       field = '';
     } else if (c === '\n' || c === '\r') {
@@ -37,6 +38,18 @@ export function parseCsv(text: string): string[][] {
 const needsQuote = /[",\r\n]|^\s|\s$/;
 /** Leading =, +, -, @ are prefixed with ' so spreadsheets don't run them as formulas. */
 const formula = /^[=+\-@\t\r]/;
+
+/** Guess the delimiter from the first non-empty line. */
+export function sniffDelimiter(text: string): ',' | '\t' | ';' {
+  const line = text.split(/\r?\n/).find((l) => l.trim()) ?? '';
+  const count = (ch: string) => line.split(ch).length - 1;
+  const tabs = count('\t');
+  const semis = count(';');
+  const commas = count(',');
+  if (tabs > 0 && tabs >= commas && tabs >= semis) return '\t';
+  if (semis > commas) return ';';
+  return ',';
+}
 
 export function toCsvField(value: unknown): string {
   if (value == null) return '';

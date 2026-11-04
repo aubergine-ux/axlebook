@@ -18,6 +18,9 @@ const STATUS: Record<ErrorCode, number> = {
   insufficient_stock: 409,
   unsupported_file: 415,
   restore_not_empty: 409,
+  ai_disabled: 503,
+  ai_failed: 502,
+  upload_expired: 410,
 };
 
 /** Throw from anywhere in a request; the error handler turns it into `{ error: { code, params } }`. */

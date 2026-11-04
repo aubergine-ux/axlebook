@@ -9,6 +9,7 @@ import { loadConfig } from '../config';
 import { connect } from '../db/connection';
 import { migrateToLatest } from '../db/migrate';
 import type { User } from '../db/schema';
+import type { Ai } from '../lib/ai';
 import { hashPassword, randomToken, sha256 } from '../lib/crypto';
 import { nowIso } from '../lib/time';
 
@@ -20,7 +21,7 @@ export const sameOrigin = { origin: 'http://localhost:80' } as const;
  * when TEST_DATABASE_URL is set) with a signed-in admin. `t.req()` sends requests as
  * that admin; `t.user()` creates more accounts with their own `req`.
  */
-export async function createTestApp(env: Record<string, string> = {}) {
+export async function createTestApp(env: Record<string, string> = {}, opts: { ai?: Ai } = {}) {
   const pgUrl = process.env.TEST_DATABASE_URL;
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'axlebook-test-'));
   const config = loadConfig({
@@ -41,7 +42,7 @@ export async function createTestApp(env: Record<string, string> = {}) {
   }
   const handle = connect(config.database, { pgSchema });
   await migrateToLatest(handle.db);
-  const app = await buildApp({ config, db: handle });
+  const app = await buildApp({ config, db: handle, ai: opts.ai });
   await app.ready();
   const db = handle.db;
 
@@ -134,3 +135,27 @@ export const vehicleBody = (patch: Record<string, unknown> = {}) => ({
   fuelType: 'gasoline',
   ...patch,
 });
+
+/** A stand-in for the local model: answers each call from `answer` (by schema), records prompts. */
+export function fakeAi(
+  answer: (prompt: { system: string; user: string }) => unknown,
+): Ai & { calls: { system: string; user: string }[] } {
+  const calls: { system: string; user: string }[] = [];
+  return {
+    enabled: true,
+    model: 'fake:1b',
+    calls,
+    status: async () => ({
+      enabled: true,
+      model: 'fake:1b',
+      reachable: true,
+      modelReady: true,
+      pullProgress: null,
+      error: null,
+    }),
+    json: async (schema, prompt) => {
+      calls.push(prompt);
+      return schema.parse(answer(prompt));
+    },
+  };
+}

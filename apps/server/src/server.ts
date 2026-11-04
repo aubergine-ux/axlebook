@@ -2,6 +2,7 @@ import { buildApp } from './app';
 import { loadConfig } from './config';
 import { connect } from './db/connection';
 import { migrateToLatest } from './db/migrate';
+import { OllamaAi } from './lib/ai';
 import { VERSION } from './lib/version';
 import { isSetupRequired, performSetup } from './modules/auth/service';
 import { seedDemo } from './seed/demo';
@@ -39,6 +40,9 @@ async function main() {
   }
 
   app.services.notifications.start();
+  // Local AI: download the model once in the background (AI_PULL=false to skip).
+  const ai = app.services.ai;
+  if (ai instanceof OllamaAi && config.ai?.pull) void ai.ensureModel();
 
   const shutdown = async (signal: string) => {
     app.log.info({ signal }, 'shutting down');

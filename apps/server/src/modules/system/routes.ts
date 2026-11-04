@@ -31,6 +31,7 @@ export const systemRoutes =
         currency: await getSetting(deps.db, 'currency', deps.config.defaults.currency),
         defaultUnitSystem: deps.config.defaults.unitSystem,
         defaultLocale: deps.config.defaults.locale,
+        ai: Boolean(deps.config.ai),
       }),
     );
   };

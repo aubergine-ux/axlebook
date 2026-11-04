@@ -13,10 +13,15 @@ import {
 } from 'fastify-type-provider-zod';
 import type { Config } from './config';
 import type { DbHandle } from './db/connection';
+import { type Ai, disabledAi, OllamaAi } from './lib/ai';
 import { FileStore } from './lib/files';
 import { VERSION } from './lib/version';
 import { authRoutes } from './modules/auth/routes';
+import { calendarRoutes, registerCalendarFeed } from './modules/calendar/routes';
+import { commercialRoutes } from './modules/commercial/routes';
 import { importExportRoutes } from './modules/import-export/routes';
+import { insightRoutes } from './modules/insights/routes';
+import { InsightService } from './modules/insights/service';
 import { inventoryRoutes } from './modules/inventory/routes';
 import { notificationRoutes } from './modules/notifications/routes';
 import { NotificationService } from './modules/notifications/service';
@@ -27,6 +32,8 @@ import { reminderRoutes } from './modules/reminders/routes';
 import { ReminderService } from './modules/reminders/service';
 import { reportRoutes } from './modules/reports/routes';
 import { settingsRoutes } from './modules/settings/routes';
+import { spreadsheetRoutes } from './modules/spreadsheet/routes';
+import { SpreadsheetImporter } from './modules/spreadsheet/service';
 import { systemRoutes } from './modules/system/routes';
 import { userRoutes } from './modules/users/routes';
 import { vehicleRoutes } from './modules/vehicles/routes';
@@ -40,9 +47,11 @@ import { registerSpa } from './plugins/static-spa';
 export interface AppDeps {
   config: Config;
   db: DbHandle;
+  /** Override the local AI client (tests use a fake). */
+  ai?: Ai;
 }
 
-export async function buildApp({ config, db: handle }: AppDeps) {
+export async function buildApp({ config, db: handle, ai: aiOverride }: AppDeps) {
   const db = handle.db;
   const app = Fastify({
     logger:
@@ -108,6 +117,9 @@ export async function buildApp({ config, db: handle }: AppDeps) {
   const records = new RecordService(db, attachments);
   const reminders = new ReminderService(db, config);
   const notifications = new NotificationService(db, config, reminders, app.log);
+  const ai: Ai = aiOverride ?? (config.ai ? new OllamaAi(config.ai, app.log) : disabledAi);
+  const insights = new InsightService(db, config, ai);
+  const importer = new SpreadsheetImporter(db, config, ai, vehicles, records);
 
   /** Delete stored files (photos, attachments) for vehicles about to be deleted. */
   const removeFiles = async (vehicleIds: number[]) => {
@@ -178,10 +190,18 @@ export async function buildApp({ config, db: handle }: AppDeps) {
   await app.register(reportRoutes({ db, config }), api);
   await app.register(importExportRoutes({ db, config, records, photos, attachments }), api);
   await app.register(notificationRoutes({ db, notifications }), api);
+  await app.register(insightRoutes({ insights, ai }), api);
+  await app.register(commercialRoutes({ db, config }), api);
+  await app.register(calendarRoutes({ db, config }), api);
+  await app.register(spreadsheetRoutes(importer), api);
+  // The calendar feed lives outside /api so calendar apps can subscribe with a plain URL.
+  registerCalendarFeed(app, { db, config });
 
   await registerSpa(app, config.webDir);
 
-  return Object.assign(app, { services: { vehicles, records, reminders, notifications } });
+  return Object.assign(app, {
+    services: { vehicles, records, reminders, notifications, insights, importer, ai },
+  });
 }
 
 export type App = Awaited<ReturnType<typeof buildApp>>;
