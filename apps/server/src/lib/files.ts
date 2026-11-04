@@ -19,6 +19,12 @@ export class FileStore {
     return key;
   }
 
+  /** Write under a known key (used by restore). */
+  async write(key: string, data: Buffer): Promise<void> {
+    await fsp.mkdir(this.dir, { recursive: true });
+    await fsp.writeFile(this.resolve(key), data);
+  }
+
   stream(key: string): fs.ReadStream {
     return fs.createReadStream(this.resolve(key));
   }
@@ -45,6 +51,31 @@ const IMAGE_SIGNATURES: { ext: string; mime: string; test: (b: Buffer) => boolea
   },
 ];
 
+const DOC_SIGNATURES: { ext: string; mime: string; test: (b: Buffer) => boolean }[] = [
+  {
+    ext: 'pdf',
+    mime: 'application/pdf',
+    test: (b) => b.subarray(0, 5).toString('latin1') === '%PDF-',
+  },
+  {
+    ext: 'gif',
+    mime: 'image/gif',
+    test: (b) => /^GIF8[79]a/.test(b.subarray(0, 6).toString('latin1')),
+  },
+  {
+    ext: 'heic',
+    mime: 'image/heic',
+    test: (b) =>
+      b.subarray(4, 8).toString('latin1') === 'ftyp' &&
+      /^(heic|heix|mif1|msf1|heif)$/.test(b.subarray(8, 12).toString('latin1')),
+  },
+];
+
+/** Receipts and photos accepted as record attachments, identified by magic bytes. */
+export function sniffAttachment(data: Buffer): { ext: string; mime: string } | null {
+  return sniffImage(data) ?? DOC_SIGNATURES.find((s) => s.test(data)) ?? null;
+}
+
 /** Identify an image by its magic bytes (the client-sent MIME type is not trusted). */
 export function sniffImage(data: Buffer): { ext: string; mime: string } | null {
   const hit = IMAGE_SIGNATURES.find((s) => s.test(data));
@@ -53,5 +84,8 @@ export function sniffImage(data: Buffer): { ext: string; mime: string } | null {
 
 export function mimeForKey(key: string): string {
   const ext = key.split('.').pop();
-  return IMAGE_SIGNATURES.find((s) => s.ext === ext)?.mime ?? 'application/octet-stream';
+  return (
+    [...IMAGE_SIGNATURES, ...DOC_SIGNATURES].find((s) => s.ext === ext)?.mime ??
+    'application/octet-stream'
+  );
 }
