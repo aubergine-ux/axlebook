@@ -3,155 +3,222 @@ import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  fuelQuery,
+  recordsQuery,
+  reportQuery,
+  vehicleRemindersQuery,
+} from '../../../api/resources';
 import { useArchiveVehicle, useDeleteVehicle, vehicleQuery } from '../../../api/vehicles';
+import { Icon } from '../../../components/Icon';
+import { RecordRow } from '../../../components/records/RecordRow';
+import { ReminderItem } from '../../../components/reminders/ReminderItem';
+import { StatTile } from '../../../components/StatTile';
 import { Button, LinkButton } from '../../../components/ui/Button';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
-import { QueryState } from '../../../components/ui/QueryState';
 import { useFormat } from '../../../lib/format';
 
-export const Route = createFileRoute('/vehicles/$vehicleId/')({ component: VehiclePage });
+export const Route = createFileRoute('/vehicles/$vehicleId/')({ component: Overview });
 
-function VehiclePage() {
+function Overview() {
   const { t } = useTranslation();
   const f = useFormat();
-  const id = Number(Route.useParams().vehicleId);
+  const vehicleId = Route.useParams().vehicleId;
+  const id = Number(vehicleId);
   const navigate = useNavigate();
-  const query = useQuery(vehicleQuery(id));
+  const v = useQuery(vehicleQuery(id)).data;
+  const fuel = useQuery(fuelQuery(id)).data;
+  const report = useQuery(reportQuery({ vehicleId: id })).data;
+  const reminders = useQuery(vehicleRemindersQuery(id)).data ?? [];
+  const recent = useQuery(recordsQuery({ vehicleId: id, limit: 5 })).data;
   const archive = useArchiveVehicle();
   const remove = useDeleteVehicle();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  if (!v) return null;
+
+  const title = vehicleTitle(v);
+  const canEdit = v.access !== 'view';
+  const facts: [string, string | null, boolean?][] = [
+    [t('vehicle.fields.vin'), v.vin, true],
+    [t('vehicle.fields.licensePlate'), v.licensePlate, true],
+    [t('vehicle.fields.color'), v.color],
+    [t('vehicle.fields.fuelType'), t(`vehicle.fuelType.${v.fuelType}`)],
+    [t('vehicle.fields.odometerUnit'), t(`units.odometer.${v.odometerUnit}`)],
+    [t('vehicle.fields.fuelUnit'), t(`units.fuel.${v.fuelUnit}`)],
+    [t('vehicle.fields.purchaseDate'), v.purchaseDate ? f.date(v.purchaseDate) : null, true],
+    [
+      t('vehicle.fields.purchasePrice'),
+      v.purchasePrice != null ? f.money(v.purchasePrice) : null,
+      true,
+    ],
+  ];
+  const perDistance = report?.totals.costPerDistance;
 
   return (
-    <QueryState query={query}>
-      {(v) => {
-        const title = vehicleTitle(v);
-        const canEdit = v.access !== 'view';
-        const facts: [string, string | null, boolean?][] = [
-          [t('vehicle.fields.vin'), v.vin, true],
-          [t('vehicle.fields.licensePlate'), v.licensePlate, true],
-          [t('vehicle.fields.color'), v.color],
-          [t('vehicle.fields.fuelType'), t(`vehicle.fuelType.${v.fuelType}`)],
-          [t('vehicle.fields.odometerUnit'), t(`units.odometer.${v.odometerUnit}`)],
-          [t('vehicle.fields.fuelUnit'), t(`units.fuel.${v.fuelUnit}`)],
-          [t('vehicle.fields.purchaseDate'), v.purchaseDate ? f.date(v.purchaseDate) : null, true],
-          [
-            t('vehicle.fields.purchasePrice'),
-            v.purchasePrice != null ? f.money(v.purchasePrice) : null,
-            true,
-          ],
-        ];
-        return (
-          <>
-            <Link
-              to="/"
-              className="mb-3 inline-flex items-center gap-1 rounded-md text-sm text-ink-muted hover:text-ink"
-            >
-              <span aria-hidden>←</span>
-              {t('vehicle.backToGarage')}
-            </Link>
+    <div className="flex flex-col gap-6">
+      {canEdit && (
+        <div className="flex flex-wrap gap-2">
+          <LinkButton
+            to="/vehicles/$vehicleId/records/new"
+            params={{ vehicleId }}
+            variant="primary"
+          >
+            <Icon name="add" size={16} />
+            {t('record.add')}
+          </LinkButton>
+          <LinkButton to="/log" search={{ vehicle: id }}>
+            <Icon name="fuel" size={16} />
+            {t('fuel.log')}
+          </LinkButton>
+        </div>
+      )}
 
-            <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end">
-              {v.photoUrl && (
-                <img
-                  src={v.photoUrl}
-                  alt={t('garage.photoAlt', { name: title })}
-                  className="aspect-[16/9] w-full rounded-lg object-cover sm:w-64"
-                />
-              )}
-              <div className="flex-1">
-                <h1 className="ax-display text-[28px] leading-[30px] md:text-display">
-                  {v.nickname ?? title}
-                </h1>
-                {v.nickname && <p className="text-ink-muted">{title}</p>}
-              </div>
-              {canEdit && (
-                <div className="flex flex-wrap gap-2">
-                  <LinkButton to="/vehicles/$vehicleId/edit" params={{ vehicleId: String(v.id) }}>
-                    {t('vehicle.edit')}
-                  </LinkButton>
-                  {v.access === 'owner' && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        isDisabled={archive.isPending}
-                        onPress={() => archive.mutate({ id: v.id, archived: !v.archivedAt })}
-                      >
-                        {v.archivedAt ? t('vehicle.unarchive') : t('vehicle.archive')}
-                      </Button>
-                      <Button variant="ghost" onPress={() => setConfirmDelete(true)}>
-                        {t('vehicle.delete')}
-                      </Button>
-                    </>
-                  )}
-                </div>
-              )}
-            </header>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatTile label={t('vehicle.stats.economy')}>
+          {f.economy(fuel?.average, v.odometerUnit, v.fuelUnit) ?? t('common.notSet')}
+        </StatTile>
+        <StatTile
+          label={t('vehicle.stats.costPerDistance', {
+            unit: report?.distanceUnit ?? f.display.distance,
+          })}
+        >
+          {perDistance != null ? f.money(Math.round(perDistance), true) : t('common.notSet')}
+        </StatTile>
+        <StatTile label={t('vehicle.stats.spent')}>{f.money(report?.totals.cost ?? 0)}</StatTile>
+      </div>
 
-            {v.archivedAt && (
-              <p
-                role="status"
-                className="mb-6 rounded-md bg-surface-sunken px-3 py-2 text-sm text-ink-muted"
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          <section
+            aria-labelledby="upcoming-h"
+            className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h2 id="upcoming-h" className="text-heading font-semibold">
+                {t('vehicle.upcoming')}
+              </h2>
+              <Link
+                to="/vehicles/$vehicleId/reminders"
+                params={{ vehicleId }}
+                className="text-label text-orange-text hover:underline"
               >
-                {t('vehicle.archivedNotice', { date: f.date(v.archivedAt) })}
-              </p>
-            )}
-
-            <div className="grid gap-6 lg:grid-cols-3">
-              <section
-                aria-labelledby="details-h"
-                className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6 lg:col-span-1"
-              >
-                <h2 id="details-h" className="mb-3 text-heading font-semibold">
-                  {t('vehicle.details')}
-                </h2>
-                <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
-                  {facts.map(([label, value, mono]) => (
-                    <div key={label} className="contents">
-                      <dt className="text-label text-ink-muted">{label}</dt>
-                      <dd className={mono ? 'font-mono text-data break-all' : ''}>
-                        {value ?? t('common.notSet')}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                {v.notes && (
-                  <>
-                    <h3 className="mt-4 mb-1 text-label">{t('vehicle.notes')}</h3>
-                    <p className="text-sm whitespace-pre-wrap">{v.notes}</p>
-                  </>
-                )}
-              </section>
-              <section
-                aria-labelledby="history-h"
-                className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6 lg:col-span-2"
-              >
-                <h2 id="history-h" className="mb-3 text-heading font-semibold">
-                  {t('vehicle.history')}
-                </h2>
-                <p className="text-sm text-ink-muted">{t('vehicle.historyEmpty')}</p>
-              </section>
+                {t('vehicle.viewAll')}
+              </Link>
             </div>
+            {reminders.length === 0 ? (
+              <p className="text-ink-muted">{t('reminder.empty')}</p>
+            ) : (
+              <ul>
+                {reminders.slice(0, 3).map((r) => (
+                  <ReminderItem key={r.id} reminder={r} />
+                ))}
+              </ul>
+            )}
+          </section>
+          <section
+            aria-labelledby="recent-h"
+            className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h2 id="recent-h" className="text-heading font-semibold">
+                {t('vehicle.recent')}
+              </h2>
+              <Link
+                to="/vehicles/$vehicleId/records"
+                params={{ vehicleId }}
+                className="text-label text-orange-text hover:underline"
+              >
+                {t('vehicle.viewAll')}
+              </Link>
+            </div>
+            {recent && recent.items.length > 0 ? (
+              <ul>
+                {recent.items.map((r) => (
+                  <RecordRow key={r.id} record={r} vehicle={v} />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-ink-muted">{t('record.empty')}</p>
+            )}
+          </section>
+        </div>
 
-            <ConfirmDialog
-              isOpen={confirmDelete}
-              onOpenChange={setConfirmDelete}
-              title={t('vehicle.deleteTitle')}
-              confirmLabel={t('vehicle.deleteConfirm')}
-              isPending={remove.isPending}
-              onConfirm={() =>
-                remove.mutate(v.id, {
-                  onSuccess: () => {
-                    setConfirmDelete(false);
-                    void navigate({ to: '/' });
-                  },
-                })
-              }
+        <section
+          aria-labelledby="details-h"
+          className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <h2 id="details-h" className="text-heading font-semibold">
+              {t('vehicle.details')}
+            </h2>
+            {canEdit && (
+              <Link
+                to="/vehicles/$vehicleId/edit"
+                params={{ vehicleId }}
+                className="text-label text-orange-text hover:underline"
+              >
+                {t('vehicle.edit')}
+              </Link>
+            )}
+          </div>
+          <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
+            {facts.map(([label, value, mono]) => (
+              <div key={label} className="contents">
+                <dt className="text-label text-ink-muted">{label}</dt>
+                <dd className={mono ? 'font-mono text-data break-all' : ''}>
+                  {value ?? t('common.notSet')}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          {v.notes && (
+            <>
+              <h3 className="mt-4 mb-1 text-label">{t('vehicle.notes')}</h3>
+              <p className="whitespace-pre-wrap">{v.notes}</p>
+            </>
+          )}
+          {v.archivedAt && (
+            <p
+              role="status"
+              className="mt-4 rounded-md bg-surface-sunken px-3 py-2 text-caption text-ink-muted"
             >
-              {t('vehicle.deleteBody', { name: title })}
-            </ConfirmDialog>
-          </>
-        );
-      }}
-    </QueryState>
+              {t('vehicle.archivedNotice', { date: f.date(v.archivedAt) })}
+            </p>
+          )}
+          {v.access === 'owner' && (
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
+              <Button
+                variant="ghost"
+                isDisabled={archive.isPending}
+                onPress={() => archive.mutate({ id: v.id, archived: !v.archivedAt })}
+              >
+                {v.archivedAt ? t('vehicle.unarchive') : t('vehicle.archive')}
+              </Button>
+              <Button variant="ghost" className="text-red" onPress={() => setConfirmDelete(true)}>
+                {t('vehicle.delete')}
+              </Button>
+            </div>
+          )}
+        </section>
+      </div>
+
+      <ConfirmDialog
+        isOpen={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title={t('vehicle.deleteTitle')}
+        confirmLabel={t('vehicle.deleteConfirm')}
+        isPending={remove.isPending}
+        onConfirm={() =>
+          remove.mutate(v.id, {
+            onSuccess: () => {
+              setConfirmDelete(false);
+              void navigate({ to: '/' });
+            },
+          })
+        }
+      >
+        {t('vehicle.deleteBody', { name: title })}
+      </ConfirmDialog>
+    </div>
   );
 }
