@@ -1,0 +1,14 @@
+{
+  "notify": {
+    "overdue": "Overdue: {{title}} on the {{vehicle}}",
+    "due_soon": "Due soon: {{title}} on the {{vehicle}}",
+    "dueDate": "Due {{date}}.",
+    "daysOver": "{{count}} days overdue.",
+    "daysLeft": "{{count}} days left.",
+    "dueAt": "Due at {{odometer}} {{unit}}.",
+    "distanceOver": "{{distance}} {{unit}} past due.",
+    "distanceLeft": "{{distance}} {{unit}} to go.",
+    "testTitle": "Axlebook test notification",
+    "testBody": "If you can read this, notifications from Axlebook are working."
+  }
+}
