@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createTestApp, sameOrigin } from '../../test/helpers';
+import { createTestApp } from '../../test/helpers';
 
 let t: Awaited<ReturnType<typeof createTestApp>>;
 beforeAll(async () => {
@@ -30,7 +30,7 @@ describe('system routes', () => {
   });
 
   it('returns JSON 404s for unknown API paths', async () => {
-    const res = await t.app.inject({ method: 'GET', url: '/api/v1/nope' });
+    const res = await t.req({ method: 'GET', url: '/api/v1/nope' });
     expect(res.statusCode).toBe(404);
     expect(res.json()).toEqual({ error: { code: 'not_found' } });
   });
@@ -38,12 +38,20 @@ describe('system routes', () => {
   it('applies the CSRF check before routing', async () => {
     const blocked = await t.app.inject({ method: 'POST', url: '/api/v1/nope' });
     expect(blocked.statusCode).toBe(403);
-    const passes = await t.app.inject({ method: 'POST', url: '/api/v1/nope', headers: sameOrigin });
+    const passes = await t.req({ method: 'POST', url: '/api/v1/nope' });
     expect(passes.statusCode).toBe(404);
   });
 
-  it('bootstraps a single owner account', async () => {
-    const users = await t.db.selectFrom('users').select(['username', 'role']).execute();
-    expect(users).toEqual([{ username: 'owner', role: 'admin' }]);
+  it('requires sign-in for everything except the public endpoints', async () => {
+    expect((await t.app.inject({ method: 'GET', url: '/api/v1/vehicles' })).statusCode).toBe(401);
+    expect((await t.app.inject({ method: 'GET', url: '/api/v1/auth/status' })).statusCode).toBe(
+      200,
+    );
+  });
+
+  it('sends baseline security headers', async () => {
+    const res = await t.app.inject({ method: 'GET', url: '/api/v1/health' });
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-frame-options']).toBe('DENY');
   });
 });

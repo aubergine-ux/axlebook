@@ -1,6 +1,7 @@
 // Bundles the server (and @axlebook/shared) into dist/server.js.
 // node_modules packages are left external, so native modules keep working.
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 
 const rootPkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
@@ -21,7 +22,8 @@ await build({
       name: 'inline-workspace',
       setup(b) {
         b.onResolve({ filter: /^@axlebook\/shared$/ }, () => ({
-          path: new URL('../../packages/shared/src/index.ts', import.meta.url).pathname,
+          // fileURLToPath, not URL.pathname: the latter gives "/C:/…" on Windows.
+          path: fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)),
         }));
       },
     },

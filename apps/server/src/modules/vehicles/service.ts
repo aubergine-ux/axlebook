@@ -8,7 +8,7 @@ import type { User, VehicleRow } from '../../db/schema';
 import { AppError } from '../../lib/errors';
 import type { FileStore } from '../../lib/files';
 import { nowIso } from '../../lib/time';
-import { requireVehicle, type VehicleAccess } from './access';
+import { garageVehicleIds, requireVehicle, type VehicleAccess } from './access';
 
 export function toVehicle(row: VehicleRow, access: VehicleAccess): Vehicle {
   return {
@@ -70,14 +70,31 @@ function toColumns(input: VehicleUpdate): Columns {
   return cols as Columns;
 }
 
+/** Extra garage-card figures computed by other modules (odometer, cost, reminders). */
+export type SummaryProvider = (
+  vehicleIds: number[],
+) => Promise<Map<number, Pick<VehicleSummary, 'currentOdometer' | 'costToDate' | 'nextReminder'>>>;
+
 export class VehicleService {
+  private summaryProvider: SummaryProvider = async () => new Map();
+
   constructor(
     private readonly db: DB,
     private readonly photos: FileStore,
   ) {}
 
+  setSummaryProvider(provider: SummaryProvider) {
+    this.summaryProvider = provider;
+  }
+
+  /** The user's garage: vehicles they own plus vehicles shared with them. */
   async list(user: User, archived: 'false' | 'true' | 'all'): Promise<VehicleSummary[]> {
-    let q = this.db.selectFrom('vehicles').selectAll().where('owner_id', '=', user.id);
+    const access = await garageVehicleIds(this.db, user);
+    if (access.size === 0) return [];
+    let q = this.db
+      .selectFrom('vehicles')
+      .selectAll()
+      .where('id', 'in', [...access.keys()]);
     if (archived === 'false') q = q.where('archived_at', 'is', null);
     if (archived === 'true') q = q.where('archived_at', 'is not', null);
     const rows = await q
@@ -86,12 +103,14 @@ export class VehicleService {
       .orderBy('make')
       .orderBy('model')
       .execute();
-    return Promise.all(rows.map((r) => this.summarize(r, 'owner')));
-  }
-
-  /** Computed garage-card figures. Later milestones fill in odometer, cost and reminders. */
-  async summarize(row: VehicleRow, access: VehicleAccess): Promise<VehicleSummary> {
-    return { ...toVehicle(row, access), currentOdometer: null, costToDate: 0, nextReminder: null };
+    const extra = await this.summaryProvider(rows.map((r) => r.id));
+    return rows.map((r) => ({
+      ...toVehicle(r, access.get(r.id) ?? 'view'),
+      currentOdometer: null,
+      costToDate: 0,
+      nextReminder: null,
+      ...extra.get(r.id),
+    }));
   }
 
   async get(user: User, id: number): Promise<Vehicle> {
@@ -140,10 +159,15 @@ export class VehicleService {
     return toVehicle(row, existing.access);
   }
 
-  async remove(user: User, id: number): Promise<void> {
-    const existing = await requireVehicle(this.db, user, id, 'owner');
+  /** Deletes the vehicle, its records and every stored file that belonged to it. */
+  async remove(
+    user: User,
+    id: number,
+    removeFiles: (vehicleIds: number[]) => Promise<void>,
+  ): Promise<void> {
+    await requireVehicle(this.db, user, id, 'owner');
+    await removeFiles([id]);
     await this.db.deleteFrom('vehicles').where('id', '=', id).execute();
-    if (existing.photo_key) await this.photos.remove(existing.photo_key);
   }
 
   async setPhoto(user: User, id: number, data: Buffer, ext: string): Promise<Vehicle> {

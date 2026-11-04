@@ -17,7 +17,10 @@ const tags = ['vehicles'];
 const errors = { 400: ApiError, 403: ApiError, 404: ApiError };
 
 export const vehicleRoutes =
-  (svc: VehicleService): FastifyPluginAsyncZod =>
+  (
+    svc: VehicleService,
+    removeFiles: (vehicleIds: number[]) => Promise<void>,
+  ): FastifyPluginAsyncZod =>
   async (app) => {
     const user = (req: { user: unknown }) => {
       if (!req.user) throw new AppError('unauthorized');
@@ -89,7 +92,7 @@ export const vehicleRoutes =
         },
       },
       async (req, reply) => {
-        await svc.remove(user(req), req.params.id);
+        await svc.remove(user(req), req.params.id, removeFiles);
         return reply.status(204).send(null);
       },
     );

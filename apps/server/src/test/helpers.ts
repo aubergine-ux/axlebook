@@ -2,16 +2,23 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import type { InjectOptions } from 'fastify';
 import pg from 'pg';
 import { buildApp } from '../app';
 import { loadConfig } from '../config';
 import { connect } from '../db/connection';
 import { migrateToLatest } from '../db/migrate';
+import type { User } from '../db/schema';
+import { hashPassword, randomToken, sha256 } from '../lib/crypto';
+import { nowIso } from '../lib/time';
+
+/** Headers a same-origin browser request would carry for app.inject (host: localhost:80). */
+export const sameOrigin = { origin: 'http://localhost:80' } as const;
 
 /**
- * Builds an app on a fresh database. SQLite in-memory by default. When
- * TEST_DATABASE_URL is set, the same suite runs on Postgres in an isolated schema
- * that is dropped on close.
+ * Builds an app on a fresh database (SQLite in memory, or an isolated Postgres schema
+ * when TEST_DATABASE_URL is set) with a signed-in admin. `t.req()` sends requests as
+ * that admin; `t.user()` creates more accounts with their own `req`.
  */
 export async function createTestApp(env: Record<string, string> = {}) {
   const pgUrl = process.env.TEST_DATABASE_URL;
@@ -21,6 +28,7 @@ export async function createTestApp(env: Record<string, string> = {}) {
     DATA_DIR: dataDir,
     DATABASE_URL: pgUrl ?? ':memory:',
     WEB_DIR: '/nonexistent-web-dir',
+    TZ: 'UTC',
     ...env,
   });
   let pgSchema: string | undefined;
@@ -31,31 +39,71 @@ export async function createTestApp(env: Record<string, string> = {}) {
     await client.query(`CREATE SCHEMA ${pgSchema}`);
     await client.end();
   }
-  const db = connect(config.database, { pgSchema });
-  await migrateToLatest(db.db);
-  const app = await buildApp({ config, db });
+  const handle = connect(config.database, { pgSchema });
+  await migrateToLatest(handle.db);
+  const app = await buildApp({ config, db: handle });
   await app.ready();
+  const db = handle.db;
+
+  async function user(
+    username: string,
+    role: User['role'] = 'editor',
+    password = 'correct-horse-battery',
+  ) {
+    const ts = nowIso();
+    const row = await db
+      .insertInto('users')
+      .values({
+        username,
+        role,
+        password_hash: await hashPassword(password),
+        theme: 'system',
+        disabled: 0,
+        created_at: ts,
+        updated_at: ts,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    const token = randomToken();
+    await db
+      .insertInto('sessions')
+      .values({
+        user_id: row.id,
+        token_hash: sha256(token),
+        expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+        last_seen_at: ts,
+        created_at: ts,
+      })
+      .execute();
+    const cookie = `axlebook_session=${token}`;
+    const req = (opts: InjectOptions) =>
+      app.inject({ ...opts, headers: { ...sameOrigin, cookie, ...(opts.headers ?? {}) } });
+    return { user: row, cookie, req, password };
+  }
+
+  const admin = await user('admin', 'admin');
 
   return {
     app,
-    db: db.db,
+    db,
     config,
+    dataDir,
+    admin: admin.user,
+    req: admin.req,
+    user,
+    /** Unauthenticated request (still same-origin). */
+    anon: (opts: InjectOptions) =>
+      app.inject({ ...opts, headers: { ...sameOrigin, ...(opts.headers ?? {}) } }),
     async close() {
       await app.close();
-      await db.close();
+      await handle.close();
       fs.rmSync(dataDir, { recursive: true, force: true });
-      if (pgUrl && pgSchema) {
-        const client = new pg.Client({ connectionString: pgUrl });
-        await client.connect();
-        await client.query(`DROP SCHEMA ${pgSchema} CASCADE`);
-        await client.end();
-      }
+      // Postgres schemas are dropped by the global teardown (see global-setup.ts).
     },
   };
 }
 
-/** Headers a same-origin browser request would carry for app.inject (host: localhost:80). */
-export const sameOrigin = { origin: 'http://localhost:80' } as const;
+export type TestApp = Awaited<ReturnType<typeof createTestApp>>;
 
 /** Build a multipart/form-data body with a single file field for app.inject. */
 export function multipartFile(field: string, filename: string, data: Buffer, contentType: string) {
@@ -75,3 +123,14 @@ export const tinyPng = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
   'base64',
 );
+export const tinyPdf = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n');
+
+export const vehicleBody = (patch: Record<string, unknown> = {}) => ({
+  year: 2015,
+  make: 'Toyota',
+  model: 'Tacoma',
+  odometerUnit: 'mi',
+  fuelUnit: 'gal_us',
+  fuelType: 'gasoline',
+  ...patch,
+});

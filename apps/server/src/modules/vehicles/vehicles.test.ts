@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { nowIso } from '../../lib/time';
-import { createTestApp, multipartFile, sameOrigin, tinyPng } from '../../test/helpers';
+import { createTestApp, multipartFile, tinyPng } from '../../test/helpers';
 
 let t: Awaited<ReturnType<typeof createTestApp>>;
 beforeAll(async () => {
@@ -21,11 +21,10 @@ const tacoma = {
 } as const;
 
 async function create(body: Record<string, unknown> = tacoma) {
-  const res = await t.app.inject({
+  const res = await t.req({
     method: 'POST',
     url: '/api/v1/vehicles',
     payload: body,
-    headers: sameOrigin,
   });
   return res;
 }
@@ -64,7 +63,7 @@ describe('vehicles API', () => {
   });
 
   it('lists active vehicles with garage figures', async () => {
-    const res = await t.app.inject({ method: 'GET', url: '/api/v1/vehicles' });
+    const res = await t.req({ method: 'GET', url: '/api/v1/vehicles' });
     expect(res.statusCode).toBe(200);
     const list = res.json();
     expect(list.length).toBeGreaterThan(0);
@@ -73,11 +72,10 @@ describe('vehicles API', () => {
 
   it('updates only the provided fields', async () => {
     const id = (await create()).json().id;
-    const res = await t.app.inject({
+    const res = await t.req({
       method: 'PATCH',
       url: `/api/v1/vehicles/${id}`,
       payload: { nickname: 'Taco', purchasePrice: null },
-      headers: sameOrigin,
     });
     expect(res.statusCode).toBe(200);
     expect(res.json()).toMatchObject({ nickname: 'Taco', purchasePrice: null, make: 'Toyota' });
@@ -85,30 +83,28 @@ describe('vehicles API', () => {
 
   it('archives and unarchives, filtering the list', async () => {
     const id = (await create({ ...tacoma, model: 'Archived One' })).json().id;
-    const archived = await t.app.inject({
+    const archived = await t.req({
       method: 'POST',
       url: `/api/v1/vehicles/${id}/archive`,
-      headers: sameOrigin,
     });
     expect(archived.json().archivedAt).not.toBeNull();
 
-    const active = (await t.app.inject({ method: 'GET', url: '/api/v1/vehicles' })).json();
+    const active = (await t.req({ method: 'GET', url: '/api/v1/vehicles' })).json();
     expect(active.map((v: { id: number }) => v.id)).not.toContain(id);
     const onlyArchived = (
-      await t.app.inject({ method: 'GET', url: '/api/v1/vehicles?archived=true' })
+      await t.req({ method: 'GET', url: '/api/v1/vehicles?archived=true' })
     ).json();
     expect(onlyArchived.map((v: { id: number }) => v.id)).toEqual([id]);
 
-    const restored = await t.app.inject({
+    const restored = await t.req({
       method: 'POST',
       url: `/api/v1/vehicles/${id}/unarchive`,
-      headers: sameOrigin,
     });
     expect(restored.json().archivedAt).toBeNull();
   });
 
   it('returns 404 for missing vehicles', async () => {
-    const res = await t.app.inject({ method: 'GET', url: '/api/v1/vehicles/99999' });
+    const res = await t.req({ method: 'GET', url: '/api/v1/vehicles/99999' });
     expect(res.statusCode).toBe(404);
     expect(res.json().error.code).toBe('not_found');
   });
@@ -143,47 +139,44 @@ describe('vehicles API', () => {
       .returning('id')
       .executeTakeFirstOrThrow();
     // The bootstrap owner is an admin, so the vehicle is reachable by id but not listed in the garage.
-    const list = (
-      await t.app.inject({ method: 'GET', url: '/api/v1/vehicles?archived=all' })
-    ).json();
+    const list = (await t.req({ method: 'GET', url: '/api/v1/vehicles?archived=all' })).json();
     expect(list.map((v: { id: number }) => v.id)).not.toContain(theirs.id);
-    const direct = await t.app.inject({ method: 'GET', url: `/api/v1/vehicles/${theirs.id}` });
+    const direct = await t.req({ method: 'GET', url: `/api/v1/vehicles/${theirs.id}` });
     expect(direct.statusCode).toBe(200);
   });
 
   it('uploads, serves, replaces and removes a photo', async () => {
     const id = (await create()).json().id;
     const upload = multipartFile('file', 'truck.png', tinyPng, 'image/png');
-    const put = await t.app.inject({
+    const put = await t.req({
       method: 'PUT',
       url: `/api/v1/vehicles/${id}/photo`,
       payload: upload.payload,
-      headers: { ...upload.headers, ...sameOrigin },
+      headers: upload.headers,
     });
     expect(put.statusCode).toBe(200);
     const photoUrl = put.json().photoUrl as string;
     expect(photoUrl).toMatch(new RegExp(`^/api/v1/vehicles/${id}/photo\\?v=`));
 
-    const get = await t.app.inject({ method: 'GET', url: photoUrl });
+    const get = await t.req({ method: 'GET', url: photoUrl });
     expect(get.statusCode).toBe(200);
     expect(get.headers['content-type']).toBe('image/png');
     expect(get.rawPayload.equals(tinyPng)).toBe(true);
 
-    const replaced = await t.app.inject({
+    const replaced = await t.req({
       method: 'PUT',
       url: `/api/v1/vehicles/${id}/photo`,
       payload: upload.payload,
-      headers: { ...upload.headers, ...sameOrigin },
+      headers: upload.headers,
     });
     expect(replaced.json().photoUrl).not.toBe(photoUrl);
 
-    const del = await t.app.inject({
+    const del = await t.req({
       method: 'DELETE',
       url: `/api/v1/vehicles/${id}/photo`,
-      headers: sameOrigin,
     });
     expect(del.json().photoUrl).toBeNull();
-    const gone = await t.app.inject({ method: 'GET', url: `/api/v1/vehicles/${id}/photo` });
+    const gone = await t.req({ method: 'GET', url: `/api/v1/vehicles/${id}/photo` });
     expect(gone.statusCode).toBe(404);
   });
 
@@ -195,11 +188,11 @@ describe('vehicles API', () => {
       Buffer.from('<script>alert(1)</script>'),
       'image/png',
     );
-    const res = await t.app.inject({
+    const res = await t.req({
       method: 'PUT',
       url: `/api/v1/vehicles/${id}/photo`,
       payload: fake.payload,
-      headers: { ...fake.headers, ...sameOrigin },
+      headers: fake.headers,
     });
     expect(res.statusCode).toBe(400);
     expect(res.json().error.params).toMatchObject({ field: 'file', reason: 'not_an_image' });
@@ -207,18 +200,17 @@ describe('vehicles API', () => {
 
   it('deletes a vehicle permanently', async () => {
     const id = (await create()).json().id;
-    const del = await t.app.inject({
+    const del = await t.req({
       method: 'DELETE',
       url: `/api/v1/vehicles/${id}`,
-      headers: sameOrigin,
     });
     expect(del.statusCode).toBe(204);
-    const get = await t.app.inject({ method: 'GET', url: `/api/v1/vehicles/${id}` });
+    const get = await t.req({ method: 'GET', url: `/api/v1/vehicles/${id}` });
     expect(get.statusCode).toBe(404);
   });
 
   it('documents vehicle routes in OpenAPI', async () => {
-    const doc = (await t.app.inject({ method: 'GET', url: '/api/openapi.json' })).json();
+    const doc = (await t.req({ method: 'GET', url: '/api/openapi.json' })).json();
     expect(Object.keys(doc.paths)).toEqual(
       expect.arrayContaining([
         '/api/v1/vehicles',
