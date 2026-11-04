@@ -11,6 +11,8 @@ import {
 } from '../../../api/resources';
 import { useArchiveVehicle, useDeleteVehicle, vehicleQuery } from '../../../api/vehicles';
 import { Icon } from '../../../components/Icon';
+import { MpgCard } from '../../../components/insights/MpgCard';
+import { TipsCard } from '../../../components/insights/TipsCard';
 import { RecordRow } from '../../../components/records/RecordRow';
 import { ReminderItem } from '../../../components/reminders/ReminderItem';
 import { StatTile } from '../../../components/StatTile';
@@ -39,6 +41,10 @@ function Overview() {
   const title = vehicleTitle(v);
   const canEdit = v.access !== 'view';
   const facts: [string, string | null, boolean?][] = [
+    [t('vehicle.fields.category'), t(`vehicle.categories.${v.category}`)],
+    ...(v.unitNumber
+      ? [[t('vehicle.fields.unitNumber'), v.unitNumber, true] as [string, string, boolean]]
+      : []),
     [t('vehicle.fields.vin'), v.vin, true],
     [t('vehicle.fields.licensePlate'), v.licensePlate, true],
     [t('vehicle.fields.color'), v.color],
@@ -115,6 +121,7 @@ function Overview() {
               </ul>
             )}
           </section>
+          <TipsCard vehicle={v} />
           <section
             aria-labelledby="recent-h"
             className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
@@ -143,63 +150,66 @@ function Overview() {
           </section>
         </div>
 
-        <section
-          aria-labelledby="details-h"
-          className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
-        >
-          <div className="mb-3 flex items-center justify-between">
-            <h2 id="details-h" className="text-heading font-semibold">
-              {t('vehicle.details')}
-            </h2>
-            {canEdit && (
-              <Link
-                to="/vehicles/$vehicleId/edit"
-                params={{ vehicleId }}
-                className="text-label text-orange-text hover:underline"
-              >
-                {t('vehicle.edit')}
-              </Link>
-            )}
-          </div>
-          <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
-            {facts.map(([label, value, mono]) => (
-              <div key={label} className="contents">
-                <dt className="text-label text-ink-muted">{label}</dt>
-                <dd className={mono ? 'font-mono text-data break-all' : ''}>
-                  {value ?? t('common.notSet')}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          {v.notes && (
-            <>
-              <h3 className="mt-4 mb-1 text-label">{t('vehicle.notes')}</h3>
-              <p className="whitespace-pre-wrap">{v.notes}</p>
-            </>
-          )}
-          {v.archivedAt && (
-            <p
-              role="status"
-              className="mt-4 rounded-md bg-surface-sunken px-3 py-2 text-caption text-ink-muted"
-            >
-              {t('vehicle.archivedNotice', { date: f.date(v.archivedAt) })}
-            </p>
-          )}
-          {v.access === 'owner' && (
-            <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
-              <Button
-                variant="ghost"
-                isDisabled={archive.isPending}
-                onPress={() => archive.mutate({ id: v.id, archived: !v.archivedAt })}
-              >
-                {v.archivedAt ? t('vehicle.unarchive') : t('vehicle.archive')}
-              </Button>
-              <Button variant="ghost" className="text-red" onPress={() => setConfirmDelete(true)}>
-                {t('vehicle.delete')}
-              </Button>
+        <div className="flex flex-col gap-6">
+          <MpgCard vehicle={v} />
+          <section
+            aria-labelledby="details-h"
+            className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h2 id="details-h" className="text-heading font-semibold">
+                {t('vehicle.details')}
+              </h2>
+              {canEdit && (
+                <Link
+                  to="/vehicles/$vehicleId/edit"
+                  params={{ vehicleId }}
+                  className="text-label text-orange-text hover:underline"
+                >
+                  {t('vehicle.edit')}
+                </Link>
+              )}
             </div>
-          )}
-        </section>
+            <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2">
+              {facts.map(([label, value, mono]) => (
+                <div key={label} className="contents">
+                  <dt className="text-label text-ink-muted">{label}</dt>
+                  <dd className={mono ? 'font-mono text-data break-all' : ''}>
+                    {value ?? t('common.notSet')}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            {v.notes && (
+              <>
+                <h3 className="mt-4 mb-1 text-label">{t('vehicle.notes')}</h3>
+                <p className="whitespace-pre-wrap">{v.notes}</p>
+              </>
+            )}
+            {v.archivedAt && (
+              <p
+                role="status"
+                className="mt-4 rounded-md bg-surface-sunken px-3 py-2 text-caption text-ink-muted"
+              >
+                {t('vehicle.archivedNotice', { date: f.date(v.archivedAt) })}
+              </p>
+            )}
+            {v.access === 'owner' && (
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
+                <Button
+                  variant="ghost"
+                  isDisabled={archive.isPending}
+                  onPress={() => archive.mutate({ id: v.id, archived: !v.archivedAt })}
+                >
+                  {v.archivedAt ? t('vehicle.unarchive') : t('vehicle.archive')}
+                </Button>
+                <Button variant="ghost" className="text-red" onPress={() => setConfirmDelete(true)}>
+                  {t('vehicle.delete')}
+                </Button>
+              </div>
+            )}
+          </section>
+        </div>
       </div>
 
       <ConfirmDialog

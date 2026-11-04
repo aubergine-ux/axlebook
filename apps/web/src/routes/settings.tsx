@@ -13,6 +13,7 @@ import { type FormEvent, type ReactNode, useState } from 'react';
 import { FileTrigger, Form } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 import { useLogout } from '../api/auth';
+import { absoluteFeedUrl, aiStatusQuery, calendarQuery, useCalendarFeed } from '../api/extras';
 import {
   channelsQuery,
   settingsQuery,
@@ -714,6 +715,80 @@ function People() {
   );
 }
 
+function Calendar() {
+  const { t } = useTranslation();
+  const feed = useQuery(calendarQuery).data;
+  const change = useCalendarFeed();
+  const [copied, setCopied] = useState(false);
+  const url = feed?.url ? absoluteFeedUrl(feed.url) : null;
+  return (
+    <Section id="calendar" title={t('settings.calendar')} intro={t('settings.calendarIntro')}>
+      {url ? (
+        <div className="flex flex-col gap-3">
+          <TextField
+            label={t('settings.calendarLink')}
+            value={url}
+            isReadOnly
+            inputClassName="font-mono text-caption"
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onPress={async () => {
+                await navigator.clipboard?.writeText(url);
+                setCopied(true);
+              }}
+            >
+              {copied ? t('settings.copied') : t('settings.copy')}
+            </Button>
+            <Button
+              variant="ghost"
+              isDisabled={change.isPending}
+              onPress={() => change.mutate(true)}
+            >
+              {t('settings.calendarReset')}
+            </Button>
+            <Button
+              variant="ghost"
+              isDisabled={change.isPending}
+              onPress={() => change.mutate(false)}
+            >
+              {t('settings.calendarOff')}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button isDisabled={change.isPending} onPress={() => change.mutate(true)}>
+          {t('settings.calendarCreate')}
+        </Button>
+      )}
+      <ErrorNote error={change.error} className="mt-3" />
+    </Section>
+  );
+}
+
+function LocalAi() {
+  const { t } = useTranslation();
+  const f = useFormat();
+  const s = useQuery(aiStatusQuery).data;
+  if (!s) return null;
+  const message = !s.enabled
+    ? t('settings.aiStatus.off')
+    : s.pullProgress != null
+      ? t('settings.aiStatus.downloading', { pct: f.number(Math.round(s.pullProgress * 100)) })
+      : !s.reachable
+        ? t('settings.aiStatus.unreachable')
+        : !s.modelReady
+          ? t('settings.aiStatus.missing', { model: s.model })
+          : t('settings.aiStatus.ready', { model: s.model });
+  return (
+    <Section id="ai" title={t('settings.ai')} intro={t('settings.aiIntro')}>
+      <p role="status" className={s.enabled && s.reachable && s.modelReady ? '' : 'text-ink-muted'}>
+        {message}
+      </p>
+    </Section>
+  );
+}
+
 function SettingsPage() {
   const { t } = useTranslation();
   const me = useMe();
@@ -725,10 +800,12 @@ function SettingsPage() {
       <Profile />
       <Password />
       <Channels />
+      <Calendar />
       <Tokens />
       <Data />
       {me?.role === 'admin' && <Instance />}
       {me?.role === 'admin' && <People />}
+      <LocalAi />
       <Section id="about" title={t('settings.about')}>
         <p className="font-mono text-data">
           {t('settings.version', { version: config?.version ?? '' })}

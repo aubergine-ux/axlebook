@@ -24,6 +24,7 @@ import { useFormat } from '../lib/format';
 import { enqueue } from '../lib/outbox';
 import { todayIso } from '../lib/today';
 import { useOutbox } from '../lib/useOutbox';
+import { parseReading } from '../lib/validation';
 
 export const Route = createFileRoute('/log')({
   validateSearch: z.object({ vehicle: z.coerce.number().int().optional() }),
@@ -158,7 +159,7 @@ function LogFuel() {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const odometer = Number(s.odometer.replace(/[^\d]/g, ''));
+    const odometer = parseReading(s.odometer);
     const volume = toMilli(s.volume);
     const price = s.price.trim() ? toMilli(s.price) : null;
     const total = s.total.trim() ? toMilli(s.total) : null;

@@ -3,6 +3,7 @@ import {
   EXPENSE_CATEGORIES,
   type ExpenseCategory,
   fromMilli,
+  isCommercial,
   type LogRecord,
   multiplyMilli,
   RECORD_KINDS,
@@ -24,7 +25,7 @@ import {
 } from '../../api/resources';
 import { useFormat } from '../../lib/format';
 import { todayIso } from '../../lib/today';
-import { fieldErrors } from '../../lib/validation';
+import { fieldErrors, parseReading } from '../../lib/validation';
 import { Icon } from '../Icon';
 import { Button } from '../ui/Button';
 import { ErrorNote } from '../ui/ErrorNote';
@@ -155,6 +156,7 @@ export function RecordForm({
     missedPrevious: record?.fuel?.missedPrevious ?? false,
     grade: record?.fuel?.grade ?? '',
     station: record?.fuel?.station ?? '',
+    jurisdiction: record?.fuel?.jurisdiction ?? '',
   }));
   const [usedParts, setUsedParts] = useState(() =>
     (record?.parts ?? [])
@@ -211,7 +213,7 @@ export function RecordForm({
     const cost = isFuel ? money(s.total, 'total') : money(s.cost, 'cost');
     const volume = isFuel ? toMilli(s.volume) : null;
     const price = isFuel ? money(s.price, 'price') : null;
-    const odometer = s.odometer.trim() ? Number(s.odometer.replace(/[^\d]/g, '')) : null;
+    const odometer = s.odometer.trim() ? parseReading(s.odometer) : null;
     const data = {
       kind,
       date: s.date,
@@ -232,6 +234,9 @@ export function RecordForm({
             missedPrevious: s.missedPrevious,
             grade: s.grade,
             station: s.station,
+            ...(isCommercial(vehicle.category)
+              ? { jurisdiction: s.jurisdiction.trim().toUpperCase() }
+              : {}),
           }
         : null,
       parts: usedParts
@@ -241,6 +246,16 @@ export function RecordForm({
     };
     const parsed = RecordInput.safeParse(data);
     if (!parsed.success) Object.assign(errs, fieldErrors(parsed.error.issues, t));
+    if (
+      isFuel &&
+      isCommercial(vehicle.category) &&
+      s.jurisdiction.trim() &&
+      !/^[A-Za-z]{2,3}$/.test(s.jurisdiction.trim())
+    ) {
+      errs.jurisdiction = t('validation.invalid');
+      // The schema reports it under "fuel"; keep that for the fuel amount only.
+      if (volume && volume > 0) delete errs.fuel;
+    }
     if (isFuel && !(volume && volume > 0)) errs.fuel = t('validation.required');
     setErrors(errs);
     if (Object.keys(errs).length) {
@@ -375,6 +390,18 @@ export function RecordForm({
               value={s.station}
               onChange={set('station')}
             />
+            {isCommercial(vehicle.category) && (
+              <TextField
+                label={t('record.fields.jurisdiction')}
+                description={t('ifta.hint')}
+                value={s.jurisdiction}
+                onChange={set('jurisdiction')}
+                error={errors.jurisdiction}
+                inputClassName="font-mono uppercase"
+                maxLength={3}
+                autoComplete="off"
+              />
+            )}
           </>
         )}
         <TextField

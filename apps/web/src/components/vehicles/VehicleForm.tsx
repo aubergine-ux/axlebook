@@ -4,11 +4,15 @@ import {
   type FuelType,
   type FuelUnit,
   fromMilli,
+  isCommercial,
   ODOMETER_UNITS,
   type OdometerUnit,
+  sectionOf,
   toMilli,
   type UnitSystem,
+  VEHICLE_CATEGORIES,
   type Vehicle,
+  type VehicleCategory,
   VehicleInput,
 } from '@axlebook/shared';
 import { type FormEvent, useEffect, useId, useState } from 'react';
@@ -23,6 +27,8 @@ import { Button } from '../ui/Button';
 import { FieldGroup, SelectField, TextAreaField, TextField } from '../ui/fields';
 
 type FormState = {
+  category: VehicleCategory;
+  unitNumber: string;
   year: string;
   make: string;
   model: string;
@@ -41,6 +47,8 @@ type FormState = {
 
 function initialState(v: Vehicle | undefined, units: UnitSystem): FormState {
   return {
+    category: v?.category ?? 'car',
+    unitNumber: v?.unitNumber ?? '',
     year: v ? String(v.year) : '',
     make: v?.make ?? '',
     model: v?.model ?? '',
@@ -138,6 +146,8 @@ export function VehicleForm({
     e.preventDefault();
     const price = state.purchasePrice.trim() === '' ? null : toMilli(state.purchasePrice);
     const candidate = {
+      category: state.category,
+      unitNumber: isCommercial(state.category) ? state.unitNumber : '',
       year: state.year.trim() === '' ? undefined : Number(state.year),
       make: state.make,
       model: state.model,
@@ -187,6 +197,44 @@ export function VehicleForm({
       )}
 
       <FieldGroup title={t('vehicle.sections.identity')}>
+        <SelectField
+          label={t('vehicle.fields.category')}
+          value={state.category}
+          onChange={(c) => {
+            set('category')(c);
+            // New dirt bikes, ATVs and sleds usually log engine hours.
+            if (
+              !vehicle &&
+              ['dirtbike', 'atv', 'snowmobile'].includes(c) &&
+              state.odometerUnit !== 'hr'
+            )
+              set('odometerUnit')('hr');
+            if (
+              !vehicle &&
+              !['dirtbike', 'atv', 'snowmobile'].includes(c) &&
+              state.odometerUnit === 'hr'
+            )
+              set('odometerUnit')(defaultUnits === 'metric' ? 'km' : 'mi');
+            if (!vehicle && c === 'semi' && state.fuelType === 'gasoline')
+              set('fuelType')('diesel');
+          }}
+          options={VEHICLE_CATEGORIES.map((c) => ({
+            value: c,
+            label: t(`vehicle.categories.${c}`),
+          }))}
+        />
+        {isCommercial(state.category) ? (
+          <TextField
+            label={t('vehicle.fields.unitNumber')}
+            value={state.unitNumber}
+            onChange={set('unitNumber')}
+            error={errors.unitNumber}
+            inputClassName="font-mono"
+            autoComplete="off"
+          />
+        ) : (
+          <div className="hidden sm:block" />
+        )}
         <TextField
           label={t('vehicle.fields.year')}
           value={state.year}
@@ -252,7 +300,12 @@ export function VehicleForm({
         <SelectField
           label={t('vehicle.fields.fuelType')}
           value={state.fuelType}
-          onChange={set('fuelType')}
+          onChange={(f) => {
+            set('fuelType')(f);
+            if (f === 'electric' && state.fuelUnit !== 'kwh') set('fuelUnit')('kwh');
+            if (f !== 'electric' && state.fuelUnit === 'kwh')
+              set('fuelUnit')(defaultUnits === 'metric' ? 'l' : 'gal_us');
+          }}
           options={FUEL_TYPES.map((v) => ({ value: v, label: t(`vehicle.fuelType.${v}`) }))}
         />
         <div className="hidden sm:block" />
@@ -261,7 +314,11 @@ export function VehicleForm({
           value={state.odometerUnit}
           onChange={set('odometerUnit')}
           options={ODOMETER_UNITS.map((v) => ({ value: v, label: t(`units.odometer.${v}`) }))}
-          description={t('vehicle.hints.units')}
+          description={
+            sectionOf(state.category) === 'powersports' && state.category !== 'motorcycle'
+              ? t('vehicle.hints.hours')
+              : t('vehicle.hints.units')
+          }
         />
         <SelectField
           label={t('vehicle.fields.fuelUnit')}

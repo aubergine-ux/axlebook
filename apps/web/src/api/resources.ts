@@ -127,8 +127,12 @@ export const odometerQuery = (vehicleId: number) =>
 export function useAddReading(vehicleId: number) {
   const invalidate = useInvalidateLogbook();
   return useMutation({
-    mutationFn: (data: { date: string; odometer: number; notes?: string | null }) =>
-      api<OdometerReading>(`/vehicles/${vehicleId}/odometer`, json('POST', data)),
+    mutationFn: (data: {
+      date: string;
+      odometer: number;
+      notes?: string | null;
+      jurisdiction?: string | null;
+    }) => api<OdometerReading>(`/vehicles/${vehicleId}/odometer`, json('POST', data)),
     onSuccess: invalidate,
   });
 }

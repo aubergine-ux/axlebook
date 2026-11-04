@@ -1,3 +1,4 @@
+import { isCommercial } from '@axlebook/shared';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { type FormEvent, useState } from 'react';
@@ -10,6 +11,7 @@ import { ErrorNote } from '../../../components/ui/ErrorNote';
 import { TextField } from '../../../components/ui/fields';
 import { useFormat } from '../../../lib/format';
 import { todayIso } from '../../../lib/today';
+import { parseReading } from '../../../lib/validation';
 
 export const Route = createFileRoute('/vehicles/$vehicleId/odometer')({ component: OdometerTab });
 
@@ -24,25 +26,38 @@ function OdometerTab() {
   const [date, setDate] = useState(todayIso);
   const [odo, setOdo] = useState('');
   const [note, setNote] = useState('');
+  const [jurisdiction, setJurisdiction] = useState('');
+  const [jError, setJError] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [warning, setWarning] = useState(false);
   if (!v) return null;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const value = Number(odo.replace(/[^\d]/g, ''));
+    const value = parseReading(odo);
     if (!odo.trim() || !Number.isFinite(value)) {
       setError(t('validation.required'));
+      return;
+    }
+    const j = jurisdiction.trim().toUpperCase();
+    if (j && !/^[A-Z]{2,3}$/.test(j)) {
+      setJError(t('validation.invalid'));
       return;
     }
     // A lower reading than an earlier date is saved, but flagged as a likely typo.
     setWarning(readings.some((r) => r.date <= date && r.odometer > value));
     add.mutate(
-      { date, odometer: value, notes: note || null },
+      {
+        date,
+        odometer: value,
+        notes: note || null,
+        ...(isCommercial(v.category) ? { jurisdiction: j || null } : {}),
+      },
       {
         onSuccess: () => {
           setOdo('');
           setNote('');
+          setJurisdiction('');
         },
       },
     );
@@ -74,6 +89,21 @@ function OdometerTab() {
               inputClassName="font-mono"
               isRequired
             />
+            {isCommercial(v.category) && (
+              <TextField
+                label={t('odometer.jurisdiction')}
+                description={t('ifta.hint')}
+                value={jurisdiction}
+                onChange={(x) => {
+                  setJurisdiction(x);
+                  setJError(undefined);
+                }}
+                error={jError}
+                maxLength={3}
+                inputClassName="font-mono uppercase"
+                autoComplete="off"
+              />
+            )}
             <TextField label={t('odometer.notes')} value={note} onChange={setNote} />
             {warning && (
               <p
@@ -106,6 +136,9 @@ function OdometerTab() {
                 <span className="flex-1">
                   <span className="block font-mono text-caption text-ink-muted">
                     {f.date(r.date)}
+                    {r.jurisdiction && (
+                      <span className="ml-2 font-semibold text-ink">{r.jurisdiction}</span>
+                    )}
                   </span>
                   {r.recordId ? (
                     <Link

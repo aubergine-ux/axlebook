@@ -28,3 +28,14 @@ function messageFor(issue: z.core.$ZodIssue, t: TFunction): string {
       return t('validation.invalid');
   }
 }
+
+/**
+ * An odometer or hour-meter reading as typed: "84,100" and "84 100" are 84100, "120.5"
+ * hours rounds to 121. NaN when it isn't a number.
+ */
+export function parseReading(raw: string): number {
+  const s = raw.trim().replace(/\s*(mi|km|h|hrs?|hours)\.?$/i, '');
+  if (/^\d{1,3}([,\s.]\d{3})+$/.test(s)) return Number(s.replace(/[,\s.]/g, ''));
+  if (!/^\d+([.,]\d+)?$/.test(s)) return Number.NaN;
+  return Math.round(Number(s.replace(',', '.')));
+}

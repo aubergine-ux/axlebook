@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ImportRouteImport } from './routes/import'
 import { Route as LogRouteImport } from './routes/log'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PartsRouteImport } from './routes/parts'
@@ -24,7 +25,9 @@ import { Route as VehiclesNewRouteImport } from './routes/vehicles/new'
 import { Route as VehiclesVehicleIdIndexRouteImport } from './routes/vehicles/$vehicleId/index'
 import { Route as VehiclesVehicleIdEditRouteImport } from './routes/vehicles/$vehicleId/edit'
 import { Route as VehiclesVehicleIdFuelRouteImport } from './routes/vehicles/$vehicleId/fuel'
+import { Route as VehiclesVehicleIdIftaRouteImport } from './routes/vehicles/$vehicleId/ifta'
 import { Route as VehiclesVehicleIdImportRouteImport } from './routes/vehicles/$vehicleId/import'
+import { Route as VehiclesVehicleIdInspectionsRouteImport } from './routes/vehicles/$vehicleId/inspections'
 import { Route as VehiclesVehicleIdOdometerRouteImport } from './routes/vehicles/$vehicleId/odometer'
 import { Route as VehiclesVehicleIdPlanRouteImport } from './routes/vehicles/$vehicleId/plan'
 import { Route as VehiclesVehicleIdRemindersRouteImport } from './routes/vehicles/$vehicleId/reminders'
@@ -35,6 +38,11 @@ import { Route as VehiclesVehicleIdRecordsNewRouteImport } from './routes/vehicl
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportRoute = ImportRouteImport.update({
+  id: '/import',
+  path: '/import',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogRoute = LogRouteImport.update({
@@ -107,11 +115,22 @@ const VehiclesVehicleIdFuelRoute = VehiclesVehicleIdFuelRouteImport.update({
   path: '/fuel',
   getParentRoute: () => VehiclesVehicleIdRouteRoute,
 } as any)
+const VehiclesVehicleIdIftaRoute = VehiclesVehicleIdIftaRouteImport.update({
+  id: '/ifta',
+  path: '/ifta',
+  getParentRoute: () => VehiclesVehicleIdRouteRoute,
+} as any)
 const VehiclesVehicleIdImportRoute = VehiclesVehicleIdImportRouteImport.update({
   id: '/import',
   path: '/import',
   getParentRoute: () => VehiclesVehicleIdRouteRoute,
 } as any)
+const VehiclesVehicleIdInspectionsRoute =
+  VehiclesVehicleIdInspectionsRouteImport.update({
+    id: '/inspections',
+    path: '/inspections',
+    getParentRoute: () => VehiclesVehicleIdRouteRoute,
+  } as any)
 const VehiclesVehicleIdOdometerRoute =
   VehiclesVehicleIdOdometerRouteImport.update({
     id: '/odometer',
@@ -150,6 +169,7 @@ const VehiclesVehicleIdRecordsNewRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/import': typeof ImportRoute
   '/log': typeof LogRoute
   '/login': typeof LoginRoute
   '/parts': typeof PartsRoute
@@ -163,7 +183,9 @@ export interface FileRoutesByFullPath {
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
+  '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
   '/vehicles/$vehicleId/import': typeof VehiclesVehicleIdImportRoute
+  '/vehicles/$vehicleId/inspections': typeof VehiclesVehicleIdInspectionsRoute
   '/vehicles/$vehicleId/odometer': typeof VehiclesVehicleIdOdometerRoute
   '/vehicles/$vehicleId/plan': typeof VehiclesVehicleIdPlanRoute
   '/vehicles/$vehicleId/reminders': typeof VehiclesVehicleIdRemindersRoute
@@ -174,6 +196,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/import': typeof ImportRoute
   '/log': typeof LogRoute
   '/login': typeof LoginRoute
   '/parts': typeof PartsRoute
@@ -186,7 +209,9 @@ export interface FileRoutesByTo {
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
+  '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
   '/vehicles/$vehicleId/import': typeof VehiclesVehicleIdImportRoute
+  '/vehicles/$vehicleId/inspections': typeof VehiclesVehicleIdInspectionsRoute
   '/vehicles/$vehicleId/odometer': typeof VehiclesVehicleIdOdometerRoute
   '/vehicles/$vehicleId/plan': typeof VehiclesVehicleIdPlanRoute
   '/vehicles/$vehicleId/reminders': typeof VehiclesVehicleIdRemindersRoute
@@ -198,6 +223,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/import': typeof ImportRoute
   '/log': typeof LogRoute
   '/login': typeof LoginRoute
   '/parts': typeof PartsRoute
@@ -211,7 +237,9 @@ export interface FileRoutesById {
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
+  '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
   '/vehicles/$vehicleId/import': typeof VehiclesVehicleIdImportRoute
+  '/vehicles/$vehicleId/inspections': typeof VehiclesVehicleIdInspectionsRoute
   '/vehicles/$vehicleId/odometer': typeof VehiclesVehicleIdOdometerRoute
   '/vehicles/$vehicleId/plan': typeof VehiclesVehicleIdPlanRoute
   '/vehicles/$vehicleId/reminders': typeof VehiclesVehicleIdRemindersRoute
@@ -224,6 +252,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/import'
     | '/log'
     | '/login'
     | '/parts'
@@ -237,7 +266,9 @@ export interface FileRouteTypes {
     | '/vehicles/new'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
+    | '/vehicles/$vehicleId/ifta'
     | '/vehicles/$vehicleId/import'
+    | '/vehicles/$vehicleId/inspections'
     | '/vehicles/$vehicleId/odometer'
     | '/vehicles/$vehicleId/plan'
     | '/vehicles/$vehicleId/reminders'
@@ -248,6 +279,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/import'
     | '/log'
     | '/login'
     | '/parts'
@@ -260,7 +292,9 @@ export interface FileRouteTypes {
     | '/vehicles/new'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
+    | '/vehicles/$vehicleId/ifta'
     | '/vehicles/$vehicleId/import'
+    | '/vehicles/$vehicleId/inspections'
     | '/vehicles/$vehicleId/odometer'
     | '/vehicles/$vehicleId/plan'
     | '/vehicles/$vehicleId/reminders'
@@ -271,6 +305,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/import'
     | '/log'
     | '/login'
     | '/parts'
@@ -284,7 +319,9 @@ export interface FileRouteTypes {
     | '/vehicles/new'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
+    | '/vehicles/$vehicleId/ifta'
     | '/vehicles/$vehicleId/import'
+    | '/vehicles/$vehicleId/inspections'
     | '/vehicles/$vehicleId/odometer'
     | '/vehicles/$vehicleId/plan'
     | '/vehicles/$vehicleId/reminders'
@@ -296,6 +333,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ImportRoute: typeof ImportRoute
   LogRoute: typeof LogRoute
   LoginRoute: typeof LoginRoute
   PartsRoute: typeof PartsRoute
@@ -316,6 +354,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import': {
+      id: '/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof ImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/log': {
@@ -416,11 +461,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VehiclesVehicleIdFuelRouteImport
       parentRoute: typeof VehiclesVehicleIdRouteRoute
     }
+    '/vehicles/$vehicleId/ifta': {
+      id: '/vehicles/$vehicleId/ifta'
+      path: '/ifta'
+      fullPath: '/vehicles/$vehicleId/ifta'
+      preLoaderRoute: typeof VehiclesVehicleIdIftaRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
     '/vehicles/$vehicleId/import': {
       id: '/vehicles/$vehicleId/import'
       path: '/import'
       fullPath: '/vehicles/$vehicleId/import'
       preLoaderRoute: typeof VehiclesVehicleIdImportRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
+    '/vehicles/$vehicleId/inspections': {
+      id: '/vehicles/$vehicleId/inspections'
+      path: '/inspections'
+      fullPath: '/vehicles/$vehicleId/inspections'
+      preLoaderRoute: typeof VehiclesVehicleIdInspectionsRouteImport
       parentRoute: typeof VehiclesVehicleIdRouteRoute
     }
     '/vehicles/$vehicleId/odometer': {
@@ -471,7 +530,9 @@ declare module '@tanstack/react-router' {
 interface VehiclesVehicleIdRouteRouteChildren {
   VehiclesVehicleIdEditRoute: typeof VehiclesVehicleIdEditRoute
   VehiclesVehicleIdFuelRoute: typeof VehiclesVehicleIdFuelRoute
+  VehiclesVehicleIdIftaRoute: typeof VehiclesVehicleIdIftaRoute
   VehiclesVehicleIdImportRoute: typeof VehiclesVehicleIdImportRoute
+  VehiclesVehicleIdInspectionsRoute: typeof VehiclesVehicleIdInspectionsRoute
   VehiclesVehicleIdOdometerRoute: typeof VehiclesVehicleIdOdometerRoute
   VehiclesVehicleIdPlanRoute: typeof VehiclesVehicleIdPlanRoute
   VehiclesVehicleIdRemindersRoute: typeof VehiclesVehicleIdRemindersRoute
@@ -485,7 +546,9 @@ const VehiclesVehicleIdRouteRouteChildren: VehiclesVehicleIdRouteRouteChildren =
   {
     VehiclesVehicleIdEditRoute: VehiclesVehicleIdEditRoute,
     VehiclesVehicleIdFuelRoute: VehiclesVehicleIdFuelRoute,
+    VehiclesVehicleIdIftaRoute: VehiclesVehicleIdIftaRoute,
     VehiclesVehicleIdImportRoute: VehiclesVehicleIdImportRoute,
+    VehiclesVehicleIdInspectionsRoute: VehiclesVehicleIdInspectionsRoute,
     VehiclesVehicleIdOdometerRoute: VehiclesVehicleIdOdometerRoute,
     VehiclesVehicleIdPlanRoute: VehiclesVehicleIdPlanRoute,
     VehiclesVehicleIdRemindersRoute: VehiclesVehicleIdRemindersRoute,
@@ -502,6 +565,7 @@ const VehiclesVehicleIdRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ImportRoute: ImportRoute,
   LogRoute: LogRoute,
   LoginRoute: LoginRoute,
   PartsRoute: PartsRoute,

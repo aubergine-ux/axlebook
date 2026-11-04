@@ -1,4 +1,4 @@
-import { vehicleTitle } from '@axlebook/shared';
+import { isCommercial, vehicleTitle } from '@axlebook/shared';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,17 @@ import { QueryState } from '../../../components/ui/QueryState';
 
 export const Route = createFileRoute('/vehicles/$vehicleId')({ component: VehicleLayout });
 
-const TABS = ['overview', 'records', 'fuel', 'reminders', 'odometer', 'plan', 'sharing'] as const;
+const TABS = [
+  'overview',
+  'records',
+  'fuel',
+  'reminders',
+  'odometer',
+  'inspections',
+  'ifta',
+  'plan',
+  'sharing',
+] as const;
 type Tab = (typeof TABS)[number];
 const PATHS: Record<Tab, string> = {
   overview: '/vehicles/$vehicleId',
@@ -17,6 +27,8 @@ const PATHS: Record<Tab, string> = {
   fuel: '/vehicles/$vehicleId/fuel',
   reminders: '/vehicles/$vehicleId/reminders',
   odometer: '/vehicles/$vehicleId/odometer',
+  inspections: '/vehicles/$vehicleId/inspections',
+  ifta: '/vehicles/$vehicleId/ifta',
   plan: '/vehicles/$vehicleId/plan',
   sharing: '/vehicles/$vehicleId/sharing',
 };
@@ -36,7 +48,13 @@ function VehicleLayout() {
     <QueryState query={query}>
       {(v) => {
         const title = vehicleTitle(v);
-        const tabs = TABS.filter((tab) => tab !== 'sharing' || v.access === 'owner');
+        const tabs = TABS.filter(
+          (tab) =>
+            (tab !== 'sharing' || v.access === 'owner') &&
+            // DVIRs for trucks and trailers; IFTA only for the power unit.
+            (tab !== 'inspections' || isCommercial(v.category)) &&
+            (tab !== 'ifta' || v.category === 'semi'),
+        );
         return (
           <>
             <Link

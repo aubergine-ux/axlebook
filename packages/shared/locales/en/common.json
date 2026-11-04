@@ -32,7 +32,19 @@
     "noReminder": "Nothing scheduled",
     "photoAlt": "Photo of the {{name}}",
     "parts": "Parts and supplies",
-    "shared": "Shared with you"
+    "shared": "Shared with you",
+    "sections": {
+      "all": "All",
+      "car": "Cars & trucks",
+      "powersports": "Powersports",
+      "commercial": "Semi trucks"
+    },
+    "sectionEmpty": {
+      "car": "No cars or trucks yet.",
+      "powersports": "No motorcycles, dirt bikes, ATVs or snowmobiles yet.",
+      "commercial": "No semi trucks or trailers yet."
+    },
+    "importSheet": "Import a spreadsheet"
   },
   "errors": {
     "validation_failed": "Some fields need attention.",
@@ -52,7 +64,10 @@
     "local_login_disabled": "Password sign-in is turned off on this instance.",
     "insufficient_stock": "Not enough of that part in stock.",
     "unsupported_file": "That file type isn't supported.",
-    "restore_not_empty": "Restore only works on an empty instance. Remove existing vehicles first."
+    "restore_not_empty": "Restore only works on an empty instance. Remove existing vehicles first.",
+    "ai_disabled": "Local AI isn't set up on this server. An admin can turn it on (see the README).",
+    "ai_failed": "The local AI couldn't answer just now. Try again in a moment.",
+    "upload_expired": "That upload has expired. Choose the file again."
   },
   "settings": {
     "profile": "Profile",
@@ -144,7 +159,22 @@
     "you": "you",
     "version": "Axlebook {{version}}",
     "source": "Source code",
-    "license": "AGPL-3.0 licensed"
+    "license": "AGPL-3.0 licensed",
+    "ai": "Local AI",
+    "aiStatus": {
+      "off": "Not set up. Add the Ollama service from docker-compose.ai.yml to turn it on.",
+      "unreachable": "Can't reach the AI service at the configured address.",
+      "downloading": "Downloading the model ({{pct}}%). This happens once.",
+      "missing": "The model {{model}} isn't installed in Ollama yet.",
+      "ready": "Ready: {{model}}, running on this server."
+    },
+    "calendar": "Calendar feed",
+    "calendarIntro": "Subscribe in your phone or computer calendar to see reminders with due dates.",
+    "calendarCreate": "Create calendar link",
+    "calendarReset": "Reset link",
+    "calendarLink": "Calendar link",
+    "calendarOff": "Turn off",
+    "aiIntro": "Spreadsheet import, maintenance schedules, economy estimates and tips can use a model that runs on this server through Ollama. Nothing is sent anywhere else."
   },
   "vehicle": {
     "newTitle": "Add a vehicle",
@@ -174,12 +204,15 @@
       "fuelType": "Fuel type",
       "purchaseDate": "Purchase date",
       "purchasePrice": "Purchase price",
-      "notes": "Notes"
+      "notes": "Notes",
+      "category": "Type",
+      "unitNumber": "Unit number"
     },
     "hints": {
       "nickname": "Optional. Shown instead of the model name on cards.",
       "units": "Units the vehicle's own gauges use. You can still view everything in your preferred units.",
-      "purchasePrice": "Optional. Counts toward cost of ownership in reports."
+      "purchasePrice": "Optional. Counts toward cost of ownership in reports.",
+      "hours": "Most dirt bikes, ATVs and snowmobiles track engine hours instead of miles."
     },
     "sections": {
       "identity": "Vehicle",
@@ -212,7 +245,9 @@
       "reminders": "Reminders",
       "odometer": "Odometer",
       "plan": "Planner",
-      "sharing": "Sharing"
+      "sharing": "Sharing",
+      "inspections": "Inspections",
+      "ifta": "IFTA"
     },
     "stats": {
       "odometer": "Odometer",
@@ -228,21 +263,52 @@
       "view": "view only",
       "edit": "can edit",
       "owner": "owner"
+    },
+    "categories": {
+      "car": "Car or truck",
+      "motorcycle": "Motorcycle",
+      "dirtbike": "Dirt bike",
+      "atv": "ATV / UTV",
+      "snowmobile": "Snowmobile",
+      "semi": "Semi truck",
+      "trailer": "Trailer"
+    },
+    "insights": {
+      "title": "Fuel economy estimate",
+      "estimate": "Estimate economy",
+      "refresh": "Re-estimate",
+      "running": "Thinking…",
+      "expected": "Expected {{value}}",
+      "range": "Range {{low}}–{{high}}",
+      "yours": "You're averaging {{value}}",
+      "better": "{{pct}}% better than expected",
+      "worse": "{{pct}}% below expected",
+      "same": "Right where it should be",
+      "confidence": {
+        "low": "Low confidence",
+        "medium": "Medium confidence",
+        "high": "High confidence"
+      },
+      "localNote": "Estimated by the local AI on this server ({{model}}).",
+      "off": "Turn on local AI to get an estimate based on this vehicle's make, model, age and mileage."
     }
   },
   "units": {
     "odometer": {
       "mi": "Miles",
-      "km": "Kilometers"
+      "km": "Kilometers",
+      "hr": "Engine hours"
     },
     "fuel": {
       "gal_us": "US gallons",
       "gal_uk": "Imperial gallons",
-      "l": "Liters"
+      "l": "Liters",
+      "kwh": "Kilowatt-hours (EV)"
     },
     "distance": {
       "mi": "{{value}} mi",
-      "km": "{{value}} km"
+      "km": "{{value}} km",
+      "hr": "{{value}} h"
     },
     "economy": {
       "mpg_us": "{{value}} mpg",
@@ -253,9 +319,12 @@
     "fuelShort": {
       "gal_us": "gal",
       "gal_uk": "gal",
-      "l": "L"
+      "l": "L",
+      "kwh": "kWh"
     },
-    "kb": "{{value}} KB"
+    "kb": "{{value}} KB",
+    "perHour": "{{value}} {{unit}}/h",
+    "perKwh": "{{value}} {{unit}}/kWh"
   },
   "actions": {
     "save": "Save",
@@ -339,7 +408,8 @@
       "isFull": "Filled the tank",
       "missedPrevious": "I missed logging the previous fill-up",
       "grade": "Grade",
-      "station": "Station"
+      "station": "Station",
+      "jurisdiction": "Jurisdiction"
     },
     "hints": {
       "tags": "Separate with commas.",
@@ -456,7 +526,8 @@
     "manual": "Manual reading",
     "empty": "No readings yet. Every record with an odometer value adds one.",
     "delete": "Delete reading",
-    "lowerWarning": "That's lower than an earlier reading. Saved anyway; check for a typo."
+    "lowerWarning": "That's lower than an earlier reading. Saved anyway; check for a typo.",
+    "jurisdiction": "Entered jurisdiction"
   },
   "plan": {
     "add": "Plan a job",
@@ -584,6 +655,279 @@
       "lubelogger": "LubeLogger",
       "custom": "custom columns"
     },
-    "rowError": "Row {{row}}: {{message}}"
+    "rowError": "Row {{row}}: {{message}}",
+    "sheetTitle": "Import a spreadsheet",
+    "sheetIntro": "Bring in the spreadsheet you already keep, even if it covers several vehicles. Nothing is saved until you check the preview.",
+    "sheetFile": "Spreadsheet (.xlsx, .csv or .tsv)",
+    "useAi": "Let the local AI read the layout",
+    "aiNote": "Runs on this server ({{model}}). Your spreadsheet never leaves it.",
+    "aiOff": "Columns were matched automatically. Turn on local AI for messier spreadsheets.",
+    "planBy": {
+      "ai": "Layout read by the local AI. Check it below.",
+      "matcher": "Columns matched automatically. Check them below."
+    },
+    "aiFallback": "The local AI couldn't read this one, so columns were matched automatically.",
+    "analyzing": "Reading your spreadsheet…",
+    "sheet": "Sheet: {{name}} ({{rows}} rows)",
+    "includeSheet": "Import this sheet",
+    "vehicleColumn": "Column naming the vehicle",
+    "sheetVehicle": "Vehicle for this sheet",
+    "kindColumn": "Column with the record type",
+    "defaultKind": "Record type when not stated",
+    "none": "None",
+    "fieldLabels": {
+      "date": "Date",
+      "odometer": "Odometer / hours",
+      "title": "What was done",
+      "cost": "Cost",
+      "notes": "Notes",
+      "tags": "Tags",
+      "fuelVolume": "Fuel amount",
+      "pricePerUnit": "Price per unit",
+      "isFull": "Full tank",
+      "missedPrevious": "Missed fill-up",
+      "station": "Station / shop",
+      "grade": "Fuel grade",
+      "expenseCategory": "Expense category"
+    },
+    "vehicles": "Vehicles",
+    "newVehicle": "New vehicle",
+    "existing": "Add to {{name}}",
+    "vehicleTarget": "Import into",
+    "previewTitle": "Preview",
+    "previewSummary": "{{valid}} of {{total}} rows are ready to import.",
+    "vehicleRecords": "{{count}} records",
+    "commit": "Import everything",
+    "committing": "Importing…",
+    "done": "Imported {{imported}} records ({{skipped}} were already here).",
+    "startOver": "Import another file",
+    "choose": "Choose a file",
+    "columns": "Which column holds what",
+    "sample": "First rows",
+    "needs": "Needs {{fields}} before it can be created.",
+    "dateRange": "{{from}} – {{to}}",
+    "problemRows_one": "{{count}} row has a problem and will be skipped",
+    "problemRows_other": "{{count}} rows have problems and will be skipped",
+    "sheetRowError": "{{sheet}}, row {{row}}: {{message}}",
+    "problems": {
+      "date": "date not recognised",
+      "date_missing": "no date",
+      "odometer": "odometer isn't a number",
+      "cost": "cost isn't a number",
+      "fuel_volume": "fuel row with no fuel amount"
+    }
+  },
+  "schedule": {
+    "suggest": "Suggest a maintenance schedule",
+    "title": "Maintenance schedule",
+    "intro": "Pick what you'd like reminders for. Intervals are a starting point; check your owner's manual.",
+    "builtIn": "Built-in schedule ({{category}})",
+    "ai": "Tailored by the local AI ({{model}})",
+    "tailor": "Tailor to my {{name}}",
+    "tailoring": "Tailoring…",
+    "every": "Every {{interval}}",
+    "everyMonths_one": "{{count}} month",
+    "everyMonths_other": "{{count}} months",
+    "or": "or",
+    "lastDone": "Last done {{date}}",
+    "neverDone": "No record of this yet",
+    "nextDue": "Next due {{due}}",
+    "hasReminder": "Already a reminder",
+    "add_one": "Add {{count}} reminder",
+    "add_other": "Add {{count}} reminders",
+    "added_one": "Added {{count}} reminder.",
+    "added_other": "Added {{count}} reminders."
+  },
+  "inspection": {
+    "add": "New inspection",
+    "save": "Save inspection",
+    "empty": "No inspections yet. Log pre-trip and post-trip DVIRs here.",
+    "types": {
+      "pre_trip": "Pre-trip",
+      "post_trip": "Post-trip",
+      "annual": "Annual (DOT)"
+    },
+    "fields": {
+      "date": "Date",
+      "type": "Type",
+      "odometer": "Odometer",
+      "inspector": "Inspected by",
+      "notes": "Remarks"
+    },
+    "ok": "OK",
+    "defect": "Defect",
+    "defectNote": "What's wrong with {{item}}",
+    "noDefects": "No defects",
+    "defects_one": "{{count}} defect",
+    "defects_other": "{{count}} defects",
+    "correct": "Mark corrected",
+    "corrected": "Corrected {{date}}",
+    "correctedBy": "Corrected by",
+    "correctionNotes": "What was done",
+    "items": {
+      "service_brakes": "Service brakes and trailer brake connections",
+      "parking_brake": "Parking brake",
+      "steering": "Steering mechanism",
+      "lights": "Lights and reflectors",
+      "tires": "Tires",
+      "horn": "Horn",
+      "wipers": "Windshield wipers",
+      "mirrors": "Rear-vision mirrors",
+      "coupling": "Coupling devices / fifth wheel",
+      "wheels": "Wheels and rims",
+      "emergency": "Emergency equipment",
+      "air_lines": "Air lines and hoses",
+      "fluids": "Fluid leaks",
+      "exhaust": "Exhaust system",
+      "body": "Body, doors and frame",
+      "cargo": "Cargo securement",
+      "landing_gear": "Landing gear",
+      "suspension": "Suspension",
+      "reefer": "Reefer unit"
+    },
+    "deleteTitle": "Delete this inspection?",
+    "deleteBody": "The inspection from {{date}} will be removed. Keep DVIRs for at least three months if you're required to."
+  },
+  "ifta": {
+    "title": "IFTA worksheet",
+    "intro": "Miles and fuel by jurisdiction for the quarter, from odometer readings and fill-ups that have a jurisdiction. Use it to fill in your return; it isn't a filing.",
+    "quarter": "Quarter",
+    "jurisdiction": "Jurisdiction",
+    "miles": "Distance",
+    "taxableFuel": "Taxable fuel",
+    "purchased": "Fuel bought",
+    "net": "Net",
+    "fleet": "Fleet average",
+    "empty": "Nothing for this quarter yet. Add a jurisdiction to fill-ups, and odometer readings when you cross into a new state or province.",
+    "hint": "Two-letter code, e.g. TX or ON",
+    "quarterOption": "Q{{quarter}} {{year}}",
+    "unassigned": "{{value}} has no jurisdiction recorded. Add one to the odometer reading or fill-up where each trip started."
+  },
+  "tips": {
+    "title": "Tips for this vehicle",
+    "ask": "Get model-specific tips",
+    "askAgain": "Refresh model-specific tips",
+    "asking": "Thinking…",
+    "fromAi": "From the local AI ({{model}}). Double-check anything safety-related.",
+    "aiOff": "Turn on local AI for advice specific to this make and model.",
+    "severity": {
+      "warning": "Needs attention",
+      "suggestion": "Worth doing",
+      "info": "Good to know"
+    },
+    "codes": {
+      "no_fuel_data": {
+        "title": "Log a few fill-ups",
+        "body": "Fill the tank and log it a few times in a row. Once there are two full fills, Axlebook can work out your real economy and spot changes."
+      },
+      "economy_down": {
+        "title": "Economy has dropped {{pct}}%",
+        "body": "Your last few fill-ups are well below your usual. Check tire pressure, look for dragging brakes, and think about a dirty air filter or a sensor fault before it gets worse."
+      },
+      "economy_up": {
+        "title": "Economy is up {{pct}}%",
+        "body": "Your last few fill-ups beat your usual. Whatever changed (driving, tires, a service) is working."
+      },
+      "partial_fills": {
+        "title": "{{pct}}% of recent fills were partial",
+        "body": "Economy can only be measured between full tanks. Filling up all the way more often gives you more accurate numbers."
+      },
+      "missed_fillups": {
+        "title": "{{count}} recent fill-ups were marked missed",
+        "body": "A missed fill-up breaks the calculation for that stretch. Logging every fill keeps your average honest."
+      },
+      "overdue_affects_economy": {
+        "title": "Overdue: {{title}}",
+        "body": "This job is overdue and it can cost you fuel. Getting it done may bring your economy back up."
+      },
+      "season_winter_fuel": {
+        "title": "Cold weather costs fuel",
+        "body": "Expect economy to drop in winter: engines take longer to warm up and winter fuel blends carry less energy. Combine short trips where you can."
+      },
+      "season_winter_ev": {
+        "title": "Winter range drops",
+        "body": "Cold batteries hold less and heating draws power. Precondition while plugged in and use seat heaters before cabin heat."
+      },
+      "season_storage": {
+        "title": "Getting ready for storage",
+        "body": "Before the off-season: fill the tank and add stabilizer, change the oil, put the battery on a maintainer and cover it somewhere dry."
+      },
+      "season_spring": {
+        "title": "Spring wake-up",
+        "body": "Check the tires, battery, brakes and chain or belts, and look for nests or chewed wires before the first ride."
+      },
+      "season_sled_storage": {
+        "title": "Storing the sled for summer",
+        "body": "Fog the engine or run stabilized fuel through it, grease the suspension, loosen track tension and store it off the ground on a stand."
+      },
+      "season_preseason": {
+        "title": "Pre-season check",
+        "body": "Before the snow: check the clutches and drive belt, the track and hyfax, the carbides and skis, and that the battery holds a charge."
+      },
+      "tire_pressure": {
+        "title": "Check tire pressure monthly",
+        "body": "Underinflated tires waste fuel and wear faster. Use the pressure on the door placard or in the manual, checked cold."
+      },
+      "smooth_driving": {
+        "title": "Smooth driving saves fuel",
+        "body": "Gentle starts, looking ahead and coasting to stops can save more fuel than any additive."
+      },
+      "remove_weight": {
+        "title": "Clear out the extra weight",
+        "body": "Roof racks and boxes and a loaded trunk all cost fuel. Take off what you aren't using."
+      },
+      "cruise_control": {
+        "title": "Use cruise control on the highway",
+        "body": "Holding a steady speed on flat roads uses less fuel than small speed changes. Every 5 mph over 50 costs noticeably more."
+      },
+      "moto_chain": {
+        "title": "Keep the chain clean and adjusted",
+        "body": "A dry or tight chain wastes power and wears the sprockets. Clean, lube and check slack every few hundred miles."
+      },
+      "offroad_air_filter": {
+        "title": "Clean the air filter often",
+        "body": "Dust kills off-road engines. Clean and re-oil a foam filter after dusty rides, not just on schedule."
+      },
+      "sled_clutch": {
+        "title": "Keep the clutches clean",
+        "body": "Belt dust in the clutches hurts performance and fuel use. Clean them and check belt deflection each season."
+      },
+      "sled_track": {
+        "title": "Set track tension right",
+        "body": "Too tight wastes power, too loose risks ratcheting. Check tension and alignment every few rides."
+      },
+      "semi_idle": {
+        "title": "Cut idle time",
+        "body": "Idling burns close to a gallon an hour. An APU, bunk heater or idle shutdown pays for itself quickly."
+      },
+      "semi_speed": {
+        "title": "Watch the top speed",
+        "body": "Above about 60 mph aerodynamic drag climbs fast. A few mph slower can add a few tenths of mpg."
+      },
+      "semi_tires_alignment": {
+        "title": "Tires and alignment",
+        "body": "Keep every position at the right pressure and check alignment. Low tires and scrubbing axles cost fuel every mile."
+      },
+      "semi_aero": {
+        "title": "Close the gaps",
+        "body": "Side skirts, a tight trailer gap and trailer tails cut drag. Keep fairings adjusted to the trailer you pull."
+      },
+      "trailer_tires": {
+        "title": "Trailer tires age out",
+        "body": "Check the date codes. Trailer tires often fail from age before tread wear, and underinflated ones overheat."
+      },
+      "trailer_bearings": {
+        "title": "Check the wheel bearings",
+        "body": "Feel the hubs after a run: a hot hub means a bearing or brake problem. Repack or check the seals on schedule."
+      },
+      "ev_precondition": {
+        "title": "Precondition while plugged in",
+        "body": "Heating or cooling the cabin and battery from the wall instead of the battery adds range, especially in winter."
+      },
+      "ev_battery_care": {
+        "title": "Easy on the battery",
+        "body": "For daily driving, charging to around 80% and avoiding sitting at 0% or 100% keeps the battery healthy longer."
+      }
+    }
   }
 }

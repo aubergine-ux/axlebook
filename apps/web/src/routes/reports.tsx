@@ -11,9 +11,9 @@ import { PageHeader } from '../components/PageHeader';
 import { StatTile } from '../components/StatTile';
 import { Button } from '../components/ui/Button';
 import { SelectField } from '../components/ui/fields';
+import { ToggleSwitch } from '../components/ui/ToggleSwitch';
 import { useFormat } from '../lib/format';
 import { todayIso } from '../lib/today';
-import { ToggleSwitch } from './vehicles/$vehicleId/reminders';
 
 const PERIODS = ['12m', 'ytd', 'last_year', 'all'] as const;
 type Period = (typeof PERIODS)[number];

@@ -5,6 +5,8 @@ import {
   type FuelUnit,
   formatMoney,
   fromMilli,
+  isDistanceUnit,
+  nativeEconomy,
   type OdometerUnit,
   type UnitSystem,
 } from '@axlebook/shared';
@@ -57,20 +59,33 @@ export function useFormat() {
       t(`units.distance.${unit}`, { value: number(Math.round(value)) }),
     /** A distance converted to the user's preferred unit. */
     distanceUser: (value: number, unit: OdometerUnit) =>
-      t(`units.distance.${display.distance}`, {
-        value: number(Math.round(convertDistance(value, unit, display.distance))),
-      }),
+      isDistanceUnit(unit)
+        ? t(`units.distance.${display.distance}`, {
+            value: number(Math.round(convertDistance(value, unit, display.distance))),
+          })
+        : t(`units.distance.${unit}`, { value: number(Math.round(value)) }),
     volume: (milli: number, unit: FuelUnit) =>
       `${decimals(fromMilli(milli), 3)} ${t(`units.fuelShort.${unit}`)}`,
     /** Native economy (vehicle distance per vehicle volume unit) in the user's economy unit. */
     economy: (value: number | null | undefined, odo: OdometerUnit, fuel: FuelUnit) => {
       if (value == null) return null;
+      // Engine hours → fuel per hour; EVs → distance per kWh.
+      const native = nativeEconomy(value, odo, fuel);
+      if (native?.kind === 'per_hour')
+        return t('units.perHour', {
+          value: decimals(native.value, 2),
+          unit: t(`units.fuelShort.${native.unit}`),
+        });
+      if (native?.kind === 'per_kwh')
+        return t('units.perKwh', { value: decimals(native.value, 1), unit: native.unit });
       const v = computeEconomy(value, odo, 1, fuel, display.economy);
       return v == null ? null : t(`units.economy.${display.economy}`, { value: decimals(v, 1) });
     },
     /** milli-currency per vehicle distance unit → per user distance unit. */
     costPerDistance: (milliPerUnit: number | null | undefined, unit: OdometerUnit) => {
       if (milliPerUnit == null) return null;
+      if (!isDistanceUnit(unit))
+        return formatMoney(Math.round(milliPerUnit), { currency, locale, precise: true });
       const perUser = milliPerUnit / convertDistance(1, unit, display.distance);
       return formatMoney(Math.round(perUser), { currency, locale, precise: true });
     },
