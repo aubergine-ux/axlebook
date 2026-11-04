@@ -31,10 +31,36 @@ export interface InstanceSettingsTable {
   updated_at: string;
 }
 
+export interface VehiclesTable {
+  id: Generated<number>;
+  owner_id: number;
+  year: number;
+  make: string;
+  model: string;
+  trim: string | null;
+  nickname: string | null;
+  vin: string | null;
+  license_plate: string | null;
+  color: string | null;
+  odometer_unit: 'mi' | 'km';
+  fuel_unit: 'gal_us' | 'gal_uk' | 'l';
+  fuel_type: string;
+  purchase_date: string | null;
+  purchase_price: number | null;
+  notes: string | null;
+  photo_key: string | null;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Database {
   users: UsersTable;
   instance_settings: InstanceSettingsTable;
+  vehicles: VehiclesTable;
 }
+
+export type VehicleRow = Selectable<VehiclesTable>;
 
 export type User = Selectable<UsersTable>;
 export type NewUser = Insertable<UsersTable>;

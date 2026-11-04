@@ -1,0 +1,183 @@
+import type { Vehicle, VehicleInput, VehicleSummary, VehicleUpdate } from '@axlebook/shared';
+import {
+  VehicleInput as VehicleInputSchema,
+  VehicleUpdate as VehicleUpdateSchema,
+} from '@axlebook/shared';
+import type { DB } from '../../db/connection';
+import type { User, VehicleRow } from '../../db/schema';
+import { AppError } from '../../lib/errors';
+import type { FileStore } from '../../lib/files';
+import { nowIso } from '../../lib/time';
+import { requireVehicle, type VehicleAccess } from './access';
+
+export function toVehicle(row: VehicleRow, access: VehicleAccess): Vehicle {
+  return {
+    id: row.id,
+    ownerId: row.owner_id,
+    year: row.year,
+    make: row.make,
+    model: row.model,
+    trim: row.trim,
+    nickname: row.nickname,
+    vin: row.vin,
+    licensePlate: row.license_plate,
+    color: row.color,
+    odometerUnit: row.odometer_unit,
+    fuelUnit: row.fuel_unit,
+    fuelType: row.fuel_type as Vehicle['fuelType'],
+    purchaseDate: row.purchase_date,
+    purchasePrice: row.purchase_price,
+    notes: row.notes,
+    // The key segment busts caches when the photo is replaced.
+    photoUrl: row.photo_key
+      ? `/api/v1/vehicles/${row.id}/photo?v=${row.photo_key.slice(0, 8)}`
+      : null,
+    archivedAt: row.archived_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    access,
+  };
+}
+
+type Columns = Partial<
+  Omit<VehicleRow, 'id' | 'owner_id' | 'photo_key' | 'archived_at' | 'created_at' | 'updated_at'>
+>;
+
+function toColumns(input: VehicleUpdate): Columns {
+  const parsed = VehicleUpdateSchema.parse(input);
+  const map: Record<string, keyof Columns> = {
+    year: 'year',
+    make: 'make',
+    model: 'model',
+    trim: 'trim',
+    nickname: 'nickname',
+    vin: 'vin',
+    licensePlate: 'license_plate',
+    color: 'color',
+    odometerUnit: 'odometer_unit',
+    fuelUnit: 'fuel_unit',
+    fuelType: 'fuel_type',
+    purchaseDate: 'purchase_date',
+    purchasePrice: 'purchase_price',
+    notes: 'notes',
+  };
+  const cols: Record<string, unknown> = {};
+  for (const [key, col] of Object.entries(map)) {
+    const value = (parsed as Record<string, unknown>)[key];
+    if (value !== undefined)
+      cols[col] = key === 'vin' && typeof value === 'string' ? value.toUpperCase() : value;
+  }
+  return cols as Columns;
+}
+
+export class VehicleService {
+  constructor(
+    private readonly db: DB,
+    private readonly photos: FileStore,
+  ) {}
+
+  async list(user: User, archived: 'false' | 'true' | 'all'): Promise<VehicleSummary[]> {
+    let q = this.db.selectFrom('vehicles').selectAll().where('owner_id', '=', user.id);
+    if (archived === 'false') q = q.where('archived_at', 'is', null);
+    if (archived === 'true') q = q.where('archived_at', 'is not', null);
+    const rows = await q
+      .orderBy('archived_at')
+      .orderBy('year', 'desc')
+      .orderBy('make')
+      .orderBy('model')
+      .execute();
+    return Promise.all(rows.map((r) => this.summarize(r, 'owner')));
+  }
+
+  /** Computed garage-card figures. Later milestones fill in odometer, cost and reminders. */
+  async summarize(row: VehicleRow, access: VehicleAccess): Promise<VehicleSummary> {
+    return { ...toVehicle(row, access), currentOdometer: null, costToDate: 0, nextReminder: null };
+  }
+
+  async get(user: User, id: number): Promise<Vehicle> {
+    const v = await requireVehicle(this.db, user, id, 'view');
+    return toVehicle(v, v.access);
+  }
+
+  async create(user: User, input: VehicleInput): Promise<Vehicle> {
+    if (user.role === 'viewer') throw new AppError('forbidden');
+    VehicleInputSchema.parse(input);
+    const ts = nowIso();
+    const row = await this.db
+      .insertInto('vehicles')
+      .values({
+        ...(toColumns(input) as Required<Columns>),
+        owner_id: user.id,
+        created_at: ts,
+        updated_at: ts,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    return toVehicle(row, 'owner');
+  }
+
+  async update(user: User, id: number, input: VehicleUpdate): Promise<Vehicle> {
+    const existing = await requireVehicle(this.db, user, id, 'edit');
+    const cols = toColumns(input);
+    const row = await this.db
+      .updateTable('vehicles')
+      .set({ ...cols, updated_at: nowIso() })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    return toVehicle(row, existing.access);
+  }
+
+  async setArchived(user: User, id: number, archived: boolean): Promise<Vehicle> {
+    const existing = await requireVehicle(this.db, user, id, 'owner');
+    const ts = nowIso();
+    const row = await this.db
+      .updateTable('vehicles')
+      .set({ archived_at: archived ? (existing.archived_at ?? ts) : null, updated_at: ts })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    return toVehicle(row, existing.access);
+  }
+
+  async remove(user: User, id: number): Promise<void> {
+    const existing = await requireVehicle(this.db, user, id, 'owner');
+    await this.db.deleteFrom('vehicles').where('id', '=', id).execute();
+    if (existing.photo_key) await this.photos.remove(existing.photo_key);
+  }
+
+  async setPhoto(user: User, id: number, data: Buffer, ext: string): Promise<Vehicle> {
+    const existing = await requireVehicle(this.db, user, id, 'edit');
+    const key = await this.photos.save(data, ext);
+    const row = await this.db
+      .updateTable('vehicles')
+      .set({ photo_key: key, updated_at: nowIso() })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    if (existing.photo_key) await this.photos.remove(existing.photo_key);
+    return toVehicle(row, existing.access);
+  }
+
+  async removePhoto(user: User, id: number): Promise<Vehicle> {
+    const existing = await requireVehicle(this.db, user, id, 'edit');
+    const row = await this.db
+      .updateTable('vehicles')
+      .set({ photo_key: null, updated_at: nowIso() })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirstOrThrow();
+    if (existing.photo_key) await this.photos.remove(existing.photo_key);
+    return toVehicle(row, existing.access);
+  }
+
+  photoStream(key: string) {
+    return this.photos.stream(key);
+  }
+
+  async photoKey(user: User, id: number): Promise<string> {
+    const v = await requireVehicle(this.db, user, id, 'view');
+    if (!v.photo_key) throw new AppError('not_found', { entity: 'photo' });
+    return v.photo_key;
+  }
+}

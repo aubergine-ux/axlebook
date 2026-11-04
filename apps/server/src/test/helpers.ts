@@ -1,4 +1,7 @@
 import { randomUUID } from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import pg from 'pg';
 import { buildApp } from '../app';
 import { loadConfig } from '../config';
@@ -12,9 +15,10 @@ import { migrateToLatest } from '../db/migrate';
  */
 export async function createTestApp(env: Record<string, string> = {}) {
   const pgUrl = process.env.TEST_DATABASE_URL;
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'axlebook-test-'));
   const config = loadConfig({
     NODE_ENV: 'test',
-    DATA_DIR: '/nonexistent-test-dir',
+    DATA_DIR: dataDir,
     DATABASE_URL: pgUrl ?? ':memory:',
     WEB_DIR: '/nonexistent-web-dir',
     ...env,
@@ -39,6 +43,7 @@ export async function createTestApp(env: Record<string, string> = {}) {
     async close() {
       await app.close();
       await db.close();
+      fs.rmSync(dataDir, { recursive: true, force: true });
       if (pgUrl && pgSchema) {
         const client = new pg.Client({ connectionString: pgUrl });
         await client.connect();
@@ -51,3 +56,22 @@ export async function createTestApp(env: Record<string, string> = {}) {
 
 /** Headers a same-origin browser request would carry for app.inject (host: localhost:80). */
 export const sameOrigin = { origin: 'http://localhost:80' } as const;
+
+/** Build a multipart/form-data body with a single file field for app.inject. */
+export function multipartFile(field: string, filename: string, data: Buffer, contentType: string) {
+  const boundary = `----axlebook${randomUUID()}`;
+  const payload = Buffer.concat([
+    Buffer.from(
+      `--${boundary}\r\nContent-Disposition: form-data; name="${field}"; filename="${filename}"\r\nContent-Type: ${contentType}\r\n\r\n`,
+    ),
+    data,
+    Buffer.from(`\r\n--${boundary}--\r\n`),
+  ]);
+  return { payload, headers: { 'content-type': `multipart/form-data; boundary=${boundary}` } };
+}
+
+/** Smallest valid images for upload tests. */
+export const tinyPng = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  'base64',
+);
