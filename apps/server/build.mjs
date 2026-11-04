@@ -21,10 +21,13 @@ await build({
     {
       name: 'inline-workspace',
       setup(b) {
-        b.onResolve({ filter: /^@axlebook\/shared$/ }, () => ({
+        // Inline the workspace package and any file inside it (e.g. locale JSON).
+        b.onResolve({ filter: /^@axlebook\/shared(\/.*)?$/ }, (args) => {
+          const sub = args.path.slice('@axlebook/shared'.length);
+          const target = sub ? `../../packages/shared${sub}` : '../../packages/shared/src/index.ts';
           // fileURLToPath, not URL.pathname: the latter gives "/C:/…" on Windows.
-          path: fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)),
-        }));
+          return { path: fileURLToPath(new URL(target, import.meta.url)) };
+        });
       },
     },
   ],
