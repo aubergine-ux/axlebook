@@ -24,7 +24,8 @@
     "tokens": "node tools/tokens.mjs",
     "brand:sync": "node tools/brand-sync.mjs",
     "icons": "node tools/icons.mjs",
-    "brand": "node tools/tokens.mjs && node tools/icons.mjs && node tools/brand-sync.mjs"
+    "brand": "node tools/tokens.mjs && node tools/icons.mjs && node tools/brand-sync.mjs",
+    "e2e": "npm run build && playwright test"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",

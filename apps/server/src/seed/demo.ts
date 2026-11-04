@@ -318,15 +318,15 @@ export async function seedDemo(
   db: DB,
   records: RecordService,
   opts: { timeZone?: string; password?: string },
-): Promise<string | null> {
-  if (await getSetting(db, 'demo_seeded', false)) return null;
+): Promise<{ seeded: boolean; createdUser: { username: string; password: string } | null }> {
+  if (await getSetting(db, 'demo_seeded', false)) return { seeded: false, createdUser: null };
   let owner = await db
     .selectFrom('users')
     .selectAll()
     .where('role', '=', 'admin')
     .orderBy('id')
     .executeTakeFirst();
-  let created: string | null = null;
+  let created: { username: string; password: string } | null = null;
   if (!owner) {
     const ts = nowIso();
     const password = opts.password ?? 'axlebook-demo';
@@ -344,7 +344,7 @@ export async function seedDemo(
       })
       .returningAll()
       .executeTakeFirstOrThrow();
-    created = password;
+    created = { username: 'demo', password };
   }
   const end = today(opts.timeZone);
   const ts = nowIso();
@@ -477,5 +477,5 @@ export async function seedDemo(
     .execute();
 
   await setSetting(db, 'demo_seeded', true);
-  return created;
+  return { seeded: true, createdUser: created };
 }

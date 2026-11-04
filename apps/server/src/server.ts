@@ -25,15 +25,17 @@ async function main() {
     );
   }
   if (config.seedDemoData) {
-    const createdPassword = await seedDemo(db.db, app.services.records, {
+    const result = await seedDemo(db.db, app.services.records, {
       timeZone: config.timeZone,
       password: config.auth.bootstrapAdmin?.password,
     });
-    if (createdPassword)
+    if (!result.seeded) app.log.info('demo data already present, skipping seed');
+    else if (result.createdUser)
       app.log.warn(
-        'demo data seeded; sign in as "demo" with the password from ADMIN_PASSWORD (default: axlebook-demo)',
+        { username: result.createdUser.username },
+        'demo data seeded with a new admin account; sign in as "demo" (password: ADMIN_PASSWORD, or axlebook-demo)',
       );
-    else app.log.info('demo data already present, skipping seed');
+    else app.log.info('demo data seeded into the existing admin account');
   }
 
   app.services.notifications.start();

@@ -13,3 +13,5 @@ test-results
 .fuse_hidden*
 apps/web/public/
 dev-dist
+playwright-report
+test-results

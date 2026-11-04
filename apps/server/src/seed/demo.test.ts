@@ -10,7 +10,10 @@ afterAll(() => t.close());
 
 describe('demo seed', () => {
   it('creates the Tacoma and Civic with history, one overdue and one upcoming reminder', async () => {
-    await seedDemo(t.db, t.app.services.records, { timeZone: 'UTC' });
+    expect(await seedDemo(t.db, t.app.services.records, { timeZone: 'UTC' })).toEqual({
+      seeded: true,
+      createdUser: null,
+    });
     const garage = (await t.req({ method: 'GET', url: '/api/v1/vehicles' })).json();
     expect(garage.map((v: { year: number; model: string }) => `${v.year} ${v.model}`)).toEqual([
       '2018 Civic',
@@ -52,7 +55,10 @@ describe('demo seed', () => {
   });
 
   it('only runs once', async () => {
-    await seedDemo(t.db, t.app.services.records, { timeZone: 'UTC' });
+    expect(await seedDemo(t.db, t.app.services.records, { timeZone: 'UTC' })).toEqual({
+      seeded: false,
+      createdUser: null,
+    });
     expect((await t.req({ method: 'GET', url: '/api/v1/vehicles' })).json()).toHaveLength(2);
   });
 });
