@@ -9,11 +9,19 @@ export function registerErrorHandler(app: FastifyInstance) {
       return reply.status(err.statusCode).send({ error: { code: err.code, params: err.params } });
     }
     if (hasZodFastifySchemaValidationErrors(err)) {
-      const issues = err.validation.map((v) => ({
-        path: v.instancePath,
-        code: (v.params.issue as { code?: string } | undefined)?.code,
-        message: v.message,
-      }));
+      // Structured details only (what was expected, the limits, the allowed values); clients
+      // turn them into words in the user's language.
+      const issues = err.validation.map((v) => {
+        const issue = (v.params.issue ?? {}) as Record<string, unknown>;
+        const pick = ['expected', 'minimum', 'maximum', 'values', 'format', 'origin'] as const;
+        return {
+          path: v.instancePath,
+          code: issue.code as string | undefined,
+          ...Object.fromEntries(
+            pick.filter((k) => issue[k] !== undefined).map((k) => [k, issue[k]]),
+          ),
+        };
+      });
       return reply.status(400).send({
         error: { code: 'validation_failed', params: { context: err.validationContext, issues } },
       });

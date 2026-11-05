@@ -14,7 +14,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { Config } from '../../config';
 import type { DB } from '../../db/connection';
-import { hashPassword, randomToken, sha256, verifyPassword } from '../../lib/crypto';
+import { hashPassword, needsRehash, randomToken, sha256, verifyPassword } from '../../lib/crypto';
 import { AppError } from '../../lib/errors';
 import { FailureLimiter } from '../../lib/rate-limit';
 import { nowIso } from '../../lib/time';
@@ -88,6 +88,12 @@ export const authRoutes =
           throw new AppError('invalid_credentials');
         }
         limiter.reset(key);
+        if (user.password_hash && needsRehash(user.password_hash))
+          await db
+            .updateTable('users')
+            .set({ password_hash: await hashPassword(req.body.password) })
+            .where('id', '=', user.id)
+            .execute();
         await createSession(db, config, req, reply, user.id);
         return toMe(user, config);
       },

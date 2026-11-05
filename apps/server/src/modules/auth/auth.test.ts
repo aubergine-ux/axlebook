@@ -1,3 +1,4 @@
+import { randomBytes, scryptSync } from 'node:crypto';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../../app';
 import { loadConfig } from '../../config';
@@ -67,6 +68,36 @@ describe('first-run setup', () => {
 });
 
 describe('sign in and sessions', () => {
+  it('hashes with argon2id, and upgrades older scrypt hashes on sign-in', async () => {
+    t = await createTestApp();
+    const u = await t.user('legacy', 'editor', 'old-password-123');
+    expect(u.user.password_hash).toMatch(/^\$argon2id\$/);
+    // A hash made by an earlier version: scrypt$N$r$p$salt$key.
+    const salt = randomBytes(16);
+    const key = scryptSync('old-password-123', salt, 32, { N: 32768, r: 8, p: 1, maxmem: 2 ** 26 });
+    const old = ['scrypt', 32768, 8, 1, salt.toString('base64url'), key.toString('base64url')];
+    await t.db
+      .updateTable('users')
+      .set({ password_hash: old.join('$') })
+      .where('id', '=', u.user.id)
+      .execute();
+    const login = (password: string) =>
+      t.anon({
+        method: 'POST',
+        url: '/api/v1/auth/login',
+        payload: { username: 'legacy', password },
+      });
+    expect((await login('wrong-password-1')).statusCode).toBe(401);
+    expect((await login('old-password-123')).statusCode).toBe(200);
+    const row = await t.db
+      .selectFrom('users')
+      .select('password_hash')
+      .where('id', '=', u.user.id)
+      .executeTakeFirstOrThrow();
+    expect(row.password_hash).toMatch(/^\$argon2id\$/);
+    expect((await login('old-password-123')).statusCode).toBe(200);
+  });
+
   it('logs in, rejects bad passwords, and logs out', async () => {
     t = await createTestApp();
     const u = await t.user('casey', 'editor', 'casey-password-123');
