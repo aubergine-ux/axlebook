@@ -97,6 +97,44 @@ describe('inspections (DVIR)', () => {
     expect(ins.items[2]).toEqual({ item: 'tires', ok: true, note: null });
   });
 
+  it('counts a repeated item once, and only takes inspections for semis and trailers', async () => {
+    const twice = await t.req({
+      method: 'POST',
+      url: `/api/v1/vehicles/${truck}/inspections`,
+      payload: {
+        type: 'post_trip',
+        date: '2026-10-02',
+        items: [
+          { item: 'tires', ok: false, note: 'flat' },
+          { item: 'tires', ok: false, note: 'still flat' },
+        ],
+      },
+    });
+    expect(twice.json()).toMatchObject({
+      defects: 1,
+      items: [{ item: 'tires', note: 'still flat' }],
+    });
+    await t.req({ method: 'DELETE', url: `/api/v1/inspections/${twice.json().id}` });
+    const car = await t.req({
+      method: 'POST',
+      url: '/api/v1/vehicles',
+      payload: {
+        year: 2020,
+        make: 'Honda',
+        model: 'Fit',
+        odometerUnit: 'mi',
+        fuelUnit: 'gal_us',
+        fuelType: 'gasoline',
+      },
+    });
+    const res = await t.req({
+      method: 'POST',
+      url: `/api/v1/vehicles/${car.json().id}/inspections`,
+      payload: { type: 'pre_trip', date: '2026-10-02', items: [{ item: 'tires', ok: true }] },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
   it('marks defects corrected, once', async () => {
     const res = await t.req({
       method: 'POST',

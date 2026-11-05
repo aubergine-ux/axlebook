@@ -207,8 +207,9 @@ export const ScheduleApplyInput = z.object({
     .array(
       z.object({
         title: z.string().trim().min(1).max(200),
-        intervalMonths: z.number().int().min(1).nullable(),
-        intervalDistance: z.number().int().min(1).nullable(),
+        // Same limits as a reminder's interval.
+        intervalMonths: z.number().int().min(1).max(240).nullable(),
+        intervalDistance: z.number().int().min(1).max(1_000_000).nullable(),
         notes: z.string().max(2000).nullable(),
       }),
     )

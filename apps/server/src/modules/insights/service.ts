@@ -272,7 +272,10 @@ export class InsightService {
       const key = normTitle(i.title);
       if (!key || seen.has(key) || (i.intervalMonths == null && i.intervalDistance == null))
         continue;
-      if ((i.intervalMonths ?? 1) <= 0 || (i.intervalDistance ?? 1) <= 0) continue;
+      // Nonsense intervals (zero, negative, centuries) are dropped, as a reminder would refuse them.
+      const months = i.intervalMonths ?? 1;
+      const distance = i.intervalDistance ?? 1;
+      if (months <= 0 || months > 240 || distance <= 0 || distance > 1_000_000) continue;
       seen.add(key);
       const match = base.find((b) => normTitle(b.title) === key);
       items.push({

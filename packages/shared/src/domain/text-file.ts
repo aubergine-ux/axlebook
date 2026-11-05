@@ -11,7 +11,7 @@ export function decodeTextFile(bytes: Uint8Array): string | null {
     text = new TextDecoder('windows-1252').decode(bytes);
   }
   // A trailing Ctrl-Z is an old DOS end-of-file marker; other control characters mean binary.
-  text = text.replace(/\u001a+$/, '');
+  while (text.endsWith('\u001a')) text = text.slice(0, -1);
   // biome-ignore lint/suspicious/noControlCharactersInRegex: detecting binary files
   if (/[\u0000-\u0008\u000e-\u001f]/.test(text)) return null;
   return text;

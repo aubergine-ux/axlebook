@@ -83,13 +83,19 @@ export const commercialRoutes =
       },
       async (req, reply) => {
         const user = currentUser(req);
-        await requireVehicle(db, user, req.params.vehicleId, 'edit');
+        const vehicle = await requireVehicle(db, user, req.params.vehicleId, 'edit');
+        // Inspections (DVIR) are for semis and trailers, the only vehicles that show them.
+        if (!isCommercial(vehicle.category))
+          throw new AppError('validation_failed', { field: 'vehicle', reason: 'not_commercial' });
         const b = req.body;
-        const items = b.items.map((i) => ({
-          item: i.item,
-          ok: i.ok,
-          note: i.ok ? null : (i.note ?? null),
-        }));
+        // One result per item: if an item is listed twice, the last one wins.
+        const byItem = new Map(
+          b.items.map((i) => [
+            i.item,
+            { item: i.item, ok: i.ok, note: i.ok ? null : (i.note ?? null) },
+          ]),
+        );
+        const items = [...byItem.values()];
         const row = await db
           .insertInto('inspections')
           .values({
