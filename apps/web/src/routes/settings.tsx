@@ -814,7 +814,7 @@ function SettingsPage() {
           {t('settings.license')} ·{' '}
           <a
             href="https://github.com/aubergine-ux/axlebook"
-            className="text-orange-text underline-offset-2 hover:underline"
+            className="text-orange-text underline underline-offset-2"
             target="_blank"
             rel="noreferrer"
           >

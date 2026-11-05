@@ -5,6 +5,8 @@ import { defineConfig, devices } from '@playwright/test';
  * Run with `npm run e2e` (builds first).
  */
 const PORT = 18_765;
+/** A second, empty instance: the target for restoring a backup. */
+export const RESTORE_PORT = 18_766;
 export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
@@ -18,10 +20,10 @@ export default defineConfig({
     // Runs after desktop, which performs the one-time setup.
     { name: 'phone', use: { ...devices['Pixel 7'] }, dependencies: ['desktop'] },
   ],
-  webServer: {
-    command: `node e2e/start-server.mjs ${PORT}`,
-    url: `http://localhost:${PORT}/api/v1/health`,
+  webServer: [PORT, RESTORE_PORT].map((port) => ({
+    command: `node e2e/start-server.mjs ${port}`,
+    url: `http://localhost:${port}/api/v1/health`,
     reuseExistingServer: false,
     timeout: 60_000,
-  },
+  })),
 });

@@ -50,8 +50,8 @@ export function VehicleCard({ vehicle }: { vehicle: VehicleSummary }) {
             </p>
           )}
         </div>
-        <dl className="mt-auto flex flex-col gap-3 border-t border-line pt-3">
-          <div>
+        <dl className="mt-auto grid grid-cols-2 gap-x-2 gap-y-3 border-t border-line pt-3">
+          <div className="col-span-2">
             <dt className="text-label text-ink-muted">{t('garage.odometer')}</dt>
             <dd className="mt-1">
               {vehicle.currentOdometer != null ? (
@@ -65,28 +65,26 @@ export function VehicleCard({ vehicle }: { vehicle: VehicleSummary }) {
               )}
             </dd>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <dt className="text-label text-ink-muted">{t('garage.nextReminder')}</dt>
-              <dd className="mt-0.5">
-                {vehicle.nextReminder ? (
-                  <span className="flex flex-col items-start gap-1">
-                    <span className="max-w-full truncate">{vehicle.nextReminder.title}</span>
-                    {vehicle.nextReminder.status !== 'upcoming' && (
-                      <StatusBadge status={vehicle.nextReminder.status}>
-                        {t(`reminder.status.${vehicle.nextReminder.status}`)}
-                      </StatusBadge>
-                    )}
-                  </span>
-                ) : (
-                  <span className="text-ink-muted">{t('garage.noReminder')}</span>
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-label text-ink-muted">{t('garage.costToDate')}</dt>
-              <dd className="font-mono text-data tabular-nums">{f.money(vehicle.costToDate)}</dd>
-            </div>
+          <div>
+            <dt className="text-label text-ink-muted">{t('garage.nextReminder')}</dt>
+            <dd className="mt-0.5">
+              {vehicle.nextReminder ? (
+                <span className="flex flex-col items-start gap-1">
+                  <span className="max-w-full truncate">{vehicle.nextReminder.title}</span>
+                  {vehicle.nextReminder.status !== 'upcoming' && (
+                    <StatusBadge status={vehicle.nextReminder.status}>
+                      {t(`reminder.status.${vehicle.nextReminder.status}`)}
+                    </StatusBadge>
+                  )}
+                </span>
+              ) : (
+                <span className="text-ink-muted">{t('garage.noReminder')}</span>
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-label text-ink-muted">{t('garage.costToDate')}</dt>
+            <dd className="font-mono text-data tabular-nums">{f.money(vehicle.costToDate)}</dd>
           </div>
         </dl>
       </div>

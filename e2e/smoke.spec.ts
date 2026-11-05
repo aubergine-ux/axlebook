@@ -1,24 +1,9 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { RESTORE_PORT } from '../playwright.config';
+import { ADMIN, signIn } from './auth';
 
 // One fresh instance for the whole run: setup happens once, then each test signs in.
 test.describe.configure({ mode: 'serial' });
-
-const ADMIN = { username: 'smoke', password: 'smoke-test-password' };
-
-async function signIn(page: Page) {
-  await page.goto('/login');
-  if (
-    await page
-      .getByRole('heading', { name: 'Set up Axlebook' })
-      .isVisible()
-      .catch(() => false)
-  )
-    return;
-  await page.getByRole('textbox', { name: 'Username' }).fill(ADMIN.username);
-  await page.getByLabel('Password').fill(ADMIN.password);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page.getByRole('heading', { name: 'Garage' })).toBeVisible();
-}
 
 test('first run: create the admin account', async ({ page }, info) => {
   test.skip(info.project.name !== 'desktop', 'setup runs once');
@@ -129,4 +114,77 @@ test('import a spreadsheet covering two vehicles, then add a maintenance schedul
   await dialog.getByRole('button', { name: /^Add \d+ reminders?$/ }).click();
   await expect(page.getByText(/^Added \d+ reminders?\.$/)).toBeVisible();
   await expect(page.getByText('Oil and filter change')).toBeVisible();
+});
+
+test('a backup restores into a fresh instance', async ({ page, browser }, info) => {
+  test.skip(info.project.name !== 'desktop', 'covered once');
+  await signIn(page);
+  await page.goto('/settings');
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page
+      .getByRole('link', { name: 'Download backup' })
+      .or(page.getByRole('button', { name: 'Download backup' }))
+      .click(),
+  ]);
+  const file = await download.path();
+
+  // The second instance has never been set up. Same username, so the restored vehicles are this account's.
+  const fresh = await browser.newPage({ baseURL: `http://localhost:${RESTORE_PORT}` });
+  await fresh.goto('/');
+  await fresh.getByRole('textbox', { name: 'Username' }).fill(ADMIN.username);
+  await fresh.getByLabel('Password', { exact: true }).fill(ADMIN.password);
+  await fresh.getByLabel('Confirm password').fill(ADMIN.password);
+  await fresh.getByRole('button', { name: 'Create account' }).click();
+  await expect(fresh.getByRole('heading', { name: 'Garage' })).toBeVisible();
+  await fresh.goto('/settings');
+  const chooser = fresh.waitForEvent('filechooser');
+  await fresh.getByRole('button', { name: 'Restore a backup' }).click();
+  await (await chooser).setFiles(file);
+  await expect(fresh.getByText('Backup restored.')).toBeVisible();
+  await fresh.goto('/');
+  await expect(fresh.getByText(/Tacoma desktop/).first()).toBeVisible();
+  await fresh.close();
+});
+
+test('someone with view access can look but not change anything', async ({
+  page,
+  browser,
+}, info) => {
+  test.skip(info.project.name !== 'desktop', 'covered once');
+  await signIn(page);
+  const origin = { origin: new URL(page.url()).origin };
+  const viewer = { username: 'viewer', password: 'viewer-password-1' };
+  const created = await page.request.post('/api/v1/users', {
+    data: { ...viewer, role: 'viewer' },
+    headers: origin,
+  });
+  expect(created.status(), await created.text()).toBe(201);
+  const users = await (await page.request.get('/api/v1/users/directory')).json();
+  const id = users.find((u: { username: string }) => u.username === 'viewer').id;
+  const vehicles = await (await page.request.get('/api/v1/vehicles')).json();
+  const vid = vehicles[0].id;
+  await page.request.put(`/api/v1/vehicles/${vid}/shares/${id}`, {
+    data: { permission: 'edit' },
+    headers: origin,
+  });
+
+  const ctx = await browser.newContext({ baseURL: new URL(page.url()).origin });
+  const v = await ctx.newPage();
+  await v.goto('/login');
+  await v.getByRole('textbox', { name: 'Username' }).fill(viewer.username);
+  await v.getByLabel('Password').fill(viewer.password);
+  await v.getByRole('button', { name: 'Sign in' }).click();
+  await expect(v.getByRole('heading', { name: 'Garage' })).toBeVisible();
+  await v.goto(`/vehicles/${vid}`);
+  await expect(v.getByRole('heading', { level: 1 })).toBeVisible();
+  // The viewer role is read-only even on an "edit" share.
+  await expect(v.getByRole('button', { name: 'Add record' })).toHaveCount(0);
+  await expect(v.getByRole('link', { name: 'Edit' })).toHaveCount(0);
+  const write = await v.request.post(`/api/v1/vehicles/${vid}/records`, {
+    data: { kind: 'service', date: '2026-01-01', title: 'Sneaky', cost: 0 },
+    headers: origin,
+  });
+  expect(write.status()).toBe(403);
+  await ctx.close();
 });
