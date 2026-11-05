@@ -1,6 +1,7 @@
 import { isCommercial, vehicleTitle } from '@axlebook/shared';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-router';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { odometerQuery } from '../../../api/resources';
 import { vehicleQuery } from '../../../api/vehicles';
@@ -43,6 +44,15 @@ function VehicleLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const section = pathname.split('/')[3] ?? 'overview';
   const odometer = readings.data?.reduce((max, r) => Math.max(max, r.odometer), 0) || null;
+  // On a phone the tab row scrolls sideways; keep the current tab in view.
+  const nav = useRef<HTMLElement>(null);
+  const loaded = query.isSuccess;
+  useEffect(() => {
+    if (loaded && section)
+      nav.current
+        ?.querySelector('[aria-current="page"]')
+        ?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  }, [section, loaded]);
 
   return (
     <QueryState query={query}>
@@ -91,6 +101,7 @@ function VehicleLayout() {
               )}
             </header>
             <nav
+              ref={nav}
               aria-label={t('vehicle.details')}
               className="-mx-4 mb-6 overflow-x-auto border-b border-line px-4 print:hidden"
             >

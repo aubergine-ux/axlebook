@@ -116,9 +116,13 @@ export function ScheduleDialog({
                   <span className="font-semibold">{i.title}</span>
                   <span className="font-mono text-data text-ink-muted">{interval(i)}</span>
                   <span className="text-caption text-ink-muted">
-                    {i.lastDone
-                      ? t('schedule.lastDone', { date: f.date(i.lastDone.date) })
-                      : t('schedule.neverDone')}
+                    {i.lastDone ? (
+                      <span className="font-mono">
+                        {t('schedule.lastDone', { date: f.date(i.lastDone.date) })}
+                      </span>
+                    ) : (
+                      t('schedule.neverDone')
+                    )}
                     {due(i) && (
                       <span className="ml-2 font-mono">
                         {t('schedule.nextDue', { due: due(i) })}

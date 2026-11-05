@@ -299,7 +299,7 @@ describe('spreadsheet import', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Import everything' }));
     expect(
-      await screen.findByText('Imported 2 records (0 were already here).'),
+      await screen.findByText('Imported 2 records. Already here and skipped: 0.'),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Civic' })).toHaveAttribute('href', '/vehicles/9');
   });

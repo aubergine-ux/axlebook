@@ -117,7 +117,7 @@ test('import a spreadsheet covering two vehicles, then add a maintenance schedul
   await page.getByRole('button', { name: 'Preview' }).click();
   await expect(page.getByText('3 of 3 rows are ready to import.')).toBeVisible();
   await page.getByRole('button', { name: 'Import everything' }).click();
-  await expect(page.getByText('Imported 3 records (0 were already here).')).toBeVisible();
+  await expect(page.getByText('Imported 3 records. Already here and skipped: 0.')).toBeVisible();
 
   await page.getByRole('link', { name: `2018 Honda Civic ${p}` }).click();
   await expect(page.getByRole('heading', { level: 1, name: /Civic/ })).toBeVisible();

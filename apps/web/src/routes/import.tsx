@@ -84,7 +84,7 @@ function ImportPage() {
         <PageHeader title={t('import.sheetTitle')} />
         <section className={card} aria-live="polite">
           <p className="text-heading font-semibold">
-            {t('import.done', { imported: result.imported, skipped: result.skipped })}
+            {t('import.done', { count: result.imported, skipped: result.skipped })}
           </p>
           <ErrorList errors={result.errors} />
           <ul className="mt-4 flex flex-wrap gap-2">
@@ -243,7 +243,7 @@ function SheetCard({
     <section aria-label={info.name} className={`${card} flex flex-col gap-4`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-heading font-semibold">
-          {t('import.sheet', { name: info.name, rows: info.rowCount })}
+          {t('import.sheet', { name: info.name, count: info.rowCount })}
         </h2>
         <ToggleSwitch
           label={t('import.includeSheet')}
@@ -508,7 +508,7 @@ function PreviewCard({
         {t('import.previewTitle')}
       </h2>
       <p className="font-mono">
-        {t('import.previewSummary', { valid: preview.valid, total: preview.total })}
+        {t('import.previewSummary', { valid: preview.valid, count: preview.total })}
       </p>
       <ul className="flex flex-col divide-y divide-line">
         {preview.vehicles.map((v) => (
