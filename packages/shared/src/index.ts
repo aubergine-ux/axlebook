@@ -3,6 +3,7 @@ export * from './domain/fuel-economy';
 export * from './domain/maintenance';
 export * from './domain/money';
 export * from './domain/reminder-status';
+export * from './domain/text-file';
 export * from './domain/units';
 export * from './errors';
 export * from './schemas/ai';

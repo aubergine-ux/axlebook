@@ -171,7 +171,14 @@ describe('spreadsheet import', () => {
     const a: SpreadsheetAnalysis = (await upload(Buffer.from(csv), 'log.csv')).json();
     expect(a.plan.sheets[0]).toMatchObject({ vehicleColumn: 'car', dateOrder: 'dmy' });
     expect(a.plan.vehicles).toMatchObject([
-      { make: 'Mazda', model: 'CX-5', year: 2017, odometerUnit: 'km', fuelUnit: 'l' },
+      {
+        make: 'Mazda',
+        model: 'CX-5',
+        year: 2017,
+        odometerUnit: 'km',
+        fuelUnit: 'l',
+        fuelType: 'gasoline',
+      },
       { make: 'Kawasaki', model: 'KX250', category: 'dirtbike' },
     ]);
     const res = (
@@ -196,6 +203,53 @@ describe('spreadsheet import', () => {
     const recs = (await t.req({ method: 'GET', url: `/api/v1/vehicles/${v.id}/records` })).json()
       .items;
     expect(recs.map((r: { cost: number }) => r.cost).sort()).toEqual([70_100, 72_400]);
+  });
+
+  it("converts a sheet's units to an existing vehicle's, and won't mix hours with miles", async () => {
+    for (const v of [
+      {
+        year: 2012,
+        make: 'Volvo',
+        model: 'V70',
+        odometerUnit: 'km',
+        fuelUnit: 'l',
+        fuelType: 'gasoline',
+      },
+      {
+        year: 2019,
+        make: 'Yamaha',
+        model: 'YZ250F',
+        category: 'dirtbike',
+        odometerUnit: 'hr',
+        fuelUnit: 'l',
+        fuelType: 'gasoline',
+      },
+    ])
+      expect(
+        (await t.req({ method: 'POST', url: '/api/v1/vehicles', payload: v })).json(),
+      ).toMatchObject({ make: v.make });
+    const csv = [
+      'Date,Vehicle,Miles,Gallons,Total',
+      '2024-03-01,2012 Volvo V70,1000,10,40',
+      '2024-03-02,2019 Yamaha YZ250F,50,1,4',
+    ].join('\n');
+    const a: SpreadsheetAnalysis = (await upload(Buffer.from(csv), 'units.csv')).json();
+    expect(a.plan.vehicles.every((v) => v.existingVehicleId != null)).toBe(true);
+    const res = (
+      await t.req({
+        method: 'POST',
+        url: `/api/v1/import/spreadsheet/${a.uploadId}/commit`,
+        payload: { plan: a.plan },
+      })
+    ).json();
+    expect(res).toMatchObject({ imported: 1, errors: [{ row: 3, message: 'units' }] });
+    const volvo = a.plan.vehicles.find((v) => v.model === 'V70')?.existingVehicleId;
+    const fills = (
+      await t.req({ method: 'GET', url: `/api/v1/vehicles/${volvo}/fuel-economy` })
+    ).json().fills;
+    // 1000 mi → 1609 km, 10 US gal → 37.854 L, $4/gal → $1.057/L; the total is unchanged.
+    expect(fills[0]).toMatchObject({ odometer: 1609, volume: 37_854, cost: 40_000 });
+    expect(fills[0].pricePerUnit).toBeCloseTo(1057, -1);
   });
 
   it('only lets the uploader use an upload, and keeps viewers out', async () => {

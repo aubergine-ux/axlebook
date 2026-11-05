@@ -1,8 +1,9 @@
-import { RECORD_KINDS, type RecordKind } from '@axlebook/shared';
+import { decodeTextFile, RECORD_KINDS, type RecordKind } from '@axlebook/shared';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { FileTrigger } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
+import { ApiRequestError } from '../../../api/client';
 import { useImportCsv } from '../../../api/resources';
 import { PageHeader } from '../../../components/PageHeader';
 import { Button } from '../../../components/ui/Button';
@@ -17,6 +18,7 @@ function ImportPage() {
   const navigate = useNavigate();
   const run = useImportCsv(Number(vehicleId));
   const [file, setFile] = useState<{ name: string; text: string } | null>(null);
+  const [notText, setNotText] = useState(false);
   const [kind, setKind] = useState<RecordKind>('service');
   const [dateOrder, setDateOrder] = useState<'mdy' | 'dmy'>('mdy');
   const result = run.data;
@@ -34,8 +36,11 @@ function ImportPage() {
             acceptedFileTypes={['text/csv', '.csv']}
             onSelect={async (files) => {
               const f = files?.[0];
-              if (f) setFile({ name: f.name, text: await f.text() });
               run.reset();
+              if (!f) return;
+              const text = decodeTextFile(new Uint8Array(await f.arrayBuffer()));
+              setNotText(text == null);
+              setFile(text == null ? null : { name: f.name, text });
             }}
           >
             <Button>{file?.name ?? t('import.file')}</Button>
@@ -58,7 +63,7 @@ function ImportPage() {
           }))}
         />
       </section>
-      <ErrorNote error={run.error} />
+      <ErrorNote error={notText ? new ApiRequestError(415, 'unsupported_file') : run.error} />
       <div className="flex gap-2">
         <Button isDisabled={!file || run.isPending} onPress={preview}>
           {t('import.preview')}

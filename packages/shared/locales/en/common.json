@@ -714,7 +714,8 @@
       "date_missing": "no date",
       "odometer": "odometer isn't a number",
       "cost": "cost isn't a number",
-      "fuel_volume": "fuel row with no fuel amount"
+      "fuel_volume": "fuel row with no fuel amount",
+      "units": "units don't match this vehicle (hours vs distance, or kWh vs fuel)"
     }
   },
   "schedule": {

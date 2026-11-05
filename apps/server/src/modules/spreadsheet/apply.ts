@@ -1,8 +1,12 @@
 import {
+  convertDistance,
+  convertVolume,
   divideMilli,
   EXPENSE_CATEGORIES,
   type ExpenseCategory,
+  type FuelUnit,
   multiplyMilli,
+  type OdometerUnit,
   RecordInput,
   type RecordKind,
   type SheetPlan,
@@ -10,7 +14,7 @@ import {
   toMilli,
 } from '@axlebook/shared';
 import { parseBool, parseDate } from '../import-export/parse';
-import { bodyRows, kindOf, rowKeys, squash } from './plan';
+import { bodyRows, fuelUnitFrom, kindOf, odometerUnitFrom, rowKeys, squash } from './plan';
 import { headersOf, type Sheet } from './workbook';
 
 export interface PlannedRow {
@@ -281,6 +285,50 @@ function applySheet(sheet: Sheet, sp: SheetPlan, fileName: string): PlannedRow[]
       };
     }
     return { ...base, input };
+  });
+}
+
+/**
+ * Rows headed for a vehicle already in Axlebook are in the sheet's units ("Miles", "Liters"),
+ * which can differ from the vehicle's. Convert them; hours vs distance or kWh vs liquid fuel
+ * can't be converted, so those rows become errors rather than wrong numbers.
+ */
+export function toVehicleUnits(
+  rows: PlannedRow[],
+  plan: SpreadsheetPlan,
+  target: (key: string) => { odometerUnit: OdometerUnit; fuelUnit: FuelUnit } | null,
+): PlannedRow[] {
+  const units = new Map(
+    plan.sheets.map((sp) => [
+      sp.sheet,
+      {
+        odometer: odometerUnitFrom(sp.columns.odometer),
+        fuel: fuelUnitFrom(sp.columns.fuelVolume, sp.columns.pricePerUnit, sp.columns.cost),
+      },
+    ]),
+  );
+  return rows.map((r) => {
+    const to = r.input && target(r.key);
+    const from = units.get(r.sheet);
+    if (!r.input || !to || !from) return r;
+    const input = { ...r.input };
+    if (from.odometer && from.odometer !== to.odometerUnit && input.odometer != null) {
+      const odo = convertDistance(input.odometer, from.odometer, to.odometerUnit);
+      if (!Number.isFinite(odo)) return { ...r, input: undefined, error: 'units' };
+      input.odometer = Math.round(odo);
+    }
+    if (from.fuel && from.fuel !== to.fuelUnit && input.fuel) {
+      const vol = convertVolume(input.fuel.volume, from.fuel, to.fuelUnit);
+      if (!Number.isFinite(vol) || vol <= 0) return { ...r, input: undefined, error: 'units' };
+      const volume = Math.round(vol);
+      const price = input.fuel.pricePerUnit;
+      input.fuel = {
+        ...input.fuel,
+        volume,
+        pricePerUnit: price == null ? price : Math.round((price * input.fuel.volume) / volume),
+      };
+    }
+    return { ...r, input };
   });
 }
 

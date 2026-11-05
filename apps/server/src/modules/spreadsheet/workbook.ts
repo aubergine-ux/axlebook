@@ -1,3 +1,4 @@
+import { decodeTextFile } from '@axlebook/shared';
 import readXlsxFile from 'read-excel-file/node';
 import { parseCsv, sniffDelimiter } from '../../lib/csv';
 import { AppError } from '../../lib/errors';
@@ -39,8 +40,8 @@ export async function readWorkbook(fileName: string, data: Buffer): Promise<Shee
     }
     sheets = parsed.map((s) => ({ name: s.sheet, rows: s.data.map((r) => r.map(cell)) }));
   } else {
-    const text = data.toString('utf8').replace(/^﻿/, '');
-    if (text.includes('\u0000')) throw new AppError('unsupported_file', { reason: 'binary' });
+    const text = decodeTextFile(data);
+    if (text == null) throw new AppError('unsupported_file', { reason: 'binary' });
     const base = fileName.replace(/\.[^.]+$/, '') || 'Sheet1';
     sheets = [
       { name: base, rows: parseCsv(text, sniffDelimiter(text)).map((r) => r.map((c) => c.trim())) },

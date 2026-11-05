@@ -19,7 +19,7 @@ import { AppError } from '../../lib/errors';
 import type { RecordService } from '../records/service';
 import { garageVehicleIds, requireVehicle } from '../vehicles/access';
 import type { VehicleService } from '../vehicles/service';
-import { applyPlan, fingerprint, type PlannedRow } from './apply';
+import { applyPlan, fingerprint, type PlannedRow, toVehicleUnits } from './apply';
 import {
   completeVehicles,
   type ExistingVehicle,
@@ -339,8 +339,11 @@ export class SpreadsheetImporter {
     const up = this.upload(user, uploadId);
     const opts = await this.options(user, up.fileName);
     const clean = this.sanitize(up.sheets, plan, null, opts);
-    const { rows } = applyPlan(up.sheets, clean, up.fileName);
     const byKey = new Map(clean.vehicles.map((v) => [squash(v.key), v]));
+    const rows = toVehicleUnits(applyPlan(up.sheets, clean, up.fileName).rows, clean, (key) => {
+      const id = byKey.get(squash(key))?.existingVehicleId;
+      return opts.existing.find((e) => e.id === id) ?? null;
+    });
 
     // Duplicate check against what's already in existing vehicles, and within the file.
     const existingIds = [
