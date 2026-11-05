@@ -13,7 +13,15 @@ import { type FormEvent, type ReactNode, useState } from 'react';
 import { FileTrigger, Form } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 import { useLogout } from '../api/auth';
-import { absoluteFeedUrl, aiStatusQuery, calendarQuery, useCalendarFeed } from '../api/extras';
+import {
+  absoluteFeedUrl,
+  aiStatusQuery,
+  assistantModelsQuery,
+  calendarQuery,
+  useCalendarFeed,
+  useSetAssistantModel,
+  useTestAssistant,
+} from '../api/extras';
 import {
   channelsQuery,
   settingsQuery,
@@ -769,6 +777,7 @@ function Calendar() {
 function LocalAi() {
   const { t } = useTranslation();
   const f = useFormat();
+  const me = useMe();
   const s = useQuery(aiStatusQuery).data;
   if (!s) return null;
   const message = !s.enabled
@@ -785,7 +794,66 @@ function LocalAi() {
       <p role="status" className={s.enabled && s.reachable && s.modelReady ? '' : 'text-ink-muted'}>
         {message}
       </p>
+      {s.enabled && s.reachable && me?.role === 'admin' && <AssistantAdmin current={s.model} />}
     </Section>
+  );
+}
+
+/** Admins: choose the model from what's installed in Ollama, and try it. */
+function AssistantAdmin({ current }: { current: string }) {
+  const { t } = useTranslation();
+  const f = useFormat();
+  const models = useQuery(assistantModelsQuery);
+  const choose = useSetAssistantModel();
+  const test = useTestAssistant();
+  const [pick, setPick] = useState(current);
+  const list = models.data ?? [];
+  const options = list.some((m) => m.name === current)
+    ? list
+    : [{ name: current, size: 0, vision: false }, ...list];
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <SelectField
+          label={t('settings.aiModel')}
+          description={t('settings.aiModelHint')}
+          value={pick}
+          onChange={setPick}
+          className="flex-1"
+          options={options.map((m) => ({
+            value: m.name,
+            label: [
+              m.name,
+              m.size ? t('settings.aiSize', { size: f.decimals(m.size / 1e9, 1) }) : null,
+              m.vision ? t('settings.aiVision') : null,
+            ]
+              .filter(Boolean)
+              .join(' · '),
+          }))}
+        />
+        <Button
+          onPress={() => choose.mutate(pick)}
+          isDisabled={choose.isPending || pick === current}
+        >
+          {t('actions.save')}
+        </Button>
+      </div>
+      <ErrorNote error={choose.error ?? models.error} />
+      <div className="flex flex-wrap items-center gap-3">
+        <Button onPress={() => test.mutate()} isDisabled={test.isPending}>
+          {test.isPending ? t('settings.aiTesting') : t('settings.aiTest')}
+        </Button>
+        {test.data && (
+          <p role="status" className="font-mono text-data">
+            {t('settings.aiTestOk', {
+              model: test.data.model,
+              seconds: f.decimals(test.data.ms / 1000, 1),
+            })}
+          </p>
+        )}
+      </div>
+      <ErrorNote error={test.error} />
+    </div>
   );
 }
 

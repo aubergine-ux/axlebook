@@ -15,7 +15,9 @@ import type { Config } from './config';
 import type { DbHandle } from './db/connection';
 import { type Ai, disabledAi, OllamaAi } from './lib/ai';
 import { FileStore } from './lib/files';
+import { getSetting } from './lib/settings';
 import { VERSION } from './lib/version';
+import { assistantRoutes, MODEL_SETTING } from './modules/assistant/routes';
 import { authRoutes } from './modules/auth/routes';
 import { calendarRoutes, registerCalendarFeed } from './modules/calendar/routes';
 import { commercialRoutes } from './modules/commercial/routes';
@@ -118,6 +120,11 @@ export async function buildApp({ config, db: handle, ai: aiOverride }: AppDeps) 
   const reminders = new ReminderService(db, config);
   const notifications = new NotificationService(db, config, reminders, app.log);
   const ai: Ai = aiOverride ?? (config.ai ? new OllamaAi(config.ai, app.log) : disabledAi);
+  // The model an admin picked in Settings wins over OLLAMA_MODEL.
+  if (ai.enabled) {
+    const chosen = await getSetting<string | null>(db, MODEL_SETTING, null);
+    if (chosen) ai.setModel(chosen);
+  }
   const insights = new InsightService(db, config, ai);
   const importer = new SpreadsheetImporter(db, config, ai, vehicles, records);
 
@@ -194,6 +201,7 @@ export async function buildApp({ config, db: handle, ai: aiOverride }: AppDeps) 
   await app.register(commercialRoutes({ db, config }), api);
   await app.register(calendarRoutes({ db, config }), api);
   await app.register(spreadsheetRoutes(importer), api);
+  await app.register(assistantRoutes({ db, config, ai }), api);
   // The calendar feed lives outside /api so calendar apps can subscribe with a plain URL.
   registerCalendarFeed(app, { db, config });
 

@@ -1,10 +1,14 @@
 import type {
   AiStatus,
+  AskAnswer,
+  AssistantModel,
+  AssistantTestResult,
   IftaReport,
   Inspection,
   InspectionInput,
   MaintenanceSchedule,
   MpgEstimate,
+  RecordDraft,
   SpreadsheetAnalysis,
   SpreadsheetCommitResult,
   SpreadsheetPlan,
@@ -193,5 +197,54 @@ export function useCommitSpreadsheet() {
         body: JSON.stringify({ plan }),
       }),
     onSuccess: () => qc.invalidateQueries(),
+  });
+}
+
+// ── Local assistant (Ollama) ────────────────────────────────────────────────
+
+export const assistantModelsQuery = queryOptions({
+  queryKey: ['assistant', 'models'],
+  queryFn: () => api<AssistantModel[]>('/assistant/models'),
+});
+
+export function useSetAssistantModel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (model: string) =>
+      api<AiStatus>('/assistant/model', { method: 'PUT', body: JSON.stringify({ model }) }),
+    onSuccess: (status) => qc.setQueryData(['ai', 'status'], status),
+  });
+}
+
+export function useTestAssistant() {
+  return useMutation({
+    mutationFn: () => api<AssistantTestResult>('/assistant/test', { method: 'POST' }),
+  });
+}
+
+/** Read a receipt photo into a draft. Nothing is saved. */
+export function useScanReceipt() {
+  return useMutation({
+    mutationFn: ({ image, vehicleId }: { image: Blob; vehicleId: number | null }) => {
+      const form = new FormData();
+      form.append('file', image, 'receipt.jpg');
+      const q = vehicleId ? `?vehicleId=${vehicleId}` : '';
+      return api<RecordDraft>(`/assistant/receipt${q}`, { method: 'POST', body: form });
+    },
+  });
+}
+
+/** Turn a typed sentence into a draft. Nothing is saved. */
+export function useQuickEntry() {
+  return useMutation({
+    mutationFn: (body: { text: string; vehicleId: number | null }) =>
+      api<RecordDraft>('/assistant/entry', { method: 'POST', body: JSON.stringify(body) }),
+  });
+}
+
+export function useAskLogbook() {
+  return useMutation({
+    mutationFn: (question: string) =>
+      api<AskAnswer>('/assistant/ask', { method: 'POST', body: JSON.stringify({ question }) }),
   });
 }

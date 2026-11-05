@@ -4,19 +4,38 @@ import type { Config } from '../config';
 import { AppError } from './errors';
 
 /**
- * Local AI through an Ollama server you run yourself (normally the `ollama` service in
- * docker-compose.ai.yml, on the private Compose network). Axlebook never calls any
- * other AI service. Every answer is constrained to a JSON schema and validated.
+ * The local assistant: an Ollama server you run yourself (the `ollama` Compose profile, or
+ * one already on the host), reached only at OLLAMA_URL. There is no other model service and
+ * no cloud fallback. Every answer is constrained to a JSON schema and validated.
  */
+export interface AiPrompt {
+  system: string;
+  user: string;
+  /** Caps the answer's length (default 1200 tokens). */
+  maxTokens?: number;
+  /** Base64 images (JPEG/PNG) for models that can read photos. */
+  images?: string[];
+}
+
+export interface AiModel {
+  name: string;
+  /** Bytes on disk. */
+  size: number;
+  /** The model can read photos (receipt scan needs this). */
+  vision: boolean;
+}
+
 export interface Ai {
   readonly enabled: boolean;
   readonly model: string;
   status(): Promise<AiStatus>;
-  /** `maxTokens` caps the answer's length (default 1200). */
-  json<T>(
-    schema: z.ZodType<T>,
-    prompt: { system: string; user: string; maxTokens?: number },
-  ): Promise<T>;
+  json<T>(schema: z.ZodType<T>, prompt: AiPrompt): Promise<T>;
+  /** Models installed in Ollama. */
+  models(): Promise<AiModel[]>;
+  /** Switch the model used from now on (an admin's choice in Settings). */
+  setModel(name: string): void;
+  /** A tiny round trip through the model; milliseconds it took. */
+  test(): Promise<{ ms: number }>;
 }
 
 export interface AiStatus {
@@ -26,6 +45,8 @@ export interface AiStatus {
   modelReady: boolean;
   /** 0–1 while the model is being downloaded. */
   pullProgress: number | null;
+  /** The chosen model can read photos. */
+  vision: boolean;
   error: string | null;
 }
 
@@ -44,6 +65,8 @@ export function toOllamaSchema(schema: z.ZodType): Record<string, unknown> {
 export class OllamaAi implements Ai {
   readonly enabled = true;
   private pull: { progress: number; error: string | null } | null = null;
+  private chosen: string | null = null;
+  private readonly caps = new Map<string, string[]>();
 
   constructor(
     private readonly cfg: AiConfig,
@@ -52,7 +75,11 @@ export class OllamaAi implements Ai {
   ) {}
 
   get model() {
-    return this.cfg.model;
+    return this.chosen ?? this.cfg.model;
+  }
+
+  setModel(name: string) {
+    this.chosen = name;
   }
 
   private async call(path: string, body?: unknown, timeoutMs = 10_000): Promise<Response> {
@@ -68,24 +95,66 @@ export class OllamaAi implements Ai {
     const res = await this.call('/api/tags');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const { models = [] } = (await res.json()) as { models?: { name: string; model?: string }[] };
-    const want = this.cfg.model.includes(':') ? this.cfg.model : `${this.cfg.model}:latest`;
+    const want = this.model.includes(':') ? this.model : `${this.model}:latest`;
     return models.some((m) => m.name === want || m.model === want);
+  }
+
+  /** What a model can do, from /api/show ("completion", "vision", …). Cached per model. */
+  private async capabilities(name: string): Promise<string[]> {
+    const cached = this.caps.get(name);
+    if (cached) return cached;
+    const res = await this.call('/api/show', { model: name });
+    if (!res.ok) return [];
+    const { capabilities = [] } = (await res.json()) as { capabilities?: string[] };
+    this.caps.set(name, capabilities);
+    return capabilities;
+  }
+
+  async models(): Promise<AiModel[]> {
+    const res = await this.call('/api/tags');
+    if (!res.ok) throw new AppError('ai_failed', { reason: 'unreachable' });
+    const { models = [] } = (await res.json()) as { models?: { name: string; size?: number }[] };
+    return Promise.all(
+      models.map(async (m) => ({
+        name: m.name,
+        size: m.size ?? 0,
+        vision: (await this.capabilities(m.name).catch((): string[] => [])).includes('vision'),
+      })),
+    );
+  }
+
+  async test(): Promise<{ ms: number }> {
+    const started = Date.now();
+    await this.json(z.object({ ok: z.boolean() }), {
+      system: 'Reply with JSON only.',
+      user: 'Reply with {"ok": true}.',
+      maxTokens: 20,
+    });
+    return { ms: Date.now() - started };
   }
 
   async status(): Promise<AiStatus> {
     const base = {
       enabled: true,
-      model: this.cfg.model,
+      model: this.model,
       pullProgress: this.pull ? this.pull.progress : null,
     };
     try {
       const ready = await this.hasModel();
-      return { ...base, reachable: true, modelReady: ready, error: this.pull?.error ?? null };
+      const vision = ready && (await this.capabilities(this.model)).includes('vision');
+      return {
+        ...base,
+        reachable: true,
+        modelReady: ready,
+        vision,
+        error: this.pull?.error ?? null,
+      };
     } catch (err) {
       return {
         ...base,
         reachable: false,
         modelReady: false,
+        vision: false,
         error: err instanceof Error ? err.message : String(err),
       };
     }
@@ -93,7 +162,7 @@ export class OllamaAi implements Ai {
 
   /**
    * Download the model into Ollama if it isn't there (one time). Retries while the
-   * Ollama container is still starting. Skipped when AI_PULL=false (bring your own model).
+   * Ollama container is still starting. Skipped when OLLAMA_PULL=false (bring your own model).
    */
   async ensureModel(): Promise<void> {
     if (!this.cfg.pull) return;
@@ -101,11 +170,11 @@ export class OllamaAi implements Ai {
       try {
         if (await this.hasModel()) return;
         this.pull = { progress: 0, error: null };
-        this.log.info({ model: this.cfg.model }, 'downloading local AI model (one time)');
+        this.log.info({ model: this.model }, 'downloading the local assistant model (one time)');
         const res = await this.fetchImpl(`${this.cfg.url}/api/pull`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: this.cfg.model, stream: true }),
+          body: JSON.stringify({ model: this.model, stream: true }),
         });
         if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
         const decoder = new TextDecoder();
@@ -129,7 +198,7 @@ export class OllamaAi implements Ai {
           }
         }
         this.pull = null;
-        this.log.info({ model: this.cfg.model }, 'local AI model ready');
+        this.log.info({ model: this.model }, 'local assistant model ready');
         return;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -141,14 +210,19 @@ export class OllamaAi implements Ai {
     }
   }
 
-  async json<T>(
-    schema: z.ZodType<T>,
-    prompt: { system: string; user: string; maxTokens?: number },
-  ): Promise<T> {
+  async json<T>(schema: z.ZodType<T>, prompt: AiPrompt): Promise<T> {
     const format = toOllamaSchema(schema);
-    const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+    const messages: {
+      role: 'system' | 'user' | 'assistant';
+      content: string;
+      images?: string[];
+    }[] = [
       { role: 'system', content: prompt.system },
-      { role: 'user', content: prompt.user },
+      {
+        role: 'user',
+        content: prompt.user,
+        ...(prompt.images?.length && { images: prompt.images }),
+      },
     ];
     let lastError = 'no response';
     // One retry, telling the model what was wrong with its first answer.
@@ -158,7 +232,7 @@ export class OllamaAi implements Ai {
         res = await this.call(
           '/api/chat',
           {
-            model: this.cfg.model,
+            model: this.model,
             messages,
             format,
             stream: false,
@@ -201,7 +275,10 @@ export class OllamaAi implements Ai {
   }
 }
 
-/** Used when AI_URL isn't set: every AI feature reports itself as off. */
+/** Used when OLLAMA_URL isn't set: every assistant feature reports itself as off. */
+const off = async (): Promise<never> => {
+  throw new AppError('ai_disabled');
+};
 export const disabledAi: Ai = {
   enabled: false,
   model: '',
@@ -211,9 +288,11 @@ export const disabledAi: Ai = {
     reachable: false,
     modelReady: false,
     pullProgress: null,
+    vision: false,
     error: null,
   }),
-  json: async () => {
-    throw new AppError('ai_disabled');
-  },
+  json: off,
+  models: off,
+  setModel: () => {},
+  test: off,
 };

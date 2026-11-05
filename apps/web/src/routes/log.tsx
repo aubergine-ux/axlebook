@@ -14,6 +14,7 @@ import { Form } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { ApiRequestError, api } from '../api/client';
+import { aiStatusQuery } from '../api/extras';
 import { vehiclesQuery } from '../api/vehicles';
 import { PageHeader } from '../components/PageHeader';
 import { CheckboxField } from '../components/records/RecordForm';
@@ -72,6 +73,7 @@ function LogFuel() {
   const qc = useQueryClient();
   const search = Route.useSearch();
   const live = useQuery(vehiclesQuery());
+  const ai = useQuery(aiStatusQuery).data;
   const { entries, sync } = useOutbox();
 
   // Keep a small copy of the garage so the form still works with no signal.
@@ -225,6 +227,11 @@ function LogFuel() {
   return (
     <div className="mx-auto flex max-w-md flex-col gap-4">
       <PageHeader title={t('fuel.quickTitle')} />
+      {ai?.enabled && ai.vision && (
+        <Link to="/assistant" className="self-start text-orange-text underline">
+          {t('assistant.scanInstead')}
+        </Link>
+      )}
       {pending > 0 && (
         <p
           role="status"

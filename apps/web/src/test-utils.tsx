@@ -51,6 +51,8 @@ export function mockApi(routes: Record<string, unknown | Handler>) {
       if (!(key in routes)) return Response.json({ error: { code: 'not_found' } }, { status: 404 });
       const r = routes[key];
       const data = typeof r === 'function' ? (r as Handler)({ method, url, body }) : r;
+      // A handler can answer with its own Response, e.g. an error status.
+      if (data instanceof Response) return data;
       return Response.json(data, { status: method === 'POST' ? 201 : 200 });
     }),
   );

@@ -4,6 +4,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { Switch } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
+import { aiStatusQuery } from '../api/extras';
 import { vehiclesQuery } from '../api/vehicles';
 import { Icon } from '../components/Icon';
 import { PageHeader } from '../components/PageHeader';
@@ -26,6 +27,7 @@ function GaragePage() {
   const { archived = false, section } = Route.useSearch();
   const navigate = useNavigate({ from: '/' });
   const query = useQuery(vehiclesQuery(archived ? 'all' : 'false'));
+  const ai = useQuery(aiStatusQuery).data;
 
   return (
     <>
@@ -47,6 +49,11 @@ function GaragePage() {
           <LinkButton to="/import" variant="ghost">
             {t('garage.importSheet')}
           </LinkButton>
+          {ai?.enabled && (
+            <LinkButton to="/assistant" variant="ghost">
+              {t('assistant.title')}
+            </LinkButton>
+          )}
         </div>
         <Switch
           isSelected={archived}

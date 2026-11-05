@@ -40,7 +40,7 @@ async function main() {
   }
 
   app.services.notifications.start();
-  // Local AI: download the model once in the background (AI_PULL=false to skip).
+  // Local assistant: download the model once in the background (OLLAMA_PULL=false to skip).
   const ai = app.services.ai;
   if (ai instanceof OllamaAi && config.ai?.pull) void ai.ensureModel();
 

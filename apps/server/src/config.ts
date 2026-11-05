@@ -44,10 +44,16 @@ const EnvSchema = z.object({
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().optional(),
   REMINDER_SCAN_INTERVAL_MIN: z.coerce.number().int().min(1).max(1440).default(60),
+  // Local assistant (Ollama). Off unless OLLAMA_URL is set. The AI_* names are the older
+  // spellings of the same settings and still work.
+  OLLAMA_URL: z.url().optional(),
+  OLLAMA_MODEL: z.string().min(1).optional(),
+  OLLAMA_PULL: z.enum(['true', 'false']).optional(),
+  OLLAMA_TIMEOUT_SEC: z.coerce.number().int().min(10).max(3600).optional(),
   AI_URL: z.url().optional(),
-  AI_MODEL: z.string().default('qwen2.5:3b'),
-  AI_PULL: z.enum(['true', 'false']).default('true'),
-  AI_TIMEOUT_SEC: z.coerce.number().int().min(10).max(3600).default(300),
+  AI_MODEL: z.string().min(1).optional(),
+  AI_PULL: z.enum(['true', 'false']).optional(),
+  AI_TIMEOUT_SEC: z.coerce.number().int().min(10).max(3600).optional(),
   TZ: z.string().optional(),
 });
 
@@ -114,14 +120,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
         }
       : undefined,
     reminderScanMinutes: e.REMINDER_SCAN_INTERVAL_MIN,
-    ai: e.AI_URL
-      ? {
-          url: e.AI_URL.replace(/\/+$/, ''),
-          model: e.AI_MODEL,
-          pull: e.AI_PULL === 'true',
-          timeoutMs: e.AI_TIMEOUT_SEC * 1000,
-        }
-      : undefined,
+    ai:
+      (e.OLLAMA_URL ?? e.AI_URL)
+        ? {
+            url: (e.OLLAMA_URL ?? e.AI_URL ?? '').replace(/\/+$/, ''),
+            /** Default model; an admin can pick another in Settings. Reads photos too. */
+            model: e.OLLAMA_MODEL ?? e.AI_MODEL ?? 'gemma3:4b',
+            pull: (e.OLLAMA_PULL ?? e.AI_PULL ?? 'true') === 'true',
+            timeoutMs: (e.OLLAMA_TIMEOUT_SEC ?? e.AI_TIMEOUT_SEC ?? 300) * 1000,
+          }
+        : undefined,
     webDir: e.WEB_DIR
       ? path.resolve(e.WEB_DIR)
       : path.resolve(import.meta.dirname, '../../web/dist'),

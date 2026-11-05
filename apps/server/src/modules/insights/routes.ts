@@ -23,9 +23,9 @@ export const insightRoutes =
       {
         schema: {
           tags: ['ai'],
-          summary: 'Local AI status',
+          summary: 'Local assistant (Ollama) status',
           description:
-            'AI runs on your own server through Ollama (AI_URL). Nothing is sent to outside services.',
+            'The assistant runs on your own server through Ollama (OLLAMA_URL). Nothing is sent to outside services.',
           response: { 200: AiStatus },
         },
       },

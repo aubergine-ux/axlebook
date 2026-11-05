@@ -416,6 +416,23 @@ const ROUTES: Record<string, Route> = {
   'POST /api/v1/me/calendar': { rule: 'self' },
   'DELETE /api/v1/me/calendar': { rule: 'self' },
   'POST /api/v1/import/spreadsheet': { rule: 'self' },
+  // Local assistant: admin-only setup; drafts and questions only ever see the caller's own
+  // garage (covered in assistant.test.ts, since the assistant is off here).
+  'GET /api/v1/assistant/models': {
+    rule: 'admin',
+    make: () => ({ method: 'GET', url: '/api/v1/assistant/models' }),
+  },
+  'PUT /api/v1/assistant/model': {
+    rule: 'admin',
+    make: () => ({ method: 'PUT', url: '/api/v1/assistant/model', payload: { model: 'x:1b' } }),
+  },
+  'POST /api/v1/assistant/test': {
+    rule: 'admin',
+    make: () => ({ method: 'POST', url: '/api/v1/assistant/test' }),
+  },
+  'POST /api/v1/assistant/receipt': { rule: 'self' },
+  'POST /api/v1/assistant/entry': { rule: 'self' },
+  'POST /api/v1/assistant/ask': { rule: 'self' },
   'POST /api/v1/import/spreadsheet/{uploadId}/preview': {
     rule: 'mine',
     deniedAs: [410],

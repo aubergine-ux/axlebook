@@ -223,6 +223,8 @@ export const AiStatus = z.object({
   reachable: z.boolean(),
   modelReady: z.boolean(),
   pullProgress: z.number().nullable(),
+  /** The chosen model can read photos (receipt scan). */
+  vision: z.boolean(),
   error: z.string().nullable(),
 });
 export type AiStatus = z.infer<typeof AiStatus>;

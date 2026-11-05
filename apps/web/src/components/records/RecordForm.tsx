@@ -119,16 +119,35 @@ export function Segmented<T extends string>({
   );
 }
 
+/** Values to start a new record with (from the local assistant), as the person would type them. */
+export interface RecordPrefill {
+  date?: string;
+  odometer?: string;
+  title?: string;
+  cost?: string;
+  notes?: string;
+  volume?: string;
+  price?: string;
+  total?: string;
+  station?: string;
+}
+
 export function RecordForm({
   vehicle,
   record,
   initialKind = 'service',
+  prefill,
+  initialFiles = [],
   onSaved,
   onCancel,
 }: {
   vehicle: Vehicle;
   record?: LogRecord;
   initialKind?: RecordKind;
+  /** Starting values for a new record; the person reviews them before saving. */
+  prefill?: RecordPrefill;
+  /** Files attached once the record is saved (a scanned receipt). */
+  initialFiles?: File[];
   onSaved: (r: LogRecord) => void;
   onCancel: () => void;
 }) {
@@ -142,20 +161,20 @@ export function RecordForm({
 
   const [kind, setKind] = useState<RecordKind>(record?.kind ?? initialKind);
   const [s, setS] = useState(() => ({
-    date: record?.date ?? todayIso(),
-    odometer: record?.odometer != null ? String(record.odometer) : '',
-    title: record?.title ?? '',
-    cost: record && record.kind !== 'fuel' ? fmtMilli(record.cost, 2) : '',
-    notes: record?.notes ?? '',
+    date: record?.date ?? prefill?.date ?? todayIso(),
+    odometer: record?.odometer != null ? String(record.odometer) : (prefill?.odometer ?? ''),
+    title: record?.title ?? prefill?.title ?? '',
+    cost: record && record.kind !== 'fuel' ? fmtMilli(record.cost, 2) : (prefill?.cost ?? ''),
+    notes: record?.notes ?? prefill?.notes ?? '',
     tags: record?.tags.join(', ') ?? '',
     category: (record?.expenseCategory ?? 'registration') as ExpenseCategory,
-    volume: fmtMilli(record?.fuel?.volume),
-    price: fmtMilli(record?.fuel?.pricePerUnit),
-    total: record?.kind === 'fuel' ? fmtMilli(record.cost, 2) : '',
+    volume: record ? fmtMilli(record.fuel?.volume) : (prefill?.volume ?? ''),
+    price: record ? fmtMilli(record.fuel?.pricePerUnit) : (prefill?.price ?? ''),
+    total: record?.kind === 'fuel' ? fmtMilli(record.cost, 2) : (prefill?.total ?? ''),
     isFull: record?.fuel?.isFull ?? true,
     missedPrevious: record?.fuel?.missedPrevious ?? false,
     grade: record?.fuel?.grade ?? '',
-    station: record?.fuel?.station ?? '',
+    station: record?.fuel?.station ?? prefill?.station ?? '',
     jurisdiction: record?.fuel?.jurisdiction ?? '',
   }));
   const [usedParts, setUsedParts] = useState(() =>
@@ -168,7 +187,7 @@ export function RecordForm({
       })),
   );
   const [completes, setCompletes] = useState<number[]>([]);
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<File[]>(initialFiles);
   const [errors, setErrors] = useState<Record<string, string>>({});
   // Which two fuel fields were edited most recently; the other one is derived.
   const [fuelOrder, setFuelOrder] = useState<FuelField[]>(['volume', 'price']);

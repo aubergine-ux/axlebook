@@ -7,6 +7,7 @@ export * from './domain/text-file';
 export * from './domain/units';
 export * from './errors';
 export * from './schemas/ai';
+export * from './schemas/assistant';
 export * from './schemas/auth';
 export * from './schemas/commercial';
 export * from './schemas/common';

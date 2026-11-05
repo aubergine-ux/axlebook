@@ -107,7 +107,7 @@ describe('tips', () => {
     expect(screen.getByText('Needs attention')).toBeInTheDocument();
     expect(screen.getByText('Check the frame')).toBeInTheDocument();
     expect(
-      screen.getByText('Turn on local AI for advice specific to this make and model.'),
+      screen.getByText('Turn on the local assistant for advice specific to this make and model.'),
     ).toBeInTheDocument();
   });
 });

@@ -1,5 +1,11 @@
 # Quick start: `docker compose up -d`, then open http://localhost:8080
 # This file builds from source. To run the published image instead, see README.md.
+#
+# Optional local assistant (Ollama), off unless you ask for it:
+#   1. Put OLLAMA_URL=http://ollama:11434 in .env
+#   2. docker compose --profile ollama up -d
+# The model (gemma3:4b, about 3.3 GB) downloads once on first start; after that nothing
+# leaves your server. Ollama isn't published on any port.
 services:
   axlebook:
     build:
@@ -16,6 +22,29 @@ services:
         required: false
     volumes:
       - axlebook-data:/data
+    # Using an Ollama that already runs on this machine instead of the service below?
+    # Uncomment this and set OLLAMA_URL=http://host.docker.internal:11434 in .env.
+    # (The host's Ollama must listen on all interfaces: see docs/configuration.md.)
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+
+  ollama:
+    profiles: [ollama]
+    image: ollama/ollama:0.40.14
+    container_name: axlebook-ollama
+    restart: unless-stopped
+    volumes:
+      - axlebook-ollama:/root/.ollama
+    # With an NVIDIA GPU and the NVIDIA Container Toolkit installed, uncomment this
+    # for much faster answers:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
 
 volumes:
   axlebook-data:
+  axlebook-ollama:

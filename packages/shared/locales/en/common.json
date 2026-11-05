@@ -65,8 +65,8 @@
     "insufficient_stock": "Not enough of that part in stock.",
     "unsupported_file": "That file type isn't supported.",
     "restore_not_empty": "Restore only works on an empty instance. Remove existing vehicles first.",
-    "ai_disabled": "Local AI isn't set up on this server. An admin can turn it on (see the README).",
-    "ai_failed": "The local AI couldn't answer just now. Try again in a moment.",
+    "ai_disabled": "The local assistant (Ollama) isn't set up on this server. An admin can turn it on; see the docs.",
+    "ai_failed": "The local assistant couldn't answer just now. Try again in a moment.",
     "upload_expired": "That upload has expired. Choose the file again."
   },
   "settings": {
@@ -160,10 +160,10 @@
     "version": "Axlebook {{version}}",
     "source": "Source code",
     "license": "AGPL-3.0 licensed",
-    "ai": "Local AI",
+    "ai": "Local assistant (Ollama)",
     "aiStatus": {
-      "off": "Not set up. Add the Ollama service from docker-compose.ai.yml to turn it on.",
-      "unreachable": "Can't reach the AI service at the configured address.",
+      "off": "Off. Set OLLAMA_URL and start Ollama to turn it on (see the docs).",
+      "unreachable": "Can't reach Ollama at the configured address.",
       "downloading": "Downloading the model ({{pct}}%). This happens once.",
       "missing": "The model {{model}} isn't installed in Ollama yet.",
       "ready": "Ready: {{model}}, running on this server."
@@ -174,7 +174,14 @@
     "calendarReset": "Reset link",
     "calendarLink": "Calendar link",
     "calendarOff": "Turn off",
-    "aiIntro": "Spreadsheet import, maintenance schedules, economy estimates and tips can use a model that runs on this server through Ollama. Nothing is sent anywhere else."
+    "aiIntro": "Receipt scan, quick entry, questions about your logbook, spreadsheet import, schedules and tips can use a model that runs on your own server through Ollama. Requests go only to that server.",
+    "aiModel": "Model",
+    "aiModelHint": "Models installed in Ollama. Receipt scan needs one that reads photos.",
+    "aiSize": "{{size}} GB",
+    "aiVision": "reads photos",
+    "aiTest": "Test",
+    "aiTesting": "Testing…",
+    "aiTestOk": "{{model}} answered in {{seconds}} s."
   },
   "vehicle": {
     "newTitle": "Add a vehicle",
@@ -289,8 +296,8 @@
         "medium": "Medium confidence",
         "high": "High confidence"
       },
-      "localNote": "Estimated by the local AI on this server ({{model}}).",
-      "off": "Turn on local AI to get an estimate based on this vehicle's make, model, age and mileage."
+      "localNote": "Estimated by the local assistant on this server ({{model}}).",
+      "off": "Turn on the local assistant to get an estimate based on this vehicle's make, model, age and mileage."
     }
   },
   "units": {
@@ -662,14 +669,14 @@
     "sheetTitle": "Import a spreadsheet",
     "sheetIntro": "Bring in the spreadsheet you already keep, even if it covers several vehicles. Nothing is saved until you check the preview.",
     "sheetFile": "Spreadsheet (.xlsx, .csv or .tsv)",
-    "useAi": "Let the local AI read the layout",
+    "useAi": "Let the local assistant read the layout",
     "aiNote": "Runs on this server ({{model}}). Your spreadsheet never leaves it.",
-    "aiOff": "Columns were matched automatically. Turn on local AI for messier spreadsheets.",
+    "aiOff": "Columns were matched automatically. Turn on the local assistant for messier spreadsheets.",
     "planBy": {
-      "ai": "Layout read by the local AI. Check it below.",
+      "ai": "Layout read by the local assistant. Check it below.",
       "matcher": "Columns matched automatically. Check them below."
     },
-    "aiFallback": "The local AI couldn't read this one, so columns were matched automatically.",
+    "aiFallback": "The local assistant couldn't read this one, so columns were matched automatically.",
     "analyzing": "Reading your spreadsheet…",
     "sheet_one": "Sheet: {{name}} ({{count}} row)",
     "sheet_other": "Sheet: {{name}} ({{count}} rows)",
@@ -730,7 +737,7 @@
     "title": "Maintenance schedule",
     "intro": "Pick what you'd like reminders for. Intervals are a starting point; check your owner's manual.",
     "builtIn": "Built-in schedule ({{category}})",
-    "ai": "Tailored by the local AI ({{model}})",
+    "ai": "Tailored by the local assistant ({{model}})",
     "tailor": "Tailor to my {{name}}",
     "tailoring": "Tailoring…",
     "every": "Every {{interval}}",
@@ -816,8 +823,8 @@
     "ask": "Get model-specific tips",
     "askAgain": "Refresh model-specific tips",
     "asking": "Thinking…",
-    "fromAi": "From the local AI ({{model}}). Double-check anything safety-related.",
-    "aiOff": "Turn on local AI for advice specific to this make and model.",
+    "fromAi": "From the local assistant ({{model}}). Double-check anything safety-related.",
+    "aiOff": "Turn on the local assistant for advice specific to this make and model.",
     "severity": {
       "warning": "Needs attention",
       "suggestion": "Worth doing",
@@ -937,5 +944,45 @@
         "body": "For daily driving, charging to around 80% and avoiding sitting at 0% or 100% keeps the battery healthy longer."
       }
     }
+  },
+  "assistant": {
+    "title": "Local assistant (Ollama)",
+    "intro": "It runs on this server through Ollama. Whatever it fills in is a suggestion: nothing is saved until you check the form and press Save.",
+    "off": "The local assistant isn't turned on for this server.",
+    "offSettings": "Set it up in Settings.",
+    "vehicle": "Vehicle",
+    "vehicleFromText": "Work it out from what I type",
+    "chooseVehicle": "Choose a vehicle",
+    "receipt": "Scan a receipt",
+    "receiptHint": "Take a photo or pick one. The date, station or shop, amounts and fuel are read into the form, and the photo is kept with the record.",
+    "scan": "Scan a receipt",
+    "scanInstead": "Scan a receipt instead",
+    "reading": "Reading…",
+    "noVision": "The model in use can't read photos. An admin can choose one that can in Settings.",
+    "sentence": "Type it out",
+    "sentenceLabel": "What happened",
+    "sentenceHint": "For example: filled up 10.8 gal at 3.49, 61402 mi, civic",
+    "fill": "Fill in the form",
+    "review": "Check and save",
+    "reviewHint": "Here's what the assistant read. Check every field, fix anything it got wrong, then save.",
+    "problems": {
+      "no_vision": "The model in use can't read photos, so the form is empty. Fill it in by hand; the photo will still be attached.",
+      "timeout": "The assistant took too long, so the form is empty. Fill it in by hand.",
+      "invalid_output": "The assistant's answer didn't make sense, so the form is empty. Fill it in by hand.",
+      "unreachable": "Couldn't reach Ollama, so the form is empty. Fill it in by hand.",
+      "model_missing": "The model isn't installed in Ollama yet, so the form is empty. Fill it in by hand.",
+      "error": "The assistant couldn't help this time, so the form is empty. Fill it in by hand.",
+      "unsupported": "That file isn't a photo the assistant can read. Fill in the form by hand.",
+      "unreadable": "Couldn't open that photo. Fill in the form by hand; you can attach the photo yourself.",
+      "off": "The local assistant isn't turned on, so the form is empty."
+    },
+    "ask": "Ask your logbook",
+    "question": "Your question",
+    "questionHint": "Answered only from your own records, for example: when did I last change the oil on the Tacoma?",
+    "askButton": "Ask",
+    "thinking": "Looking…",
+    "notFound": "That isn't in your records.",
+    "sources": "From these records:",
+    "answeredBy": "Answered by {{model}} on this server. Check the linked records before relying on it."
   }
 }

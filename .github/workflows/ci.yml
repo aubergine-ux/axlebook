@@ -77,6 +77,31 @@ jobs:
       - run: npm ci
       - run: npm run test:pg
 
+  test-ollama:
+    name: Local assistant against Ollama (optional)
+    runs-on: ubuntu-latest
+    # Informational: a slow runner or a model download hiccup shouldn't block a merge.
+    continue-on-error: true
+    services:
+      ollama:
+        image: ollama/ollama:0.40.14
+        ports: ["11434:11434"]
+    env:
+      OLLAMA_TEST_URL: http://localhost:11434
+      OLLAMA_TEST_MODEL: qwen2.5:0.5b
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Pull a small model
+        run: |
+          for i in $(seq 1 30); do curl -sf localhost:11434/api/tags >/dev/null && break; sleep 2; done
+          curl -sf -X POST localhost:11434/api/pull -d '{"model":"qwen2.5:0.5b","stream":false}'
+      - run: npx vitest run --project server src/modules/assistant/real-ollama.test.ts
+
   e2e:
     name: Browser smoke tests
     runs-on: ubuntu-latest

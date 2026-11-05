@@ -9,7 +9,7 @@ import { loadConfig } from '../config';
 import { connect } from '../db/connection';
 import { migrateToLatest } from '../db/migrate';
 import type { User } from '../db/schema';
-import type { Ai } from '../lib/ai';
+import type { Ai, AiPrompt } from '../lib/ai';
 import { hashPassword, randomToken, sha256 } from '../lib/crypto';
 import { nowIso } from '../lib/time';
 
@@ -138,24 +138,37 @@ export const vehicleBody = (patch: Record<string, unknown> = {}) => ({
 
 /** A stand-in for the local model: answers each call from `answer` (by schema), records prompts. */
 export function fakeAi(
-  answer: (prompt: { system: string; user: string }) => unknown,
-): Ai & { calls: { system: string; user: string }[] } {
-  const calls: { system: string; user: string }[] = [];
+  answer: (prompt: AiPrompt) => unknown,
+  opts: { vision?: boolean } = {},
+): Ai & { calls: AiPrompt[] } {
+  const calls: AiPrompt[] = [];
+  let model = 'fake:1b';
   return {
     enabled: true,
-    model: 'fake:1b',
+    get model() {
+      return model;
+    },
     calls,
     status: async () => ({
       enabled: true,
-      model: 'fake:1b',
+      model,
       reachable: true,
       modelReady: true,
       pullProgress: null,
+      vision: opts.vision ?? false,
       error: null,
     }),
     json: async (schema, prompt) => {
       calls.push(prompt);
       return schema.parse(answer(prompt));
     },
+    models: async () => [
+      { name: 'fake:1b', size: 1, vision: opts.vision ?? false },
+      { name: 'other:2b', size: 2, vision: true },
+    ],
+    setModel: (name) => {
+      model = name;
+    },
+    test: async () => ({ ms: 5 }),
   };
 }
