@@ -10,15 +10,15 @@ Note: the brand kit lives in `logo-assets/` (there is no `axlebook-brand-kit/` d
 
 ## Summary
 
-| Area | Result |
-|---|---|
-| Unit and integration tests | 294 / 294 pass (SQLite) |
-| Postgres 17 | 183 / 183 server tests pass, the same set as on SQLite |
-| Browser tests | 17 / 17 pass (desktop and phone) |
-| Domain coverage | 100% lines, branches, functions and statements, enforced in CI |
-| axe | 0 serious or critical issues on 14 pages, light and dark |
-| npm audit (production) | 0 vulnerabilities |
-| Docker | healthy on :8080, 319 MB, data survives restart, works with no network |
+| Area                       | Result                                                                 |
+| -------------------------- | ---------------------------------------------------------------------- |
+| Unit and integration tests | 294 / 294 pass (SQLite)                                                |
+| Postgres 17                | 183 / 183 server tests pass, the same set as on SQLite                 |
+| Browser tests              | 17 / 17 pass (desktop and phone)                                       |
+| Domain coverage            | 100% lines, branches, functions and statements, enforced in CI         |
+| axe                        | 0 serious or critical issues on 14 pages, light and dark               |
+| npm audit (production)     | 0 vulnerabilities                                                      |
+| Docker                     | healthy on :8080, 319 MB, data survives restart, works with no network |
 
 Bugs found and fixed during the audit: backups dropped inspections; shared users could list a
 vehicle's other shares; passwords used scrypt below OWASP's current cost; validation errors
@@ -29,97 +29,97 @@ invalid for screen readers; a link relied on colour alone; the header scrolled s
 
 ## Phase 2: features
 
-| Item | Result | Evidence |
-|---|---|---|
-| Vehicles: CRUD, archive/unarchive | PASS | `vehicles API > creates…`, `updates only the provided fields`, `archives and unarchives, filtering the list`, `deletes a vehicle permanently` |
-| Vehicle photo upload | PASS | `vehicles API > uploads, serves, replaces and removes a photo`, `rejects uploads that are not images` |
-| Garage cards: odometer, next reminder, cost to date | PASS | `garage > shows a card per vehicle with figures`; `docs/screenshots/audit/garage-*.png` |
-| Records: service, repair, upgrade, fuel, expense | PASS | `records > validates per kind`, `defaults expenses to the "other" category` |
-| Tags, attachments | PASS | `records > creates a service record with tags…`, `attachments > stores receipts, serves them sandboxed, and deletes them` |
-| Per-vehicle filtered list | PASS | `records > filters by date range and pages results`, `searches by text, tag and kind` |
-| Quick-add | PASS | e2e `add a vehicle, log fuel, and see it in the records` |
-| Odometer log linked in the same transaction | PASS | `records > creates a service record … and links an odometer reading`, `updates the record and its odometer reading` |
-| Lower-reading warning that still saves | PASS | `apps/web/src/routes/vehicles/$vehicleId/odometer.tsx` (`odometer.lowerWarning`, saved regardless) |
-| Full-to-full MPG, partials accumulate, missed fill voids, lifetime Σ÷Σ | PASS | `computeFuelEconomy > computes full-to-full segments`, `carries partial fills…`, `voids a segment that contains a missed fill-up…`; 100% coverage |
-| Unit conversion (mi/km, gal_us/gal_uk/l) | PASS | `conversions > converts distance both ways`, `converts volume`, `gives MPG in UK gallons and km/L` |
-| Log fuel fast path: remembers vehicle, today, third value | PASS | `log.tsx` (localStorage, `todayIso()`); `logging fuel > works out the total from fuel and price…` |
-| Reminders: date / distance / either, worst wins | PASS | `computeReminderStatus > either: date fine, distance overdue`, `either: date soon, distance fine` |
-| Recurring reset from the completion record | PASS | `nextDue > counts from the completion, not from the old due point`; `reminders > reschedules a recurring reminder from the completing record…` |
-| Month-end clamping | PASS | `dates > addMonths(2026-01-31, 1) = 2026-02-28`, `addMonths(2028-01-31, 1) = 2028-02-29` |
-| Inventory: deduct in transaction, edit applies difference, delete restores | PASS | `parts inventory > deducts stock when used, applies only the difference on edit, and restores on delete` |
-| Negative stock allowed, with a warning | PASS | `allows stock to go negative…`; `parts.tsx` shows the quantity in red with "Out of stock" |
-| Planner: list, convert to record | PASS | `planner > turns a planned job into a record and marks it done`. It's a list grouped and sorted by status, not a drag-and-drop board |
-| Reports: monthly, category, cost per distance, MPG trend, totals | PASS | `reports > totals by kind, month and category, with distance and cost per distance`; `audit/reports-*.png` |
-| Report print stylesheet and CSV download | PASS | `print:` styles in `AppShell.tsx`, `reports.tsx`; CSV via `download()` in `reports.tsx` |
-| CSV import per kind with dry-run, export | PASS | `CSV import and export > previews, imports, skips duplicates, and round-trips its own export` |
-| Full backup and restore (JSON + files) | FIXED | inspections were missing from backups. `backup and restore > covers every table, apart from the ones left out on purpose` now guards this; e2e `a backup restores into a fresh instance` |
-| LubeLogger importer, marked experimental | PASS | `rowsToRecords > reads LubeLogger fuel exports (experimental preset)`; UI text "LubeLogger (experimental)" |
-| Search | DEVIATION | One function (`records/service.ts`) on both databases, case-insensitive substring `LIKE` rather than FTS5/tsvector. Measured 21 ms over 20,000 records, and it matches partial words and part numbers that full-text tokenizers miss. Test: `records > searches by text, tag and kind across the garage` |
-| First-run admin, ADMIN_USERNAME/PASSWORD | PASS | `first-run setup > creates the admin, signs them in, and only works once`; e2e `first run`; bootstrap verified in the Docker run below |
-| Local login, roles, sharing, API tokens | PASS | `sign in and sessions > *`, `API tokens > *`, `permission matrix > *` |
-| OIDC | PASS (new tests) | `single sign-on (OIDC) > *` against a fake provider. Fixed: http issuers now work |
-| DISABLE_LOCAL_LOGIN | PASS (new test) | `single sign-on (OIDC) > turns off password sign-in when DISABLE_LOCAL_LOGIN is set` |
-| Registration off by default | PASS | there is no self-registration route at all; accounts come from setup, an admin, or SSO (see the route list in `permissions.test.ts`) |
-| Notifications only on escalation | PASS | `notification channels > notifies once per escalation…` |
-| SMTP, webhook, ntfy, Gotify, Discord; send test | PASS (new tests) | `sends the test message in the format ntfy, Gotify and Discord expect`, `sends email through the configured SMTP server`, `masks secrets … sends a signed test webhook` |
-| PWA: manifest, service worker | PASS | `apps/web/dist/manifest.webmanifest`, `sw.js`; `brand assets wiring > points every PWA manifest icon…` |
-| Offline fuel entry queues and syncs | PASS | e2e `a fill-up logged offline syncs when the connection returns`; `offline outbox > *` |
-| OpenAPI and /api/docs with no CDN | PASS | `/api/docs` loads only `/api/docs/static/*` (checked with curl); `system routes > serves an OpenAPI document…` |
-| Every UI string through i18n, missing/unused key test | PASS | `translations > every key used…`, `every en key is used…` |
-| Enforced check against hardcoded JSX text | PASS | `biome.json` `noJsxLiterals` plus `tools/biome/no-untranslated-attrs.grit`, run by `npx biome ci .` in CI |
+| Item                                                                       | Result           | Evidence                                                                                                                                                                                                                                                                                                 |
+| -------------------------------------------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vehicles: CRUD, archive/unarchive                                          | PASS             | `vehicles API > creates…`, `updates only the provided fields`, `archives and unarchives, filtering the list`, `deletes a vehicle permanently`                                                                                                                                                            |
+| Vehicle photo upload                                                       | PASS             | `vehicles API > uploads, serves, replaces and removes a photo`, `rejects uploads that are not images`                                                                                                                                                                                                    |
+| Garage cards: odometer, next reminder, cost to date                        | PASS             | `garage > shows a card per vehicle with figures`; `docs/screenshots/audit/garage-*.png`                                                                                                                                                                                                                  |
+| Records: service, repair, upgrade, fuel, expense                           | PASS             | `records > validates per kind`, `defaults expenses to the "other" category`                                                                                                                                                                                                                              |
+| Tags, attachments                                                          | PASS             | `records > creates a service record with tags…`, `attachments > stores receipts, serves them sandboxed, and deletes them`                                                                                                                                                                                |
+| Per-vehicle filtered list                                                  | PASS             | `records > filters by date range and pages results`, `searches by text, tag and kind`                                                                                                                                                                                                                    |
+| Quick-add                                                                  | PASS             | e2e `add a vehicle, log fuel, and see it in the records`                                                                                                                                                                                                                                                 |
+| Odometer log linked in the same transaction                                | PASS             | `records > creates a service record … and links an odometer reading`, `updates the record and its odometer reading`                                                                                                                                                                                      |
+| Lower-reading warning that still saves                                     | PASS             | `apps/web/src/routes/vehicles/$vehicleId/odometer.tsx` (`odometer.lowerWarning`, saved regardless)                                                                                                                                                                                                       |
+| Full-to-full MPG, partials accumulate, missed fill voids, lifetime Σ÷Σ     | PASS             | `computeFuelEconomy > computes full-to-full segments`, `carries partial fills…`, `voids a segment that contains a missed fill-up…`; 100% coverage                                                                                                                                                        |
+| Unit conversion (mi/km, gal_us/gal_uk/l)                                   | PASS             | `conversions > converts distance both ways`, `converts volume`, `gives MPG in UK gallons and km/L`                                                                                                                                                                                                       |
+| Log fuel fast path: remembers vehicle, today, third value                  | PASS             | `log.tsx` (localStorage, `todayIso()`); `logging fuel > works out the total from fuel and price…`                                                                                                                                                                                                        |
+| Reminders: date / distance / either, worst wins                            | PASS             | `computeReminderStatus > either: date fine, distance overdue`, `either: date soon, distance fine`                                                                                                                                                                                                        |
+| Recurring reset from the completion record                                 | PASS             | `nextDue > counts from the completion, not from the old due point`; `reminders > reschedules a recurring reminder from the completing record…`                                                                                                                                                           |
+| Month-end clamping                                                         | PASS             | `dates > addMonths(2026-01-31, 1) = 2026-02-28`, `addMonths(2028-01-31, 1) = 2028-02-29`                                                                                                                                                                                                                 |
+| Inventory: deduct in transaction, edit applies difference, delete restores | PASS             | `parts inventory > deducts stock when used, applies only the difference on edit, and restores on delete`                                                                                                                                                                                                 |
+| Negative stock allowed, with a warning                                     | PASS             | `allows stock to go negative…`; `parts.tsx` shows the quantity in red with "Out of stock"                                                                                                                                                                                                                |
+| Planner: list, convert to record                                           | PASS             | `planner > turns a planned job into a record and marks it done`. It's a list grouped and sorted by status, not a drag-and-drop board                                                                                                                                                                     |
+| Reports: monthly, category, cost per distance, MPG trend, totals           | PASS             | `reports > totals by kind, month and category, with distance and cost per distance`; `audit/reports-*.png`                                                                                                                                                                                               |
+| Report print stylesheet and CSV download                                   | PASS             | `print:` styles in `AppShell.tsx`, `reports.tsx`; CSV via `download()` in `reports.tsx`                                                                                                                                                                                                                  |
+| CSV import per kind with dry-run, export                                   | PASS             | `CSV import and export > previews, imports, skips duplicates, and round-trips its own export`                                                                                                                                                                                                            |
+| Full backup and restore (JSON + files)                                     | FIXED            | inspections were missing from backups. `backup and restore > covers every table, apart from the ones left out on purpose` now guards this; e2e `a backup restores into a fresh instance`                                                                                                                 |
+| LubeLogger importer, marked experimental                                   | PASS             | `rowsToRecords > reads LubeLogger fuel exports (experimental preset)`; UI text "LubeLogger (experimental)"                                                                                                                                                                                               |
+| Search                                                                     | DEVIATION        | One function (`records/service.ts`) on both databases, case-insensitive substring `LIKE` rather than FTS5/tsvector. Measured 21 ms over 20,000 records, and it matches partial words and part numbers that full-text tokenizers miss. Test: `records > searches by text, tag and kind across the garage` |
+| First-run admin, ADMIN_USERNAME/PASSWORD                                   | PASS             | `first-run setup > creates the admin, signs them in, and only works once`; e2e `first run`; bootstrap verified in the Docker run below                                                                                                                                                                   |
+| Local login, roles, sharing, API tokens                                    | PASS             | `sign in and sessions > *`, `API tokens > *`, `permission matrix > *`                                                                                                                                                                                                                                    |
+| OIDC                                                                       | PASS (new tests) | `single sign-on (OIDC) > *` against a fake provider. Fixed: http issuers now work                                                                                                                                                                                                                        |
+| DISABLE_LOCAL_LOGIN                                                        | PASS (new test)  | `single sign-on (OIDC) > turns off password sign-in when DISABLE_LOCAL_LOGIN is set`                                                                                                                                                                                                                     |
+| Registration off by default                                                | PASS             | there is no self-registration route at all; accounts come from setup, an admin, or SSO (see the route list in `permissions.test.ts`)                                                                                                                                                                     |
+| Notifications only on escalation                                           | PASS             | `notification channels > notifies once per escalation…`                                                                                                                                                                                                                                                  |
+| SMTP, webhook, ntfy, Gotify, Discord; send test                            | PASS (new tests) | `sends the test message in the format ntfy, Gotify and Discord expect`, `sends email through the configured SMTP server`, `masks secrets … sends a signed test webhook`                                                                                                                                  |
+| PWA: manifest, service worker                                              | PASS             | `apps/web/dist/manifest.webmanifest`, `sw.js`; `brand assets wiring > points every PWA manifest icon…`                                                                                                                                                                                                   |
+| Offline fuel entry queues and syncs                                        | PASS             | e2e `a fill-up logged offline syncs when the connection returns`; `offline outbox > *`                                                                                                                                                                                                                   |
+| OpenAPI and /api/docs with no CDN                                          | PASS             | `/api/docs` loads only `/api/docs/static/*` (checked with curl); `system routes > serves an OpenAPI document…`                                                                                                                                                                                           |
+| Every UI string through i18n, missing/unused key test                      | PASS             | `translations > every key used…`, `every en key is used…`                                                                                                                                                                                                                                                |
+| Enforced check against hardcoded JSX text                                  | PASS             | `biome.json` `noJsxLiterals` plus `tools/biome/no-untranslated-attrs.grit`, run by `npx biome ci .` in CI                                                                                                                                                                                                |
 
 ## Phase 3: correctness and security
 
-| Item | Result | Evidence |
-|---|---|---|
-| Money and fuel volume as integer milli-units | PASS | no `real`/`double`/`numeric`/`float` columns in `db/migrations`; `money.test.ts`; sums via `multiplyMilli`/`divideMilli` |
-| Permission matrix over every route | PASS (new test) | `permissions.test.ts` reads all 96 routes from OpenAPI and fails on any unclassified route; strangers, viewers and view shares get exactly 403/404 on every id they don't own, including attachments, tokens, channels, parts and uploads |
-| Fixed by the matrix | FIXED | the share list was readable by anyone a vehicle was shared with; it's now owner-only |
-| Non-admin backup scope | PASS | `gives non-admins a backup of only their own data, with nobody else's account` |
-| CSRF Origin/Referer check, SameSite=Lax | PASS | `csrf origin check > *` (10 tests); `plugins/auth.ts` sets `sameSite: 'lax'` |
-| Sessions: httpOnly, Secure on HTTPS, expiry, logout | PASS | `plugins/auth.ts` (`httpOnly: true`, `secure` from BASE_URL or the proxied protocol, expiry check); `logs in, rejects bad passwords, and logs out` |
-| Passwords argon2 | FIXED | was scrypt N=2^15. Now argon2id (19 MiB, t=2); old hashes upgrade on sign-in. `hashes with argon2id, and upgrades older scrypt hashes on sign-in`; also verified live on an old account |
-| API tokens hashed | PASS | `token_hash: sha256(token)` in `auth/routes.ts`; lookup by hash in `plugins/auth.ts` |
-| Nothing secret in logs | PASS | `app.ts` redacts the authorization and cookie headers; request bodies aren't logged |
-| Upload size limit, type check, auth before serving, no path escape | PASS | `rejects unknown file types and enforces the size limit`; `lib/files.ts` accepts only `uuid.ext` keys |
-| Zod on every route; `{ error: { code, params } }`, no English, no stacks | FIXED | validation issues carried Zod's English message; now structured (`expected`, `minimum`, …). Unhandled errors return `{ code: 'internal' }` only |
-| No outbound calls by default | PASS | container run with `--network none`: health, login, add vehicle, log fuel, reports, backup, web app and API docs all worked, a scheduled reminder scan ran, and there were zero warnings or errors in the logs |
-| npm audit, production | PASS | `npm audit --omit=dev`: 0 vulnerabilities. Dev-only tooling: 2 low, 4 moderate, none high or critical |
+| Item                                                                     | Result          | Evidence                                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------ | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Money and fuel volume as integer milli-units                             | PASS            | no `real`/`double`/`numeric`/`float` columns in `db/migrations`; `money.test.ts`; sums via `multiplyMilli`/`divideMilli`                                                                                                                  |
+| Permission matrix over every route                                       | PASS (new test) | `permissions.test.ts` reads all 96 routes from OpenAPI and fails on any unclassified route; strangers, viewers and view shares get exactly 403/404 on every id they don't own, including attachments, tokens, channels, parts and uploads |
+| Fixed by the matrix                                                      | FIXED           | the share list was readable by anyone a vehicle was shared with; it's now owner-only                                                                                                                                                      |
+| Non-admin backup scope                                                   | PASS            | `gives non-admins a backup of only their own data, with nobody else's account`                                                                                                                                                            |
+| CSRF Origin/Referer check, SameSite=Lax                                  | PASS            | `csrf origin check > *` (10 tests); `plugins/auth.ts` sets `sameSite: 'lax'`                                                                                                                                                              |
+| Sessions: httpOnly, Secure on HTTPS, expiry, logout                      | PASS            | `plugins/auth.ts` (`httpOnly: true`, `secure` from BASE_URL or the proxied protocol, expiry check); `logs in, rejects bad passwords, and logs out`                                                                                        |
+| Passwords argon2                                                         | FIXED           | was scrypt N=2^15. Now argon2id (19 MiB, t=2); old hashes upgrade on sign-in. `hashes with argon2id, and upgrades older scrypt hashes on sign-in`; also verified live on an old account                                                   |
+| API tokens hashed                                                        | PASS            | `token_hash: sha256(token)` in `auth/routes.ts`; lookup by hash in `plugins/auth.ts`                                                                                                                                                      |
+| Nothing secret in logs                                                   | PASS            | `app.ts` redacts the authorization and cookie headers; request bodies aren't logged                                                                                                                                                       |
+| Upload size limit, type check, auth before serving, no path escape       | PASS            | `rejects unknown file types and enforces the size limit`; `lib/files.ts` accepts only `uuid.ext` keys                                                                                                                                     |
+| Zod on every route; `{ error: { code, params } }`, no English, no stacks | FIXED           | validation issues carried Zod's English message; now structured (`expected`, `minimum`, …). Unhandled errors return `{ code: 'internal' }` only                                                                                           |
+| No outbound calls by default                                             | PASS            | container run with `--network none`: health, login, add vehicle, log fuel, reports, backup, web app and API docs all worked, a scheduled reminder scan ran, and there were zero warnings or errors in the logs                            |
+| npm audit, production                                                    | PASS            | `npm audit --omit=dev`: 0 vulnerabilities. Dev-only tooling: 2 low, 4 moderate, none high or critical                                                                                                                                     |
 
 ## Phase 4: quality gates
 
-| Gate | Result | Evidence |
-|---|---|---|
-| `npm run lint` | PASS | `biome ci .`: no errors |
-| `npm run typecheck` | PASS | no errors |
-| `npm test` | PASS | 294 passed (33 files) |
-| `npm run test:pg` on Postgres 17.11 | PASS | 183 passed, the same 183 as on SQLite |
-| e2e: first-run setup | PASS | `first run: create the admin account` |
-| e2e: add a vehicle, log fuel on a phone | PASS | `add a vehicle, log fuel…` (desktop and Pixel 7) |
-| e2e: complete a reminder | PASS | `reminders show status in words and can be marked done` |
-| e2e: export and restore a backup | PASS (new) | `a backup restores into a fresh instance` (second server) |
-| e2e: viewer can't edit | PASS (new) | `someone with view access can look but not change anything` |
-| Domain coverage 100% | FIXED | `npm run coverage`: 100% of 138 statements, 110 branches, 28 functions, 116 lines; thresholds in `vitest.config.ts`, run in CI |
-| axe, light and dark | FIXED | `ui-a11y.spec.ts`: 14 pages × 2 themes, 0 serious or critical issues after fixing the card list markup and a colour-only link |
-| Keyboard reach and visible focus | PASS | `every control on the garage is reachable by keyboard with a visible focus ring` |
+| Gate                                    | Result     | Evidence                                                                                                                       |
+| --------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run lint`                          | PASS       | `biome ci .`: no errors                                                                                                        |
+| `npm run typecheck`                     | PASS       | no errors                                                                                                                      |
+| `npm test`                              | PASS       | 294 passed (33 files)                                                                                                          |
+| `npm run test:pg` on Postgres 17.11     | PASS       | 183 passed, the same 183 as on SQLite                                                                                          |
+| e2e: first-run setup                    | PASS       | `first run: create the admin account`                                                                                          |
+| e2e: add a vehicle, log fuel on a phone | PASS       | `add a vehicle, log fuel…` (desktop and Pixel 7)                                                                               |
+| e2e: complete a reminder                | PASS       | `reminders show status in words and can be marked done`                                                                        |
+| e2e: export and restore a backup        | PASS (new) | `a backup restores into a fresh instance` (second server)                                                                      |
+| e2e: viewer can't edit                  | PASS (new) | `someone with view access can look but not change anything`                                                                    |
+| Domain coverage 100%                    | FIXED      | `npm run coverage`: 100% of 138 statements, 110 branches, 28 functions, 116 lines; thresholds in `vitest.config.ts`, run in CI |
+| axe, light and dark                     | FIXED      | `ui-a11y.spec.ts`: 14 pages × 2 themes, 0 serious or critical issues after fixing the card list markup and a colour-only link  |
+| Keyboard reach and visible focus        | PASS       | `every control on the garage is reachable by keyboard with a visible focus ring`                                               |
 
 ## Phase 5: brand and design
 
-| Item | Result | Evidence |
-|---|---|---|
-| Tokens, fonts, icons, app icons from the kit, self-hosted | PASS | `npm run tokens`/`icons`/`brand:sync` outputs checked in CI; no external font or icon URLs in `apps/web/dist` |
-| Orange scarce; on-orange text | PASS | reviewed in all 36 audit screenshots: one primary action per view, active nav, last odometer digit |
-| Status badges carry words; odometer readout | PASS | `StatusBadge > * keeps the words`, `OdometerReadout > *` |
-| Screenshots: 6 screens × 390/768/1440 × light/dark | PASS | `docs/screenshots/audit/` (36 files), each reviewed |
-| No horizontal scroll, nothing clipped | FIXED | the header overflowed at 768px and titles overlapped when wrapping. After the fixes, an automated check over all 36 reports no overflow and no console errors |
+| Item                                                      | Result | Evidence                                                                                                                                                      |
+| --------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tokens, fonts, icons, app icons from the kit, self-hosted | PASS   | `npm run tokens`/`icons`/`brand:sync` outputs checked in CI; no external font or icon URLs in `apps/web/dist`                                                 |
+| Orange scarce; on-orange text                             | PASS   | reviewed in all 36 audit screenshots: one primary action per view, active nav, last odometer digit                                                            |
+| Status badges carry words; odometer readout               | PASS   | `StatusBadge > * keeps the words`, `OdometerReadout > *`                                                                                                      |
+| Screenshots: 6 screens × 390/768/1440 × light/dark        | PASS   | `docs/screenshots/audit/` (36 files), each reviewed                                                                                                           |
+| No horizontal scroll, nothing clipped                     | FIXED  | the header overflowed at 768px and titles overlapped when wrapping. After the fixes, an automated check over all 36 reports no overflow and no console errors |
 
 ## Phase 6: ship readiness
 
-| Item | Result | Evidence |
-|---|---|---|
-| `docker compose up --build`, clean volume, demo data | PASS | healthy on :8080 in 55 s; image 319 MB |
-| Demo: Tacoma overdue, Civic MPG | PASS | Tacoma "Oil and filter change": overdue; Civic average 34.3 mpg; Tacoma 19.7 mpg |
-| Restart: migrations idempotent, data persists, seed doesn't rerun | PASS | 2 vehicles / 207 records before and after; log shows `migrationsApplied: []` and "demo data already present, skipping seed" |
+| Item                                                              | Result | Evidence                                                                                                                    |
+| ----------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `docker compose up --build`, clean volume, demo data              | PASS   | healthy on :8080 in 55 s; image 319 MB                                                                                      |
+| Demo: Tacoma overdue, Civic MPG                                   | PASS   | Tacoma "Oil and filter change": overdue; Civic average 34.3 mpg; Tacoma 19.7 mpg                                            |
+| Restart: migrations idempotent, data persists, seed doesn't rerun | PASS   | 2 vehicles / 207 records before and after; log shows `migrationsApplied: []` and "demo data already present, skipping seed" |
 
 ## Still open (needs the maintainer)
 
