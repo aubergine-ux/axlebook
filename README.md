@@ -27,7 +27,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/garage-dark.png">
-  <img alt="The Axlebook garage, with a card for each vehicle showing its odometer, what's due next and what it has cost" src="docs/screenshots/garage-light.png">
+  <img alt="The Axlebook garage with a dirt bike, a snowmobile and a semi, each card showing its odometer or hour meter, what's due next and what it has cost" src="docs/screenshots/garage-light.png">
 </picture>
 
 ## Why I made this
@@ -63,66 +63,126 @@ phone home, and your records never leave your network unless you send them somew
   </tr>
 </table>
 
-**The logbook**
-- A garage of vehicles with photos, current odometer, what's due next and cost to date. Archive the ones you've sold.
-- Service, repairs, upgrades, fuel, and running costs like registration, insurance and tolls. Each record can carry tags, notes and the receipt (photo or PDF).
-- An odometer log that fills itself in from every record with a reading.
-- A parts shelf: oil, filters and spares, deducted automatically when a record uses them.
-- A planner for jobs you mean to get to, turned into a record with one tap when they're done.
-- A maintenance schedule for each vehicle: what's due, when you last did it (read from your own
-  records) and when it's next due. Tick the ones you want and they become reminders.
-- A calendar link you can subscribe to from your phone, so due dates show up next to everything else.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/service-96.png" width="28" alt=""><br>
+      <b>Every job, with the receipt</b><br>
+      Service, repairs, upgrades, fuel, and running costs like registration, insurance and tolls. Tag them, add notes, attach the photo or PDF.
+    </td>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/odometer-96.png" width="28" alt=""><br>
+      <b>An odometer log that keeps itself</b><br>
+      Every record with a reading adds to it. Type a number lower than last time and it saves, but asks if you meant it.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/vehicle-96.png" width="28" alt=""><br>
+      <b>Every kind of vehicle</b><br>
+      Cars and pickups, motorcycles, dirt bikes, ATVs, snowmobiles, semis and trailers, each in its own garage section. Engine hours for the machines that don't count miles, mi/kWh for EVs, and nicknames so "Old Blue" is what you see.
+    </td>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/planner-96.png" width="28" alt=""><br>
+      <b>A schedule that fits it</b><br>
+      A maintenance schedule for each type of vehicle, checked against your own records: when you last did each job and when it's next due. Tick the ones you want and they become reminders.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/repair-96.png" width="28" alt=""><br>
+      <b>Built for owner-operators too</b><br>
+      Pre-trip and post-trip inspections (DVIR) with defects tracked until they're fixed, unit numbers, and an IFTA worksheet that splits each quarter's miles and fuel by state or province.
+    </td>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/upgrade-96.png" width="28" alt=""><br>
+      <b>Tips from its own numbers</b><br>
+      Economy slipping, too many partial fills, an overdue job that's costing you fuel, a sled that needs putting away for summer. Advice for that vehicle, not a generic list.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/parts-96.png" width="28" alt=""><br>
+      <b>A parts shelf</b><br>
+      Oil, filters and spares, taken off the shelf automatically when a record uses them. A planner holds the jobs you mean to get to.
+    </td>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/reports-96.png" width="28" alt=""><br>
+      <b>Reports worth printing</b><br>
+      Spending by month and category, cost per mile, fuel economy over time and lifetime totals. Print them or download the CSV.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/export-96.png" width="28" alt=""><br>
+      <b>Bring your spreadsheet</b><br>
+      .xlsx or .csv, one sheet per vehicle or all of them in one. Axlebook works out the columns, units and vehicles, shows a preview, and skips anything already in there. LubeLogger exports work too (experimental).
+    </td>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/search-96.png" width="28" alt=""><br>
+      <b>Find anything</b><br>
+      Search every record in the garage by text, tag or type. Subscribe to a calendar link and due dates show up on your phone next to everything else.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/settings-96.png" width="28" alt=""><br>
+      <b>For the whole household</b><br>
+      Admin, editor and viewer accounts, per-vehicle sharing, and optional single sign-on through Authentik, Authelia, Keycloak or any OpenID Connect provider.
+    </td>
+    <td width="50%" valign="top">
+      <img src="logo-assets/icons/png/orange/tag-96.png" width="28" alt=""><br>
+      <b>Your units, your way</b><br>
+      Imperial or metric, any currency, light and dark, installable on your phone. Keyboard-accessible, and every word comes from a translation file. A REST API covers all of it.
+    </td>
+  </tr>
+</table>
 
-**Every kind of vehicle**
-- Cars and pickups, motorcycles, dirt bikes, ATVs and side-by-sides, snowmobiles, semi trucks and
-  trailers, each with its own section in the garage and a schedule that fits it.
-- Engine-hour meters for the machines that don't count miles, and kWh for EVs (mi/kWh, not "mpg").
-- Nicknames, unit numbers, VINs and plates, so "Old Blue" and "Truck 42" are what you see.
-- For owner-operators: pre-trip and post-trip inspections (DVIR) with defects tracked until
-  they're fixed, and an IFTA worksheet that splits each quarter's miles and fuel by state or
-  province. It's a worksheet to fill in your return from, not a filing service.
-
-**Making sense of it**
-- Reports: spending by month and category, cost per mile, fuel economy over time and lifetime totals. Printable, and downloadable as CSV.
-- Search across every record in the garage, by text, tag or type.
-- Tips for each vehicle from its own numbers: economy slipping, too many partial fills, an
-  overdue job that costs you fuel, getting a sled ready for summer.
-
-**Living with it**
-- Accounts for the household with admin, editor and viewer roles, plus per-vehicle sharing. Optional single sign-on through Authentik, Authelia, Keycloak or any OpenID Connect provider.
-- Imperial or metric, any currency, light and dark themes, and installable on your phone's home screen.
-- Keyboard-accessible, and every word in the interface comes from a translation file, ready for other languages.
-- A REST API for everything the app does, with interactive docs at `/api/docs` and personal API tokens.
-- Bring the spreadsheet you already keep: .xlsx or .csv, one sheet per vehicle or every vehicle in
-  one sheet. Axlebook works out the columns, units and vehicles, shows you a preview, and skips
-  anything that's already in there. Exports from LubeLogger import too (experimental).
-
-**Optional local AI**
+### Optional local AI
 
 If you run [Ollama](https://ollama.com) next to Axlebook, it can help in a few places: reading a
 messy spreadsheet, tailoring the maintenance schedule to your exact make and model, estimating
 what economy your vehicle should get for its age and mileage, and giving tips specific to it.
-The model runs on your own server. Nothing about your vehicles is sent anywhere. Everything else
-works the same without it.
+
+> [!NOTE]
+> The model runs on your own server. Nothing about your vehicles is sent anywhere, and
+> everything else works the same without it.
 
 ## Screenshots
 
 <table>
   <tr>
-    <td colspan="3">
+    <td colspan="4">
       <picture>
         <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/vehicle-dark.png">
-        <img alt="A vehicle's overview: odometer, average economy, cost per mile, what's coming up and recent records" src="docs/screenshots/vehicle-light.png">
+        <img alt="A vehicle's overview: odometer, average economy, cost per mile, what's coming up, and tips for that vehicle" src="docs/screenshots/vehicle-light.png">
       </picture>
     </td>
   </tr>
   <tr>
-    <td width="33%" valign="top"><img alt="Logging fuel on a phone" src="docs/screenshots/phone-log.png"></td>
-    <td width="33%" valign="top"><img alt="Fuel history with economy per fill-up" src="docs/screenshots/phone-fuel.png"></td>
-    <td width="33%" valign="top"><img alt="Reminders grouped by overdue and upcoming" src="docs/screenshots/phone-reminders.png"></td>
+    <td colspan="2" width="50%" valign="top">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/schedule-dark.png">
+        <img alt="A semi truck's maintenance schedule, with when each job was last done and when it's next due" src="docs/screenshots/schedule-light.png">
+      </picture>
+      <p align="center"><sub>A schedule that knows what you've already done</sub></p>
+    </td>
+    <td colspan="2" width="50%" valign="top">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/import-dark.png">
+        <img alt="Importing a workbook with a pickup and a snowmobile, previewed before anything is saved" src="docs/screenshots/import-light.png">
+      </picture>
+      <p align="center"><sub>Two vehicles from one workbook, previewed first</sub></p>
+    </td>
   </tr>
   <tr>
-    <td colspan="3">
+    <td width="25%" valign="top"><img alt="Logging fuel on a phone" src="docs/screenshots/phone-log.png"></td>
+    <td width="25%" valign="top"><img alt="Fuel history with economy per fill-up" src="docs/screenshots/phone-fuel.png"></td>
+    <td width="25%" valign="top"><img alt="Reminders grouped by overdue and upcoming" src="docs/screenshots/phone-reminders.png"></td>
+    <td width="25%" valign="top"><img alt="A pre-trip inspection with one open defect" src="docs/screenshots/phone-inspections.png"></td>
+  </tr>
+  <tr>
+    <td colspan="4">
       <picture>
         <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/reports-dark.png">
         <img alt="Reports: spending by month, where the money went and fuel economy over time" src="docs/screenshots/reports-light.png">
