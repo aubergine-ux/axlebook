@@ -36,13 +36,14 @@ export const shareRoutes =
       {
         schema: {
           tags,
-          summary: 'Who this vehicle is shared with',
+          summary: 'Who this vehicle is shared with (owner only)',
           params: Params,
           response: { 200: z.array(Share), ...errors },
         },
       },
       async (req) => {
-        await requireVehicle(db, currentUser(req), req.params.vehicleId, 'view');
+        // Only the owner sees who else has access.
+        await requireVehicle(db, currentUser(req), req.params.vehicleId, 'owner');
         return list(req.params.vehicleId);
       },
     );

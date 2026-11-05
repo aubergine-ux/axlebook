@@ -7,6 +7,7 @@ import {
   tinyPng,
   vehicleBody,
 } from '../../test/helpers';
+import { BACKED_UP, NOT_BACKED_UP } from './routes';
 
 let t: TestApp;
 afterEach(() => t?.close());
@@ -79,15 +80,33 @@ describe('CSV import and export', () => {
 });
 
 describe('backup and restore', () => {
+  it('covers every table, apart from the ones left out on purpose', async () => {
+    t = await createTestApp();
+    const tables = (await t.db.introspection.getTables())
+      .map((x) => x.name)
+      .filter((n) => !n.startsWith('axlebook_migrations'));
+    const covered = new Set<string>([...BACKED_UP, ...NOT_BACKED_UP]);
+    expect(tables.filter((n) => !covered.has(n))).toEqual([]);
+  });
+
   it('round-trips a whole instance, files included, into an empty one', async () => {
     t = await createTestApp();
     const v = (
       await t.req({
         method: 'POST',
         url: '/api/v1/vehicles',
-        payload: vehicleBody({ nickname: 'Taco' }),
+        payload: vehicleBody({ nickname: 'Taco', category: 'semi' }),
       })
     ).json();
+    await t.req({
+      method: 'POST',
+      url: `/api/v1/vehicles/${v.id}/inspections`,
+      payload: {
+        type: 'pre_trip',
+        date: '2026-01-02',
+        items: [{ item: 'lights', ok: false, note: 'Marker out' }],
+      },
+    });
     const photo = multipartFile('file', 'p.png', tinyPng, 'image/png');
     await t.req({
       method: 'PUT',
@@ -171,6 +190,7 @@ describe('backup and restore', () => {
         parts: 1,
         reminders: 1,
         vehicle_shares: 1,
+        inspections: 1,
       });
 
       const [garage] = (await fresh.req({ method: 'GET', url: '/api/v1/vehicles' })).json();
@@ -188,6 +208,10 @@ describe('backup and restore', () => {
       expect(restored.completedReminderIds).toHaveLength(1);
       const file = await fresh.req({ method: 'GET', url: restored.attachments[0].url });
       expect(file.rawPayload.equals(tinyPdf)).toBe(true);
+      const [inspection] = (
+        await fresh.req({ method: 'GET', url: `/api/v1/vehicles/${garage.id}/inspections` })
+      ).json();
+      expect(inspection).toMatchObject({ defects: 1, items: [{ note: 'Marker out' }] });
       const [rem] = (await fresh.req({ method: 'GET', url: '/api/v1/reminders' })).json();
       expect(rem.dueOdometer).toBe(70_000);
       // The existing "admin" account was matched, the friend was created with their share.

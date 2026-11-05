@@ -62,7 +62,22 @@ const BACKUP_TABLES: {
     optional: ['converted_record_id'],
   },
   { name: 'notification_channels', fks: { user_id: 'users' } },
+  {
+    name: 'inspections',
+    fks: { vehicle_id: 'vehicles', created_by: 'users' },
+    optional: ['created_by'],
+  },
 ];
+
+/** Tables deliberately left out of backups: sign-ins, delivery history and regenerable caches. */
+export const NOT_BACKED_UP = [
+  'sessions',
+  'api_tokens',
+  'instance_settings', // saved separately as `settings`, admins only
+  'notification_log',
+  'vehicle_insights',
+] as const;
+export const BACKED_UP = BACKUP_TABLES.map((t) => t.name);
 
 type Rows = Record<string, Record<string, unknown>[]>;
 
@@ -269,6 +284,7 @@ export const importExportRoutes =
         recordParts,
         plan,
         channels,
+        inspections,
       ] = await Promise.all([
         all ? db.selectFrom('users').selectAll().execute() : Promise.resolve([user]),
         all ? db.selectFrom('vehicle_shares').selectAll().execute() : none(),
@@ -304,6 +320,9 @@ export const importExportRoutes =
               .selectAll()
               .where('user_id', '=', user.id)
               .execute(),
+        vIds.length
+          ? db.selectFrom('inspections').selectAll().where('vehicle_id', 'in', vIds).execute()
+          : none(),
       ]);
       return {
         users,
@@ -320,6 +339,7 @@ export const importExportRoutes =
         record_parts: recordParts,
         plan_items: plan,
         notification_channels: channels,
+        inspections,
       } as unknown as Rows;
     }
 
