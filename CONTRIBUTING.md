@@ -28,11 +28,11 @@ docker run -d --name axlebook-pg -e POSTGRES_PASSWORD=dev -p 5432:5432 postgres:
 DATABASE_URL=postgres://postgres:dev@localhost:5432/postgres npm run dev
 ```
 
-To work on the local AI features, run Ollama and point the server at it:
+To work on the local assistant, run Ollama and point the server at it:
 
 ```bash
 docker run -d --name axlebook-ollama -p 127.0.0.1:11434:11434 -v axlebook-ollama:/root/.ollama ollama/ollama:0.40.14
-AI_URL=http://127.0.0.1:11434 npm run dev     # pulls qwen2.5:3b on first start
+OLLAMA_URL=http://127.0.0.1:11434 npm run dev     # pulls gemma3:4b on first start
 ```
 
 ## Before you open a PR
@@ -61,10 +61,13 @@ CI runs all of these, including the Postgres suite.
   keyboard-operable, and never signal status with color alone.
 - **Tests:** domain logic (MPG, reminders, imports) needs table-driven unit tests. New API
   routes need integration tests.
-- **Local AI:** it's always optional, and every feature has to work without it. AI answers go
-  through a Zod schema with length limits and are checked against real data (real column names,
-  real record ids) before anything is used. Tests use `fakeAi()` from `src/test/helpers.ts`,
-  never a real model.
+- **Local assistant (Ollama):** it's always optional, and every feature has to work without it.
+  Requests go only to `OLLAMA_URL`. Model answers go through a Zod schema with length limits and
+  are checked against real data (real column names, record ids, vehicles the person can edit)
+  before anything is used, and they only ever pre-fill a form: nothing is saved without the
+  person's confirmation. Tests use `fakeAi()` or the fake Ollama server in
+  `src/test/fake-ollama.ts`. `real-ollama.test.ts` runs against a real Ollama when
+  `OLLAMA_TEST_URL` is set (CI runs it as an optional job with a small model).
 
 ## Brand
 

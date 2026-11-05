@@ -58,7 +58,7 @@ phone home, and your records never leave your network unless you send them somew
     <td width="33%" valign="top">
       <img src="logo-assets/icons/png/orange/garage-96.png" width="32" alt=""><br>
       <b>Yours, on your hardware</b><br>
-      One <code>docker compose up</code>. SQLite out of the box, Postgres if you'd rather. No telemetry, no outside calls unless you set up notifications, and a one-click backup of everything. The optional AI runs on your box too.
+      One <code>docker compose up</code>. SQLite out of the box, Postgres if you'd rather. No telemetry, no outside calls unless you set up notifications, and a one-click backup of everything. The optional assistant runs on your box too.
     </td>
   </tr>
 </table>
@@ -138,15 +138,22 @@ phone home, and your records never leave your network unless you send them somew
   </tr>
 </table>
 
-### Optional local AI
+### Optional local assistant (Ollama)
 
-If you run [Ollama](https://ollama.com) next to Axlebook, it can help in a few places: reading a
-messy spreadsheet, tailoring the maintenance schedule to your exact make and model, estimating
-what economy your vehicle should get for its age and mileage, and giving tips specific to it.
+If you run [Ollama](https://ollama.com) next to Axlebook, a model on your own machine can:
+
+- **scan a receipt**: take a photo at the pump or the shop and the date, station, amounts and fuel
+  go into the form, with the photo kept on the record;
+- **fill in a record from a sentence**: "filled up 10.8 gal at 3.49, 61402 mi, civic";
+- **answer questions from your logbook**: "when did I last change the oil on the Tacoma?", with
+  links to the records it used, and a plain "that isn't in your records" when it isn't;
+- help read a messy spreadsheet, tailor the maintenance schedule to your exact make and model,
+  and give tips for each vehicle.
 
 > [!NOTE]
-> The model runs on your own server. Nothing about your vehicles is sent anywhere, and
-> everything else works the same without it.
+> It's off unless you turn it on, and everything else works the same without it. Requests go only
+> to your Ollama server, never to a cloud service. Whatever it reads is a suggestion: nothing is
+> saved until you check the form and press Save.
 
 ## Screenshots
 
@@ -245,22 +252,24 @@ Linux and Windows.
 </details>
 
 <details>
-<summary><b>Turn on the local AI</b></summary>
+<summary><b>Turn on the local assistant (Ollama)</b></summary>
 
 <br>
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.ai.yml up -d
+echo "OLLAMA_URL=http://ollama:11434" >> .env
+docker compose --profile ollama up -d
 ```
 
-That adds an Ollama container on a private network (no published port) and points Axlebook at
-it. On first start it downloads the model once, about 2 GB for the default `qwen2.5:3b`; Settings
-shows the progress. After that it never needs the internet. For an offline install, set
-`AI_PULL=false` and pull the model into Ollama yourself.
+That starts Ollama on a private network (no published port) next to Axlebook. On first start it
+downloads the model once, about 3.3 GB for the default `gemma3:4b`, which also reads receipt
+photos; Settings shows the progress, lets an admin pick another model and has a Test button.
+After that it never needs the internet. Already running Ollama on the host? See
+[docs/configuration.md](docs/configuration.md#local-assistant-ollama).
 
-A small model on a CPU takes anywhere from a few seconds to a minute per answer. A GPU, or a
-bigger model through `AI_MODEL`, makes it faster and smarter. Treat what it says the way you'd
-treat advice from a friend who knows cars: useful, and worth checking against the manual.
+A small model on a CPU takes from a few seconds to a minute per answer; a GPU makes it much faster.
+Treat what it says the way you'd treat advice from a friend who knows cars: useful, and worth
+checking.
 </details>
 
 <details>
@@ -302,29 +311,30 @@ on first sign-in, and members of `OIDC_ADMIN_GROUP` become admins.
 ## Configuration
 
 Everything is an environment variable and everything is optional. Put them in a `.env` file next
-to `docker-compose.yml`; [`.env.example`](.env.example) lists all of them with notes.
+to `docker-compose.yml`; [`.env.example`](.env.example) lists all of them with notes, and
+[docs/configuration.md](docs/configuration.md) explains each one.
 
-| Variable                                                                       | Default                     |                                                                                                                         |
-| ------------------------------------------------------------------------------ | --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `BASE_URL`                                                                     |                             | The address people use, e.g. `https://cars.example.com`. Needed for single sign-on and links in notifications           |
-| `TZ`                                                                           | `UTC`                       | Your time zone, so "due today" means your today                                                                         |
-| `TRUST_PROXY`                                                                  | `false`                     | Trust `X-Forwarded-*` headers from a reverse proxy                                                                      |
-| `DATABASE_URL`                                                                 |                             | `postgres://…` to use Postgres; leave unset for SQLite                                                                  |
-| `DATA_DIR`                                                                     | `/data`                     | Database, photos and receipts                                                                                           |
-| `MAX_UPLOAD_MB`                                                                | `25`                        | Largest single upload                                                                                                   |
-| `ADMIN_USERNAME`, `ADMIN_PASSWORD`                                             |                             | Create the first admin without the setup screen                                                                         |
-| `SESSION_DAYS`                                                                 | `30`                        | How long a sign-in lasts without use                                                                                    |
-| `DISABLE_LOCAL_LOGIN`                                                          | `false`                     | Only allow single sign-on                                                                                               |
-| `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`                          |                             | Single sign-on. See also `OIDC_SCOPES`, `OIDC_LABEL`, `OIDC_AUTO_CREATE_USERS`, `OIDC_DEFAULT_ROLE`, `OIDC_ADMIN_GROUP` |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `SMTP_SECURE` |                             | Only needed for email notifications                                                                                     |
-| `AI_URL`                                                                       |                             | Address of an Ollama server for the optional local AI (`docker-compose.ai.yml` sets it)                                 |
-| `AI_MODEL`, `AI_PULL`, `AI_TIMEOUT_SEC`                                        | `qwen2.5:3b`, `true`, `300` | Which model, whether to download it on first start, and how long to wait for an answer                                  |
-| `REMINDER_SCAN_INTERVAL_MIN`                                                   | `60`                        | How often reminders are checked for notifications                                                                       |
-| `DEFAULT_UNIT_SYSTEM`                                                          | `imperial`                  | `imperial` or `metric` for new accounts                                                                                 |
-| `DEFAULT_CURRENCY`                                                             | `USD`                       | Currency for the instance (changeable in Settings)                                                                      |
-| `SEED_DEMO_DATA`                                                               | `false`                     | Add the demo Tacoma and Civic on first start                                                                            |
-| `PORT` / `AXLEBOOK_PORT`                                                       | `8080`                      | Port inside the container / port published by Compose                                                                   |
-| `LOG_LEVEL`                                                                    | `info`                      | `debug` when something's odd                                                                                            |
+| Variable                                                                       | Default                    |                                                                                                                               |
+| ------------------------------------------------------------------------------ | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `BASE_URL`                                                                     |                            | The address people use, e.g. `https://cars.example.com`. Needed for single sign-on and links in notifications                 |
+| `TZ`                                                                           | `UTC`                      | Your time zone, so "due today" means your today                                                                               |
+| `TRUST_PROXY`                                                                  | `false`                    | Trust `X-Forwarded-*` headers from a reverse proxy                                                                            |
+| `DATABASE_URL`                                                                 |                            | `postgres://…` to use Postgres; leave unset for SQLite                                                                        |
+| `DATA_DIR`                                                                     | `/data`                    | Database, photos and receipts                                                                                                 |
+| `MAX_UPLOAD_MB`                                                                | `25`                       | Largest single upload                                                                                                         |
+| `ADMIN_USERNAME`, `ADMIN_PASSWORD`                                             |                            | Create the first admin without the setup screen                                                                               |
+| `SESSION_DAYS`                                                                 | `30`                       | How long a sign-in lasts without use                                                                                          |
+| `DISABLE_LOCAL_LOGIN`                                                          | `false`                    | Only allow single sign-on                                                                                                     |
+| `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`                          |                            | Single sign-on. See also `OIDC_SCOPES`, `OIDC_LABEL`, `OIDC_AUTO_CREATE_USERS`, `OIDC_DEFAULT_ROLE`, `OIDC_ADMIN_GROUP`       |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `SMTP_SECURE` |                            | Only needed for email notifications                                                                                           |
+| `OLLAMA_URL`                                                                   |                            | Address of an Ollama server for the optional local assistant. Unset means off                                                 |
+| `OLLAMA_MODEL`, `OLLAMA_PULL`, `OLLAMA_TIMEOUT_SEC`                            | `gemma3:4b`, `true`, `300` | Default model (an admin can change it in Settings), whether to download it on first start, and how long to wait for an answer |
+| `REMINDER_SCAN_INTERVAL_MIN`                                                   | `60`                       | How often reminders are checked for notifications                                                                             |
+| `DEFAULT_UNIT_SYSTEM`                                                          | `imperial`                 | `imperial` or `metric` for new accounts                                                                                       |
+| `DEFAULT_CURRENCY`                                                             | `USD`                      | Currency for the instance (changeable in Settings)                                                                            |
+| `SEED_DEMO_DATA`                                                               | `false`                    | Add the demo Tacoma and Civic on first start                                                                                  |
+| `PORT` / `AXLEBOOK_PORT`                                                       | `8080`                     | Port inside the container / port published by Compose                                                                         |
+| `LOG_LEVEL`                                                                    | `info`                     | `debug` when something's odd                                                                                                  |
 
 ## Backups
 
@@ -362,7 +372,7 @@ rounded on the way in.
 
 Things I'd like to add, roughly in order: more languages (if you'd like to translate, see
 [CONTRIBUTING.md](CONTRIBUTING.md)), recurring costs that log themselves, a VIN decoder that
-works offline, and reading the details off a receipt photo with the local AI. Ideas and requests are welcome in
+works offline, and more that the local assistant can help with. Ideas and requests are welcome in
 [Discussions](https://github.com/aubergine-ux/axlebook/discussions).
 
 ## Built with
