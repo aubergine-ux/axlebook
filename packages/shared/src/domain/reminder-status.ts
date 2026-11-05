@@ -72,6 +72,14 @@ export function nextDue(
   };
 }
 
+/** Ascending, with unknown values after known ones (and equal to each other). */
+function nullsLast(a: number | null, b: number | null): number {
+  if (a === b) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
+  return a - b;
+}
+
 /** Sort key: overdue first, then due soon, then upcoming; then soonest. */
 export function compareReminders(
   a: ReminderState & { dueDate: string | null },
@@ -79,7 +87,7 @@ export function compareReminders(
 ): number {
   return (
     RANK[b.status] - RANK[a.status] ||
-    (a.daysLeft ?? Number.POSITIVE_INFINITY) - (b.daysLeft ?? Number.POSITIVE_INFINITY) ||
-    (a.distanceLeft ?? Number.POSITIVE_INFINITY) - (b.distanceLeft ?? Number.POSITIVE_INFINITY)
+    nullsLast(a.daysLeft, b.daysLeft) ||
+    nullsLast(a.distanceLeft, b.distanceLeft)
   );
 }

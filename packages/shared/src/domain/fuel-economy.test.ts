@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeFuelEconomy, type FillInput } from './fuel-economy';
+import { computeFuelEconomy, type FillInput, sortFills } from './fuel-economy';
 
 let nextId = 1;
 const fill = (odometer: number, gallons: number, opts: Partial<FillInput> = {}): FillInput => ({
@@ -81,5 +81,17 @@ describe('computeFuelEconomy', () => {
   it('works in metric units (km per liter)', () => {
     const r = computeFuelEconomy([fill(10_000, 40), fill(10_600, 45)]);
     expect(r.fills[1]?.economy).toBeCloseTo(600 / 45);
+  });
+});
+
+describe('fills on the same odometer and date', () => {
+  it('keep the order they were entered in', () => {
+    const fills: FillInput[] = [
+      fill(1000, 10, { id: 900, date: '2026-01-01' }),
+      fill(1300, 4, { id: 902, date: '2026-01-10', isFull: false }),
+      fill(1300, 6, { id: 901, date: '2026-01-10' }),
+      fill(1600, 10, { id: 903, date: '2026-01-20' }),
+    ];
+    expect(sortFills(fills).map((f) => f.id)).toEqual([900, 901, 902, 903]);
   });
 });

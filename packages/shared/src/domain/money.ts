@@ -51,7 +51,8 @@ export function formatMoney(
   { currency, locale, precise }: FormatMoneyOptions,
 ): string {
   const base = new Intl.NumberFormat(locale, { style: 'currency', currency });
-  const digits = base.resolvedOptions().maximumFractionDigits ?? 2;
+  // Currency formats always resolve their digit count (2 for USD, 0 for JPY, 3 for KWD).
+  const digits = base.resolvedOptions().maximumFractionDigits as number;
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,

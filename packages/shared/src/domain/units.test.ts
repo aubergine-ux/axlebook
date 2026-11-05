@@ -56,3 +56,16 @@ describe('hour meters and kWh', () => {
     expect(nativeEconomy(30, 'mi', 'gal_us')).toBeNull();
   });
 });
+
+describe('ordinary vehicles', () => {
+  it('have no native economy: they use computeEconomy', () => {
+    expect(nativeEconomy(30, 'mi', 'gal_us')).toBeNull();
+    expect(nativeEconomy(0, 'hr', 'l')).toBeNull();
+  });
+
+  it('gives MPG in UK gallons and km/L', () => {
+    // 300 mi on 10 US gal = 30 MPG (US) = 36.03 MPG (UK) = 12.75 km/L.
+    expect(computeEconomy(300, 'mi', 10, 'gal_us', 'mpg_uk')).toBeCloseTo(36.03, 2);
+    expect(computeEconomy(300, 'mi', 10, 'gal_us', 'km_per_l')).toBeCloseTo(12.75, 2);
+  });
+});

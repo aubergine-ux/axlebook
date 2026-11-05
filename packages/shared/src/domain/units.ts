@@ -66,16 +66,14 @@ export function computeEconomy(
   if (!isDistanceUnit(distanceUnit) || !isLiquidUnit(volumeUnit)) return null;
   const km = convertDistance(distance, distanceUnit, 'km');
   const liters = convertVolume(volume, volumeUnit, 'l');
-  switch (target) {
-    case 'km_per_l':
-      return km / liters;
-    case 'l_per_100km':
-      return (liters / km) * 100;
-    case 'mpg_us':
-      return convertDistance(km, 'km', 'mi') / convertVolume(liters, 'l', 'gal_us');
-    case 'mpg_uk':
-      return convertDistance(km, 'km', 'mi') / convertVolume(liters, 'l', 'gal_uk');
-  }
+  const miles = convertDistance(km, 'km', 'mi');
+  const economy: Record<EconomyUnit, number> = {
+    km_per_l: km / liters,
+    l_per_100km: (liters / km) * 100,
+    mpg_us: miles / convertVolume(liters, 'l', 'gal_us'),
+    mpg_uk: miles / convertVolume(liters, 'l', 'gal_uk'),
+  };
+  return economy[target];
 }
 
 /**

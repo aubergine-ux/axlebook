@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, addMonths, daysBetween } from './dates';
-import { computeReminderStatus, nextDue, type ReminderDue } from './reminder-status';
+import { addDays, addMonths, daysBetween, monthKey, today } from './dates';
+import {
+  compareReminders,
+  computeReminderStatus,
+  nextDue,
+  type ReminderDue,
+  type ReminderStatus,
+} from './reminder-status';
 
 const base: ReminderDue = {
   dueMode: 'either',
@@ -112,5 +118,48 @@ describe('dates', () => {
     expect(addDays('2026-03-07', 2)).toBe('2026-03-09');
     expect(daysBetween('2028-02-28', '2028-03-01')).toBe(2);
     expect(daysBetween('2026-11-04', '2026-11-03')).toBe(-1);
+  });
+});
+
+describe('compareReminders', () => {
+  const r = (status: ReminderStatus, daysLeft: number | null, distanceLeft: number | null) => ({
+    status,
+    daysLeft,
+    distanceLeft,
+    dueDate: null,
+  });
+
+  it('puts overdue first, then the soonest, with unknowns last', () => {
+    const list = [
+      r('upcoming', 90, null),
+      r('overdue', -3, null),
+      r('due_soon', null, 200),
+      r('due_soon', 10, null),
+      r('due_soon', 10, 50),
+      r('due_soon', 10, 100),
+      r('upcoming', null, null),
+      r('inactive', null, null),
+    ];
+    expect([...list].sort(compareReminders)).toEqual([
+      r('overdue', -3, null),
+      r('due_soon', 10, 50),
+      r('due_soon', 10, 100),
+      r('due_soon', 10, null),
+      r('due_soon', null, 200),
+      r('upcoming', 90, null),
+      r('upcoming', null, null),
+      r('inactive', null, null),
+    ]);
+    expect(compareReminders(r('upcoming', null, null), r('upcoming', null, null))).toBe(0);
+  });
+});
+
+describe('today and monthKey', () => {
+  it("gives today's date in a time zone, and the month of a date", () => {
+    expect(today('UTC')).toBe(new Date().toISOString().slice(0, 10));
+    expect(today()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // Kiritimati (UTC+14) and Niue (UTC-11) are never on the same date.
+    expect(today('Pacific/Kiritimati')).not.toBe(today('Pacific/Niue'));
+    expect(monthKey('2026-11-04')).toBe('2026-11');
   });
 });
