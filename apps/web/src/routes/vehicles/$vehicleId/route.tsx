@@ -83,7 +83,7 @@ function VehicleLayout() {
                 />
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="ax-display text-[28px] leading-[30px] md:text-display">
+                <h1 className="ax-display text-[28px] leading-[32px] md:text-display md:leading-[44px]">
                   {v.nickname ?? title}
                 </h1>
                 {v.nickname && <p className="text-ink-muted">{title}</p>}

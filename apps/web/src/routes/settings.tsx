@@ -821,7 +821,7 @@ function SettingsPage() {
             {t('settings.source')}
           </a>
         </p>
-        <Button className="mt-4 md:hidden" onPress={() => logout.mutate()}>
+        <Button className="mt-4 lg:hidden" onPress={() => logout.mutate()}>
           {t('nav.signOut')}
         </Button>
       </Section>

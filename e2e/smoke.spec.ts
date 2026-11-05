@@ -81,6 +81,9 @@ test('the API docs and a backup are available', async ({ page }, info) => {
   expect((await docs.json()).paths).toHaveProperty('/api/v1/vehicles/{vehicleId}/records');
   const backup = await page.request.get('/api/v1/backup');
   expect(backup.headers()['content-type']).toBe('application/zip');
+  // Deep links get the app; a missing file is a plain 404, not the app page.
+  expect((await page.request.get('/vehicles/1/fuel')).headers()['content-type']).toMatch(/html/);
+  expect((await page.request.get('/assets/gone-1234.js')).status()).toBe(404);
 });
 
 test('import a spreadsheet covering two vehicles, then add a maintenance schedule', async ({

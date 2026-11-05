@@ -25,7 +25,11 @@ export async function registerSpa(app: FastifyInstance, webDir: string) {
   }
   app.setNotFoundHandler((request, reply) => {
     const isApi = request.url.startsWith('/api/');
-    if (!isApi && hasWeb && request.method === 'GET') {
+    // A missing file (an old build's /assets/x.js) is a 404, not the app page: answering with
+    // HTML would surface as a confusing MIME error in the browser.
+    const path = request.url.split('?')[0] ?? '';
+    const isFile = path.startsWith('/assets/') || /\.[a-z0-9]{1,5}$/i.test(path);
+    if (!isApi && !isFile && hasWeb && request.method === 'GET') {
       return reply.header('Cache-Control', 'no-cache').sendFile('index.html');
     }
     return reply.status(404).send({ error: { code: 'not_found' } });

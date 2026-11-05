@@ -1,4 +1,11 @@
-import { computeEconomy, fromMilli, type Report, vehicleTitle } from '@axlebook/shared';
+import {
+  computeEconomy,
+  fromMilli,
+  isDistanceUnit,
+  isLiquidUnit,
+  type Report,
+  vehicleTitle,
+} from '@axlebook/shared';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -96,7 +103,10 @@ function ReportsPage() {
       ? t(`record.categories.${c.key}` as 'record.categories.other')
       : t(`record.kinds.${c.kind}`);
   const economyLines = (r?.vehicles ?? [])
-    .filter((v) => v.fuelTrend.length > 1)
+    // Hour meters (gal/h) and EVs (mi/kWh) don't share an MPG axis; their fuel pages show them.
+    .filter(
+      (v) => v.fuelTrend.length > 1 && isDistanceUnit(v.odometerUnit) && isLiquidUnit(v.fuelUnit),
+    )
     .slice(0, 4)
     .map((v, i) => ({
       key: String(v.id),

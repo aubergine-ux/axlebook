@@ -44,7 +44,8 @@
   --text-display-xl: 64px;
   --text-display-xl--line-height: 62px;
   --text-display: 40px;
-  --text-display--line-height: 40px;
+  /* A little air for titles that wrap onto two or three lines. */
+  --text-display--line-height: 44px;
   --text-title: 24px;
   --text-title--line-height: 30px;
   --text-heading: 17px;

@@ -104,7 +104,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       aria-current={current(item)}
                       activeProps={{}}
                       activeOptions={{ exact: true }}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 text-label text-ink-muted hover:bg-surface-sunken hover:text-ink aria-[current=page]:bg-orange-soft aria-[current=page]:text-orange-text"
+                      className="flex items-center gap-2 whitespace-nowrap rounded-md px-2 py-2 text-label text-ink-muted hover:bg-surface-sunken lg:px-3 hover:text-ink aria-[current=page]:bg-orange-soft aria-[current=page]:text-orange-text"
                     >
                       <Icon name={item.icon} size={16} />
                       {t(`nav.${k}`)}
@@ -127,7 +127,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
             <Link
               to="/log"
-              className="hidden items-center gap-2 rounded-md border border-line-strong px-3 py-2 text-label hover:bg-surface-sunken md:flex"
+              className="hidden items-center gap-2 whitespace-nowrap rounded-md border border-line-strong px-3 py-2 text-label hover:bg-surface-sunken md:flex"
             >
               <Icon name="fuel" size={16} />
               {t('nav.logFuel')}
@@ -143,7 +143,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Icon name="settings" size={20} />
             </Link>
             {me && (
-              <div className="ml-2 hidden items-center gap-2 border-l border-line pl-3 md:flex">
+              <div className="ml-2 hidden items-center gap-2 border-l border-line pl-3 lg:flex">
                 <span className="max-w-32 truncate text-caption text-ink-muted">
                   {me.displayName ?? me.username}
                 </span>
