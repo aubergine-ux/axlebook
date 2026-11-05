@@ -26,6 +26,17 @@ export function registerErrorHandler(app: FastifyInstance) {
         error: { code: 'validation_failed', params: { context: err.validationContext, issues } },
       });
     }
+    // A garbled upload: the multipart parser throws plain errors with no status code.
+    if (
+      !(err as { statusCode?: number }).statusCode &&
+      /^Multipart:|multipart data|Malformed part header|Unexpected end of form/i.test(
+        String((err as Error).message),
+      )
+    ) {
+      return reply.status(400).send({
+        error: { code: 'validation_failed', params: { field: 'file', reason: 'malformed' } },
+      });
+    }
     const status = (err as { statusCode?: number }).statusCode ?? 500;
     if (status === 413 || (err as { code?: string }).code === 'FST_REQ_FILE_TOO_LARGE') {
       return reply.status(413).send({ error: { code: 'payload_too_large' } });
