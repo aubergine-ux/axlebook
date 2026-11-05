@@ -278,7 +278,9 @@ export class SpreadsheetImporter {
         include: p.include,
         headerRow,
         vehicleColumn: proposedCols.vehicle ?? null,
-        vehicleKey: p.vehicleKey?.trim().slice(0, 120) || null,
+        vehicleKey:
+          p.vehicleKey?.trim().slice(0, 120) ||
+          (proposedCols.vehicle ? null : (fallback?.vehicleKey ?? null)),
         kindColumn,
         kindValues,
         defaultKind: p.defaultKind,

@@ -10,7 +10,7 @@ import {
   type VehiclePlan,
 } from '@axlebook/shared';
 import { parseVehicleText } from './vehicle-text';
-import { detectHeaderRow, headersOf, type Sheet } from './workbook';
+import { detectHeaderRow, headersOf, parseAnyDate, type Sheet } from './workbook';
 
 export const squash = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -334,6 +334,71 @@ export function matchColumns(headers: string[]): Partial<Record<Target, string>>
   return out;
 }
 
+const datesIn = (values: string[]) =>
+  values.filter((v) => parseAnyDate(v, 'mdy') ?? parseAnyDate(v, 'dmy')).length;
+
+/** Summary and reminder columns hold dates too, but not the date of each row. */
+const NOT_ROW_DATE = /\b(last|next|first|due|since|until|expires?|purchased?|bought|born)\b/i;
+
+/**
+ * The column whose values are mostly dates, for sheets whose date header has an unusual name
+ * ("When?", "Day done", or no name at all).
+ */
+export function sniffDateColumn(rows: string[][], headerRow: number, taken: Set<string>) {
+  const headers = headersOf(rows, headerRow);
+  const body = rows.slice(headerRow + 1, headerRow + 41);
+  let best: { h: string; n: number } | null = null;
+  headers.forEach((h, i) => {
+    if (taken.has(h) || NOT_ROW_DATE.test(h)) return;
+    const vals = body.map((r) => (r[i] ?? '').trim()).filter((v) => v !== '');
+    // Bare numbers could be Excel serial dates, but they could just as well be odometers.
+    const n = datesIn(vals.filter((v) => !/^\d+(\.\d+)?$/.test(v)));
+    if (n >= 2 && n >= vals.length * 0.6 && (!best || n > best.n)) best = { h, n };
+  });
+  return (best as { h: string } | null)?.h ?? null;
+}
+
+/**
+ * How well a row works as the header: fields its names map to, plus a large bonus when there's a
+ * date column (named or sniffed) with real dates beneath it.
+ */
+function headerScore(rows: string[][], i: number): number {
+  const filled = (rows[i] ?? []).filter((c) => c.trim() !== '').length;
+  if (filled < 2) return -1;
+  const headers = headersOf(rows, i);
+  const m = matchColumns(headers);
+  const fields = Object.values(m).filter(Boolean).length;
+  if (m.date) {
+    const di = headers.indexOf(m.date);
+    const vals = rows.slice(i + 1, i + 41).map((r) => (r[di] ?? '').trim());
+    // A "Date" header over no dates yet (an empty log) still beats a row with no date at all.
+    if (datesIn(vals) > 0) return 100 + fields;
+  }
+  if (sniffDateColumn(rows, i, new Set(Object.values(m).filter(Boolean) as string[])))
+    return 100 + fields;
+  return (m.date ? 50 : 0) + fields;
+}
+
+/**
+ * The header row. Spreadsheets often start with a title, a few lines of vehicle details or a
+ * stats strip before the table, so the first text row isn't enough: look through the top rows
+ * for the one with a working date column and the most recognisable column names.
+ */
+export function findHeaderRow(rows: string[][]): number {
+  const first = detectHeaderRow(rows);
+  let best = first;
+  let bestScore = headerScore(rows, first);
+  if (bestScore >= 100) return first;
+  for (let i = 0; i < Math.min(rows.length, 20); i++) {
+    const s = headerScore(rows, i);
+    if (s >= 50 && s > bestScore) {
+      best = i;
+      bestScore = s;
+    }
+  }
+  return best;
+}
+
 const DMY_HINT = /^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/;
 
 /** "dmy" if some date only makes sense day-first, "mdy" if month-first, else the fallback. */
@@ -480,12 +545,48 @@ export function vehicleKeys(sheets: Sheet[], plans: SheetPlan[], fileName: strin
   return [...seen.values()].slice(0, 100);
 }
 
+/** "2008 PONTIAC SOLSTICE GXP" → "2008 Pontiac Solstice GXP": shouted words, not codes (nicknames have none). */
+const tidyCaps = (s: string, codes = true) =>
+  s === s.toUpperCase()
+    ? s.replace(codes ? /\b[A-Z]{4,}\b/g : /\b[A-Z]{2,}\b/g, (w) => w[0] + w.slice(1).toLowerCase())
+    : s;
+
+/**
+ * A vehicle named in the rows above the header: a title cell like "2006 Infiniti FX45", plus a
+ * "Nickname: Sally" note if there is one. Only text with a year and a make counts.
+ */
+export function vehicleFromTitle(above: string[][]): string | null {
+  const cells = above
+    .flat()
+    .map((c) => c.trim())
+    .filter(Boolean);
+  const title = cells.find((c) => {
+    if (c.length > 80) return false;
+    const v = parseVehicleText(c);
+    return v.year != null && v.make != null && v.model != null && !v.nickname;
+  });
+  if (!title) return null;
+  const nick = cells
+    .map((c) => /\bnick ?name\b\s*[:=–—-]?\s*([^·•|;,\n]+)/i.exec(c)?.[1]?.trim())
+    .find((n) => n && /[a-z0-9]/i.test(n));
+  return (nick ? `${tidyCaps(title)} (${tidyCaps(nick, false)})` : tidyCaps(title)).slice(0, 120);
+}
+
 /** A starting plan for one sheet, worked out from its headers and values. */
 export function planSheet(sheet: Sheet, opts: PlanOptions): SheetPlan {
-  const headerRow = detectHeaderRow(sheet.rows);
+  const headerRow = findHeaderRow(sheet.rows);
   const headers = headersOf(sheet.rows, headerRow);
   const body = sheet.rows.slice(headerRow + 1);
   const m = matchColumns(headers);
+  // No header says "date": take the column that's full of dates.
+  if (!m.date) {
+    const sniffed = sniffDateColumn(
+      sheet.rows,
+      headerRow,
+      new Set(Object.values(m).filter(Boolean) as string[]),
+    );
+    if (sniffed) m.date = sniffed;
+  }
   const values = (h: string | undefined) => {
     const i = h == null ? -1 : headers.indexOf(h);
     return i < 0 ? [] : body.map((r) => (r[i] ?? '').trim()).filter((v) => v !== '');
@@ -540,7 +641,7 @@ export function planSheet(sheet: Sheet, opts: PlanOptions): SheetPlan {
       ),
     headerRow,
     vehicleColumn: m.vehicle ?? null,
-    vehicleKey: null,
+    vehicleKey: m.vehicle ? null : vehicleFromTitle(sheet.rows.slice(0, headerRow)),
     kindColumn: m.kind ?? null,
     kindValues,
     defaultKind,

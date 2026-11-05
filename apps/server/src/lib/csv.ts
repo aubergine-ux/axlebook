@@ -1,7 +1,10 @@
 /** RFC 4180 CSV: quoted fields, embedded commas, quotes and newlines; CRLF or LF. */
 
-/** `delimiter` defaults to comma; tab and semicolon files are common exports too. */
-export function parseCsv(text: string, delimiter = ','): string[][] {
+/**
+ * `delimiter` defaults to comma; tab and semicolon files are common exports too. Blank lines are
+ * dropped unless `keepBlank` is set (to count rows the way a spreadsheet app numbers them).
+ */
+export function parseCsv(text: string, delimiter = ',', { keepBlank = false } = {}): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = '';
@@ -32,7 +35,7 @@ export function parseCsv(text: string, delimiter = ','): string[][] {
     row.push(field);
     rows.push(row);
   }
-  return rows.filter((r) => r.some((f) => f.trim() !== ''));
+  return keepBlank ? rows : rows.filter((r) => r.some((f) => f.trim() !== ''));
 }
 
 const needsQuote = /[",\r\n]|^\s|\s$/;

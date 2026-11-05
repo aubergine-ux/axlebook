@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { applyPlan, numberStyle, parseAnyDate, parseNumber, parseOdometer } from './apply';
+import { makeXlsx } from '../../test/xlsx';
+import { applyPlan, numberStyle, parseNumber, parseOdometer } from './apply';
 import {
   detectDateOrder,
   fuelUnitFrom,
@@ -11,7 +12,7 @@ import {
   vehicleWordsIn,
 } from './plan';
 import { parseVehicleText } from './vehicle-text';
-import { detectHeaderRow, headersOf } from './workbook';
+import { detectHeaderRow, headersOf, parseAnyDate, readWorkbook } from './workbook';
 
 const opts = (over: Partial<PlanOptions> = {}): PlanOptions => ({
   fileName: 'cars.xlsx',
@@ -175,6 +176,7 @@ describe('values', () => {
     expect(parseOdometer('1234.6')).toBe(1235);
     expect(parseOdometer('')).toBeNull();
     expect(parseOdometer('lots')).toBeUndefined();
+    expect(parseOdometer('—')).toBeNull();
   });
 
   it('parses dates in the forms people type', () => {
@@ -185,6 +187,7 @@ describe('values', () => {
     expect(parseAnyDate('5th January 2024', 'dmy')).toBe('2024-01-05');
     expect(parseAnyDate('45292', 'mdy')).toBe('2024-01-01');
     expect(parseAnyDate('soon', 'mdy')).toBeNull();
+    expect(parseAnyDate('Prices are from Oct 30, 2026, before shipping', 'mdy')).toBeNull();
     expect(detectDateOrder(['1/2/2024', '25/2/2024'], 'mdy')).toBe('dmy');
     expect(detectDateOrder(['1/2/2024', '2/25/2024'], 'dmy')).toBe('mdy');
   });
@@ -290,6 +293,104 @@ describe('plans', () => {
       fuelUnit: 'l',
     });
     expect(plan.sheets[1]?.dateOrder).toBe('dmy');
+  });
+
+  it('reads a dashboard-style sheet: title, stats strip, log, totals, then a second table', () => {
+    const wb = [
+      {
+        name: 'Garage',
+        rows: [
+          ['', 'GARAGE', ''],
+          ['', 'VEHICLES', 'RECORDS', 'TOTAL SPENT', 'LAST SERVICE'],
+          ['', '1', '3', '140', '2024-03-01'],
+          ['', 'LAST SERVICE', 'ODOMETER', 'VEHICLE', 'SPENT'],
+          ['', '2024-03-01', '84500', '2015 TOYOTA TACOMA', '140'],
+        ],
+      },
+      {
+        name: 'Tacoma',
+        rows: [
+          ['', '2015 TOYOTA TACOMA SR5', '', '', '', ''],
+          ['', 'NICKNAME  OLD BLUE    ·    PLATE  ABC-123    ·    VIN  —', '', '', '', ''],
+          ['', 'ODOMETER', 'MILES TRACKED', 'RECORDS', 'TOTAL SPENT', 'LAST SERVICE'],
+          ['', '84500', '500', '3', '140', '2024-03-01'],
+          ['', 'DATE', 'TYPE', 'ODOMETER', 'SERVICE', 'COST'],
+          ['', '2024-01-05', 'SERVICE', '84000', 'OIL CHANGE', '40'],
+          ['', 'Feb 2, 2024', 'REPAIR', '—', 'WIPER MOTOR', '—'],
+          ['', '2024-03-01', 'UPGRADE', '84500', 'LIGHT BAR', '100'],
+          ['', '3', '', '', 'TOTAL', '140'],
+          ['', 'Add new records above TOTAL; the Garage tab updates from Mar 1, 2024 on.'],
+          ['', 'PENDING WORK'],
+          ['', 'PRIORITY', 'STATUS', 'DEALER $', 'ITEM', 'PARTS COST'],
+          ['', 'HIGH', 'TO ORDER', '600', 'BELTS', '33'],
+        ],
+      },
+    ];
+    const plan = matchPlan(wb, opts());
+    expect(plan.sheets[0]?.include).toBe(false);
+    expect(plan.sheets[1]).toMatchObject({ include: true, headerRow: 4, kindColumn: 'TYPE' });
+    expect(plan.vehicles).toEqual([
+      expect.objectContaining({
+        key: '2015 Toyota Tacoma SR5 (Old Blue)',
+        year: 2015,
+        make: 'Toyota',
+        model: 'Tacoma',
+        trim: 'SR5',
+        nickname: 'Old Blue',
+      }),
+    ]);
+    const { rows } = applyPlan(wb, plan, 'garage.xlsx');
+    expect(rows.filter((r) => r.error)).toEqual([]);
+    expect(
+      rows.filter((r) => r.input).map((r) => [r.input?.kind, r.input?.date, r.input?.odometer]),
+    ).toEqual([
+      ['service', '2024-01-05', 84_000],
+      ['repair', '2024-02-02', null],
+      ['upgrade', '2024-03-01', 84_500],
+    ]);
+  });
+
+  it('finds the date column by its values when no header says "date"', () => {
+    const wb = [
+      {
+        name: 'Civic',
+        rows: [
+          ['Done on', 'Next due', 'Miles', 'What', '$'],
+          ['3/1/2024', '9/1/2024', '40000', 'Oil', '45'],
+          ['4/2/2024', '10/2/2024', '41000', 'Tires', '600'],
+        ],
+      },
+    ];
+    const plan = matchPlan(wb, opts());
+    expect(plan.sheets[0]).toMatchObject({ include: true });
+    expect(plan.sheets[0]?.columns).toMatchObject({ date: 'Done on', odometer: 'Miles' });
+    const { rows } = applyPlan(wb, plan, 'cars.xlsx');
+    expect(rows.map((r) => r.input?.date)).toEqual(['2024-03-01', '2024-04-02']);
+  });
+
+  it('reports row numbers as the spreadsheet shows them, blank rows included', async () => {
+    const rows = [
+      ['Fuel log'],
+      [],
+      ['Date', 'Odometer', 'Cost'],
+      ['1/5/2024', '1000', '40'],
+      [],
+      [],
+      ['someday', '1200', '45'],
+    ];
+    const csv = Buffer.from(rows.map((r) => r.join(',')).join('\n'));
+    for (const [name, file] of [
+      ['log.xlsx', makeXlsx([{ name: 'Log', rows }])],
+      ['log.csv', csv],
+    ] as const) {
+      const wb = await readWorkbook(name, file);
+      const plan = matchPlan(wb, opts());
+      const out = applyPlan(wb, plan, name).rows;
+      expect(out.map((r) => [r.row, r.error ?? null])).toEqual([
+        [4, null],
+        [7, 'date'],
+      ]);
+    }
   });
 
   it('matches existing vehicles by nickname or model', () => {

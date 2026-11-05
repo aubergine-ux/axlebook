@@ -13,9 +13,17 @@ import {
   type SpreadsheetPlan,
   toMilli,
 } from '@axlebook/shared';
-import { parseBool, parseDate } from '../import-export/parse';
-import { bodyRows, fuelUnitFrom, kindOf, odometerUnitFrom, rowKeys, squash } from './plan';
-import { headersOf, type Sheet } from './workbook';
+import { parseBool } from '../import-export/parse';
+import {
+  bodyRows,
+  fuelUnitFrom,
+  kindOf,
+  matchColumns,
+  odometerUnitFrom,
+  rowKeys,
+  squash,
+} from './plan';
+import { headersOf, parseAnyDate, rowNumberOf, type Sheet } from './workbook';
 
 export interface PlannedRow {
   sheet: string;
@@ -70,43 +78,12 @@ export function parseNumber(
 
 /** Odometers are whole numbers; "84,100", "84.100" and "84 100" all mean 84100 here. */
 export function parseOdometer(raw: string | undefined): number | null | undefined {
-  if (raw == null || raw.trim() === '') return null;
+  if (raw == null || raw.trim() === '' || /^[-–—]+$|^n\/?a$/i.test(raw.trim())) return null;
   const s = raw.trim().replace(/\s*(mi|miles|km|kms|hrs?|hours)\.?$/i, '');
   if (/^\d{1,3}([,.\s]\d{3})+$/.test(s)) return Number(s.replace(/[,.\s]/g, ''));
   const n = Number(s.replace(/,/g, '.').replace(/[^\d.]/g, ''));
   if (!/\d/.test(s) || !Number.isFinite(n)) return undefined;
   return Math.round(n);
-}
-
-const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-
-/** Dates in any form people type them, plus Excel serial numbers. */
-export function parseAnyDate(raw: string | undefined, order: 'mdy' | 'dmy'): string | null {
-  if (!raw) return null;
-  const s = raw.trim();
-  const iso = parseDate(s, order);
-  if (iso) return iso;
-  // Excel serial day numbers (when a date cell wasn't formatted as a date).
-  if (/^\d{5}(\.\d+)?$/.test(s)) {
-    const n = Math.floor(Number(s));
-    if (n > 20_000 && n < 80_000)
-      return new Date(Date.UTC(1899, 11, 30) + n * 86_400_000).toISOString().slice(0, 10);
-  }
-  // "Jan 5, 2024", "5 January 2024", "January 2024" (first of the month)
-  const words = s
-    .toLowerCase()
-    .replace(/(\d)(st|nd|rd|th)\b/g, '$1')
-    .replace(/[,.]/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean);
-  const mi = words.findIndex((w) => MONTHS.includes(w.slice(0, 3)) && /^[a-z]+$/.test(w));
-  if (mi < 0) return null;
-  const nums = words.filter((w) => /^\d+$/.test(w)).map(Number);
-  const year = nums.find((n) => n > 31) ?? (nums.length === 2 ? nums[1] : undefined);
-  const day = nums.find((n) => n >= 1 && n <= 31 && n !== year) ?? 1;
-  if (year == null) return null;
-  const y = year < 100 ? 2000 + year : year;
-  return parseDate(`${y}-${MONTHS.indexOf((words[mi] ?? '').slice(0, 3)) + 1}-${day}`, order);
 }
 
 const toMilliAbs = (n: number | null | undefined) => (n == null ? n : toMilli(Math.abs(n)));
@@ -128,6 +105,13 @@ function expenseCategoryOf(...texts: (string | undefined)[]): ExpenseCategory {
 
 const DESCRIPTIVE = /what|did|done|desc|item|job|work|service|detail|repair|task|maint/i;
 const TOTALS = /^(totals?|sum|subtotal|grand total|average|avg|mean|ytd)\b/i;
+
+/** A row of column names (a repeated header, or the header of a second table). */
+function looksLikeHeader(r: string[]): boolean {
+  const cells = r.map((c) => c.trim()).filter(Boolean);
+  if (cells.length < 3 || cells.some((c) => c.length > 40 || /\d{3}/.test(c))) return false;
+  return Object.keys(matchColumns(cells)).length >= 3;
+}
 
 export interface ApplyResult {
   rows: PlannedRow[];
@@ -166,15 +150,26 @@ function applySheet(sheet: Sheet, sp: SheetPlan, fileName: string): PlannedRow[]
   };
   const kindMap = new Map(sp.kindValues.map((k) => [k.value.trim().toLowerCase(), k.kind]));
 
+  // Once the log ends (a totals row, or the header of another table below it), rows without a
+  // date are something else: a footnote, a to-do list, a parts table.
+  let ended = false;
   return body.map((r, i): PlannedRow => {
-    const row = sp.headerRow + 2 + i;
+    const row = rowNumberOf(sheet, sp.headerRow + 1 + i);
     const base = { sheet: sheet.name, row, key: keys[i] ?? 'Vehicle' };
     const get = (j: number) => (j < 0 ? undefined : (r[j] ?? '').trim() || undefined);
+    const dated = parseAnyDate(get(c.date), sp.dateOrder) != null;
 
-    if (r.some((cell) => TOTALS.test(cell.trim())) && !parseAnyDate(get(c.date), sp.dateOrder))
+    if (!dated && r.some((cell) => TOTALS.test(cell.trim()))) {
+      ended = true;
       return { ...base, skip: true };
+    }
+    if (!dated && looksLikeHeader(r)) {
+      ended = true;
+      return { ...base, skip: true };
+    }
+    if (!dated && ended) return { ...base, skip: true };
     const filled = r.filter((cell) => cell.trim() !== '').length;
-    if (filled <= 1 && !get(c.date)) return { ...base, skip: true };
+    if (filled <= 1 && !dated) return { ...base, skip: true };
 
     const kindRaw = get(kindI);
     const volumeN = parseNumber(get(c.fuelVolume), styles.fuelVolume);
