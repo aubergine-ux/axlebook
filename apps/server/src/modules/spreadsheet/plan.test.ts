@@ -299,7 +299,7 @@ describe('plans', () => {
         year: 2015,
         make: 'Toyota',
         model: 'Tacoma',
-        trim: null,
+        trim: null as string | null,
         nickname: 'Taco',
         unitNumber: null,
         vin: null,
@@ -322,7 +322,7 @@ describe('plans', () => {
     const wb2 = [{ name: '2015 Tacoma', rows: wb[0]?.rows ?? [] }];
     expect(matchPlan(wb2, opts({ existing })).vehicles[0]?.existingVehicleId).toBe(7);
     // A different trim is a different truck.
-    const sr5 = [{ ...existing[0], trim: 'SR5' }] as typeof existing;
+    const sr5 = existing.map((v) => ({ ...v, trim: 'SR5' }));
     const trd = [{ name: '2015 Toyota Tacoma TRD Pro', rows: wb[0]?.rows ?? [] }];
     expect(matchPlan(trd, opts({ existing: sr5 })).vehicles[0]?.existingVehicleId).toBeNull();
     const sr5Key = [{ name: '2015 Toyota Tacoma SR5', rows: wb[0]?.rows ?? [] }];
