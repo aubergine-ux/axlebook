@@ -1,13 +1,13 @@
 import { createHmac } from 'node:crypto';
 import http from 'node:http';
-import type { AddressInfo } from 'node:net';
+import net, { type AddressInfo } from 'node:net';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestApp, type TestApp, vehicleBody } from '../../test/helpers';
 
 let t: TestApp;
 let server: http.Server;
 let url: string;
-const received: { headers: http.IncomingHttpHeaders; body: string }[] = [];
+const received: { path: string; headers: http.IncomingHttpHeaders; body: string }[] = [];
 let failNext = false;
 
 beforeAll(async () => {
@@ -20,7 +20,7 @@ beforeAll(async () => {
         res.writeHead(500).end();
         return;
       }
-      received.push({ headers: req.headers, body });
+      received.push({ path: req.url ?? '', headers: req.headers, body });
       res.writeHead(204).end();
     });
   });
@@ -89,6 +89,85 @@ describe('notification channels', () => {
     expect(res.lastResult).toMatchObject({ status: 'failed' });
     expect(res.lastResult.error).toMatch(/HTTP 500/);
     await req({ method: 'DELETE', url: `/api/v1/me/channels/${ch.id}` });
+  });
+
+  it('sends the test message in the format ntfy, Gotify and Discord expect', async () => {
+    const send = async (config: Record<string, unknown>) => {
+      const ch = (
+        await req({ method: 'POST', url: '/api/v1/me/channels', payload: { name: 'C', config } })
+      ).json();
+      received.length = 0;
+      const res = (await req({ method: 'POST', url: `/api/v1/me/channels/${ch.id}/test` })).json();
+      expect(res.lastResult).toMatchObject({ status: 'sent' });
+      await req({ method: 'DELETE', url: `/api/v1/me/channels/${ch.id}` });
+      return received[0] as (typeof received)[number];
+    };
+    const ntfy = await send({ type: 'ntfy', url, token: 'tk' });
+    expect(ntfy.headers).toMatchObject({ title: expect.any(String), authorization: 'Bearer tk' });
+    expect(ntfy.body.length).toBeGreaterThan(0);
+    const gotify = await send({ type: 'gotify', url, token: 'app-token' });
+    expect(gotify.path).toBe('/hook/message');
+    expect(gotify.headers['x-gotify-key']).toBe('app-token');
+    expect(JSON.parse(gotify.body)).toMatchObject({ title: expect.any(String), priority: 5 });
+    const discord = await send({ type: 'discord', url });
+    expect(JSON.parse(discord.body)).toMatchObject({
+      content: expect.stringMatching(/^\*\*/),
+      allowed_mentions: { parse: [] },
+    });
+  });
+
+  it('sends email through the configured SMTP server', async () => {
+    // Just enough of SMTP to accept one message.
+    const mail: string[] = [];
+    const smtp = net.createServer((sock) => {
+      let data = false;
+      let buf = '';
+      sock.write('220 test ESMTP\r\n');
+      sock.on('data', (chunk) => {
+        buf += chunk.toString();
+        let i = buf.indexOf('\r\n');
+        while (i >= 0) {
+          const line = buf.slice(0, i);
+          buf = buf.slice(i + 2);
+          if (data) {
+            if (line === '.') {
+              data = false;
+              sock.write('250 queued\r\n');
+            } else mail.push(line);
+          } else if (/^(EHLO|HELO)/i.test(line)) sock.write('250 test\r\n');
+          else if (/^DATA/i.test(line)) {
+            data = true;
+            sock.write('354 go\r\n');
+          } else if (/^QUIT/i.test(line)) sock.end('221 bye\r\n');
+          else sock.write('250 ok\r\n');
+          i = buf.indexOf('\r\n');
+        }
+      });
+    });
+    await new Promise<void>((r) => smtp.listen(0, '127.0.0.1', r));
+    const port = (smtp.address() as AddressInfo).port;
+    const m = await createTestApp({
+      BASE_URL: 'https://cars.example.com',
+      SMTP_HOST: '127.0.0.1',
+      SMTP_PORT: String(port),
+      SMTP_FROM: 'axlebook@example.com',
+    });
+    try {
+      const mreq: Inject = (o) => m.req({ ...o, headers: { ...ORIGIN, ...(o.headers ?? {}) } });
+      const ch = (
+        await mreq({
+          method: 'POST',
+          url: '/api/v1/me/channels',
+          payload: { name: 'Mail', config: { type: 'email', to: 'me@example.com' } },
+        })
+      ).json();
+      const res = (await mreq({ method: 'POST', url: `/api/v1/me/channels/${ch.id}/test` })).json();
+      expect(res.lastResult).toMatchObject({ status: 'sent' });
+      expect(mail.join('\n')).toMatch(/To: me@example\.com/);
+    } finally {
+      await m.close();
+      smtp.close();
+    }
   });
 
   it('refuses email channels when SMTP is not configured', async () => {

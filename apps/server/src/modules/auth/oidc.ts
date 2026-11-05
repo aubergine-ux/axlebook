@@ -9,16 +9,26 @@ type OidcConfig = NonNullable<Config['auth']['oidc']>;
 
 /** Pending logins keyed by `state` (single process, 10-minute lifetime). */
 const pending = new Map<string, { verifier: string; nonce: string; expires: number }>();
-let discovered: Promise<client.Configuration> | null = null;
+const discovered = new Map<string, Promise<client.Configuration>>();
 
 function discover(oidc: OidcConfig) {
-  discovered ??= client
-    .discovery(new URL(oidc.issuer), oidc.clientId, oidc.clientSecret)
-    .catch((err) => {
-      discovered = null; // retry on the next attempt
-      throw err;
-    });
-  return discovered;
+  const key = `${oidc.issuer}|${oidc.clientId}`;
+  let cfg = discovered.get(key);
+  if (!cfg) {
+    const issuer = new URL(oidc.issuer);
+    cfg = client
+      .discovery(issuer, oidc.clientId, oidc.clientSecret, undefined, {
+        // An identity provider on a plain-http address inside a home network is the admin's
+        // explicit choice; https issuers keep the library's strict default.
+        execute: issuer.protocol === 'http:' ? [client.allowInsecureRequests] : [],
+      })
+      .catch((err) => {
+        discovered.delete(key); // retry on the next attempt
+        throw err;
+      });
+    discovered.set(key, cfg);
+  }
+  return cfg;
 }
 
 export function callbackUrl(config: Config): string {
