@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { odometerQuery } from '../../../api/resources';
 import { vehicleQuery } from '../../../api/vehicles';
+import { LinkButton } from '../../../components/ui/Button';
 import { OdometerReadout } from '../../../components/ui/OdometerReadout';
 import { QueryState } from '../../../components/ui/QueryState';
 
@@ -67,13 +68,20 @@ function VehicleLayout() {
         );
         return (
           <>
-            <Link
-              to="/"
-              className="mb-3 inline-flex items-center gap-1 rounded-sm text-label text-ink-muted hover:text-ink print:hidden"
-            >
-              <span aria-hidden>←</span>
-              {t('vehicle.backToGarage')}
-            </Link>
+            <div className="mb-3 flex items-center justify-between gap-2 print:hidden">
+              <Link
+                to="/"
+                className="inline-flex min-h-11 items-center gap-1 rounded-sm text-label text-ink-muted hover:text-ink"
+              >
+                <span aria-hidden>←</span>
+                {t('vehicle.backToGarage')}
+              </Link>
+              {v.access !== 'view' && section !== 'edit' && (
+                <LinkButton to="/vehicles/$vehicleId/edit" params={{ vehicleId }}>
+                  {t('vehicle.editVehicle')}
+                </LinkButton>
+              )}
+            </div>
             <header className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end">
               {v.photoUrl && (
                 <img
