@@ -1,3 +1,4 @@
+import { RECORD_KINDS } from '@axlebook/shared';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
@@ -6,25 +7,34 @@ import { z } from 'zod';
 import { recordsQuery } from '../api/resources';
 import { vehiclesQuery } from '../api/vehicles';
 import { PageHeader } from '../components/PageHeader';
+import { Segmented } from '../components/records/RecordForm';
 import { RecordRow } from '../components/records/RecordRow';
 import { TextField } from '../components/ui/fields';
 
 export const Route = createFileRoute('/search')({
-  validateSearch: z.object({ q: z.string().optional() }),
+  validateSearch: z.object({
+    q: z.string().optional(),
+    kind: z.enum(['all', ...RECORD_KINDS]).optional(),
+  }),
   component: SearchPage,
 });
 
 function SearchPage() {
   const { t } = useTranslation();
-  const { q = '' } = Route.useSearch();
+  const { q = '', kind = 'all' } = Route.useSearch();
   const navigate = useNavigate({ from: '/search' });
   const [text, setText] = useState(q);
   const vehicles = useQuery(vehiclesQuery('all')).data ?? [];
-  const results = useQuery({ ...recordsQuery({ q, limit: 100 }), enabled: q.trim().length > 0 });
+  const active = q.trim().length > 0 || kind !== 'all';
+  const results = useQuery({
+    ...recordsQuery({ q: q || undefined, kind: kind === 'all' ? undefined : kind, limit: 100 }),
+    enabled: active,
+  });
 
   useEffect(() => {
     const h = setTimeout(() => {
-      if (text !== q) void navigate({ search: { q: text || undefined }, replace: true });
+      if (text !== q)
+        void navigate({ search: (s) => ({ ...s, q: text || undefined }), replace: true });
     }, 250);
     return () => clearTimeout(h);
   }, [text, q, navigate]);
@@ -40,7 +50,18 @@ function SearchPage() {
         type="search"
         autoFocus
       />
-      {!q.trim() ? (
+      <Segmented
+        label={t('record.kindLabel')}
+        value={kind}
+        onChange={(k) =>
+          navigate({ search: (s) => ({ ...s, kind: k === 'all' ? undefined : k }), replace: true })
+        }
+        options={[
+          { value: 'all', label: t('record.filterAll') },
+          ...RECORD_KINDS.map((k) => ({ value: k, label: t(`record.kinds.${k}`) })),
+        ]}
+      />
+      {!active ? (
         <p className="text-ink-muted">{t('search.hint')}</p>
       ) : results.data ? (
         <section
@@ -48,7 +69,9 @@ function SearchPage() {
           aria-live="polite"
         >
           {results.data.items.length === 0 ? (
-            <p className="py-8 text-center text-ink-muted">{t('search.none', { q })}</p>
+            <p className="py-8 text-center text-ink-muted">
+              {q.trim() ? t('search.none', { q }) : t('search.noneOfKind')}
+            </p>
           ) : (
             <>
               <p className="border-b border-line py-2 text-caption text-ink-muted">

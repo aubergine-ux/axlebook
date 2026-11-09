@@ -31,6 +31,7 @@ import {
   useRestoreBackup,
   usersQuery,
   useSaveSettings,
+  useScanNotifications,
   useTokenAction,
   useUpdateMe,
   useUserAction,
@@ -404,6 +405,8 @@ function Channels() {
   const { t } = useTranslation();
   const channels = useQuery(channelsQuery).data ?? [];
   const action = useChannelAction();
+  const me = useMe();
+  const scan = useScanNotifications();
   const [editing, setEditing] = useState<Channel | 'new' | null>(null);
   return (
     <Section
@@ -458,10 +461,24 @@ function Channels() {
       <Button className="mt-3" onPress={() => setEditing('new')}>
         {t('settings.addChannel')}
       </Button>
+      {me?.role === 'admin' && (
+        <div className="mt-4 border-t border-line pt-4">
+          <p className="mb-2 text-caption text-ink-muted">{t('settings.scanHint')}</p>
+          <Button isDisabled={scan.isPending} onPress={() => scan.mutate()}>
+            {scan.isPending ? t('settings.scanning') : t('settings.scanNow')}
+          </Button>
+          <ErrorNote error={scan.error} className="mt-2" />
+          {scan.data && (
+            <p role="status" className="mt-2 text-caption text-ink-muted">
+              {t('settings.scanResult', { count: scan.data.notified })}
+            </p>
+          )}
+        </div>
+      )}
       <FormDialog
         isOpen={editing !== null}
         onOpenChange={(o) => !o && setEditing(null)}
-        title={t('settings.addChannel')}
+        title={editing === 'new' ? t('settings.addChannel') : t('settings.editChannel')}
       >
         {editing !== null && (
           <ChannelForm
@@ -576,7 +593,8 @@ function People() {
   const [adding, setAdding] = useState(false);
   const [pw, setPw] = useState<UserAdmin | null>(null);
   const [deleting, setDeleting] = useState<UserAdmin | null>(null);
-  const [form, setForm] = useState({ username: '', password: '', role: 'editor' as Role });
+  const blank = { username: '', password: '', displayName: '', email: '', role: 'editor' as Role };
+  const [form, setForm] = useState(blank);
   const [newPw, setNewPw] = useState('');
   const roles = ROLES.map((r) => ({ value: r, label: t(`settings.roles.${r}`) }));
   return (
@@ -644,11 +662,18 @@ function People() {
           onSubmit={(e: FormEvent) => {
             e.preventDefault();
             action.mutate(
-              { data: { ...form, password: form.password || undefined } },
+              {
+                data: {
+                  ...form,
+                  password: form.password || undefined,
+                  displayName: form.displayName.trim() || null,
+                  email: form.email.trim() || null,
+                },
+              },
               {
                 onSuccess: () => {
                   setAdding(false);
-                  setForm({ username: '', password: '', role: 'editor' });
+                  setForm(blank);
                 },
               },
             );
@@ -662,6 +687,19 @@ function People() {
             onChange={(v) => setForm((f) => ({ ...f, username: v }))}
             isRequired
             autoFocus
+          />
+          <TextField
+            label={t('settings.displayName')}
+            value={form.displayName}
+            onChange={(v) => setForm((f) => ({ ...f, displayName: v }))}
+            autoComplete="off"
+          />
+          <TextField
+            label={t('settings.email')}
+            type="email"
+            value={form.email}
+            onChange={(v) => setForm((f) => ({ ...f, email: v }))}
+            autoComplete="off"
           />
           <TextField
             label={t('auth.password')}

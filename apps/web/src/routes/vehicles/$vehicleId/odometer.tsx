@@ -1,10 +1,15 @@
-import { isCommercial } from '@axlebook/shared';
+import { isCommercial, type OdometerReading } from '@axlebook/shared';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useRef, useState } from 'react';
 import { Form } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
-import { odometerQuery, useAddReading, useDeleteReading } from '../../../api/resources';
+import {
+  odometerQuery,
+  useAddReading,
+  useDeleteReading,
+  useUpdateReading,
+} from '../../../api/resources';
 import { vehicleQuery } from '../../../api/vehicles';
 import { Button } from '../../../components/ui/Button';
 import { ErrorNote } from '../../../components/ui/ErrorNote';
@@ -23,6 +28,9 @@ function OdometerTab() {
   const readings = useQuery(odometerQuery(id)).data ?? [];
   const add = useAddReading(id);
   const del = useDeleteReading();
+  const update = useUpdateReading();
+  const [editing, setEditing] = useState<OdometerReading | null>(null);
+  const formRef = useRef<HTMLElement>(null);
   const [date, setDate] = useState(todayIso);
   const [odo, setOdo] = useState('');
   const [note, setNote] = useState('');
@@ -31,6 +39,30 @@ function OdometerTab() {
   const [error, setError] = useState<string | undefined>();
   const [warning, setWarning] = useState(false);
   if (!v) return null;
+
+  const reset = () => {
+    setEditing(null);
+    setDate(todayIso());
+    setOdo('');
+    setNote('');
+    setJurisdiction('');
+    setError(undefined);
+    setJError(undefined);
+    setWarning(false);
+  };
+  const startEdit = (r: OdometerReading) => {
+    setEditing(r);
+    setDate(r.date);
+    setOdo(String(r.odometer));
+    setNote(r.notes ?? '');
+    setJurisdiction(r.jurisdiction ?? '');
+    setError(undefined);
+    setJError(undefined);
+    setWarning(false);
+    // On a phone the form sits above the list.
+    formRef.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+  };
+  const mutation = editing ? update : add;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -45,31 +77,35 @@ function OdometerTab() {
       return;
     }
     // A lower reading than an earlier date is saved, but flagged as a likely typo.
-    setWarning(readings.some((r) => r.date <= date && r.odometer > value));
-    add.mutate(
-      {
-        date,
-        odometer: value,
-        notes: note || null,
-        ...(isCommercial(v.category) ? { jurisdiction: j || null } : {}),
-      },
-      {
-        onSuccess: () => {
-          setOdo('');
-          setNote('');
-          setJurisdiction('');
-        },
-      },
+    const lower = readings.some(
+      (r) => r.id !== editing?.id && r.date <= date && r.odometer > value,
     );
+    const data = {
+      date,
+      odometer: value,
+      notes: note || null,
+      ...(isCommercial(v.category) ? { jurisdiction: j || null } : {}),
+    };
+    const onSuccess = () => {
+      reset();
+      setWarning(lower);
+    };
+    if (editing) update.mutate({ id: editing.id, data }, { onSuccess });
+    else add.mutate(data, { onSuccess });
   };
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       {v.access !== 'view' && (
-        <section className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6 lg:order-2">
-          <h2 className="mb-3 text-heading font-semibold">{t('odometer.add')}</h2>
+        <section
+          ref={formRef}
+          className="scroll-mt-4 rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6 lg:order-2"
+        >
+          <h2 className="mb-3 text-heading font-semibold">
+            {editing ? t('odometer.edit') : t('odometer.add')}
+          </h2>
           <Form onSubmit={submit} className="flex flex-col gap-3">
-            <ErrorNote error={add.error} />
+            <ErrorNote error={mutation.error} />
             <TextField
               label={t('odometer.date')}
               type="date"
@@ -113,9 +149,12 @@ function OdometerTab() {
                 {t('odometer.lowerWarning')}
               </p>
             )}
-            <Button type="submit" variant="primary" isDisabled={add.isPending}>
-              {t('odometer.add')}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" variant="primary" isDisabled={mutation.isPending}>
+                {editing ? t('odometer.save') : t('odometer.add')}
+              </Button>
+              {editing && <Button onPress={reset}>{t('actions.cancel')}</Button>}
+            </div>
           </Form>
         </section>
       )}
@@ -155,13 +194,25 @@ function OdometerTab() {
                   )}
                 </span>
                 {!r.recordId && v.access !== 'view' && (
-                  <Button
-                    variant="ghost"
-                    aria-label={t('odometer.delete')}
-                    onPress={() => del.mutate(r.id)}
-                  >
-                    {t('actions.delete')}
-                  </Button>
+                  <>
+                    <Button
+                      variant="ghost"
+                      aria-label={t('odometer.edit')}
+                      onPress={() => startEdit(r)}
+                    >
+                      {t('actions.edit')}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      aria-label={t('odometer.delete')}
+                      onPress={() => {
+                        if (editing?.id === r.id) reset();
+                        del.mutate(r.id);
+                      }}
+                    >
+                      {t('actions.delete')}
+                    </Button>
+                  </>
                 )}
               </li>
             ))}

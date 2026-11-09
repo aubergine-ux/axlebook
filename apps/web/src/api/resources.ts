@@ -136,6 +136,19 @@ export function useAddReading(vehicleId: number) {
     onSuccess: invalidate,
   });
 }
+export function useUpdateReading() {
+  const invalidate = useInvalidateLogbook();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: { date: string; odometer: number; notes?: string | null; jurisdiction?: string | null };
+    }) => api<OdometerReading>(`/odometer/${id}`, json('PUT', data)),
+    onSuccess: invalidate,
+  });
+}
 export function useDeleteReading() {
   const invalidate = useInvalidateLogbook();
   return useMutation({
@@ -371,6 +384,14 @@ export function useChannelAction() {
           : id
             ? api<Channel>(`/me/channels/${id}`, json('PUT', data))
             : api<Channel>('/me/channels', json('POST', data)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['channels'] }),
+  });
+}
+/** Admin: check every reminder now and notify on status changes (the server also does this on a timer). */
+export function useScanNotifications() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api<{ notified: number }>('/notifications/scan', { method: 'POST' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['channels'] }),
   });
 }

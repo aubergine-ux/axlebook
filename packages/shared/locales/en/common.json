@@ -108,6 +108,12 @@
     "apiDocs": "API documentation",
     "channelsIntro": "Get a message when a reminder becomes due soon or overdue.",
     "addChannel": "Add channel",
+    "editChannel": "Edit channel",
+    "scanHint": "Reminders are checked on a timer. Check them now to send any due soon or overdue messages straight away. Each reminder only notifies once per change.",
+    "scanNow": "Check reminders now",
+    "scanning": "Checking…",
+    "scanResult_one": "{{count}} notification sent.",
+    "scanResult_other": "{{count}} notifications sent.",
     "channelName": "Name",
     "channelType": "Send with",
     "channelTypes": {
@@ -535,6 +541,8 @@
     "manual": "Manual reading",
     "empty": "No readings yet. Every record with an odometer value adds one.",
     "delete": "Delete reading",
+    "edit": "Edit reading",
+    "save": "Save reading",
     "lowerWarning": "That's lower than an earlier reading. Saved anyway; check for a typo.",
     "jurisdiction": "Entered jurisdiction"
   },
@@ -626,10 +634,11 @@
   "search": {
     "title": "Search",
     "placeholder": "Search titles, notes, tags and stations",
-    "hint": "Type to search every record in your garage.",
+    "hint": "Type to search every record in your garage, or pick a type to list them.",
     "results_one": "{{count}} result",
     "results_other": "{{count}} results",
-    "none": "No records match “{{q}}”."
+    "none": "No records match “{{q}}”.",
+    "noneOfKind": "No records of that type yet."
   },
   "sharing": {
     "title": "Sharing",
