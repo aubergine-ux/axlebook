@@ -202,6 +202,35 @@ describe('sign in and sessions', () => {
       displayName: 'Admin Person',
     });
   });
+
+  it('stores garage and tips preferences per person and rejects unknown values', async () => {
+    t = await createTestApp();
+    const me = await t.req({ method: 'GET', url: '/api/v1/me' });
+    expect(me.json().garage).toEqual({
+      sort: 'custom',
+      layout: 'cards',
+      fields: ['odometer', 'nextReminder', 'cost'],
+      order: [],
+    });
+    const garage = { sort: 'due', layout: 'list', fields: ['licensePlate'], order: [3, 1] };
+    const res = await t.req({ method: 'PATCH', url: '/api/v1/me', payload: { garage } });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().garage).toEqual(garage);
+    // Changing one preference keeps the other.
+    const tips = await t.req({ method: 'PATCH', url: '/api/v1/me', payload: { showTips: false } });
+    expect(tips.json()).toMatchObject({ garage, showTips: false });
+    // Someone else's view is untouched.
+    const other = await t.user('other');
+    expect((await other.req({ method: 'GET', url: '/api/v1/me' })).json().garage.sort).toBe(
+      'custom',
+    );
+    const bad = await t.req({
+      method: 'PATCH',
+      url: '/api/v1/me',
+      payload: { garage: { ...garage, layout: 'mosaic' } },
+    });
+    expect(bad.statusCode).toBe(400);
+  });
 });
 
 describe('API tokens', () => {

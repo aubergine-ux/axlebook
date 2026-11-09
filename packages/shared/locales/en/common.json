@@ -44,7 +44,35 @@
       "powersports": "No motorcycles, dirt bikes, ATVs or snowmobiles yet.",
       "commercial": "No semi trucks or trailers yet."
     },
-    "importSheet": "Import a spreadsheet"
+    "importSheet": "Import a spreadsheet",
+    "view": {
+      "sortLabel": "Sort",
+      "sorts": {
+        "custom": "My order",
+        "name": "Name",
+        "year": "Newest model year",
+        "odometer": "Highest odometer",
+        "due": "Most urgent reminder",
+        "cost": "Most spent",
+        "added": "Recently added"
+      },
+      "layoutLabel": "Layout",
+      "layouts": {
+        "cards": "Cards",
+        "compact": "Compact",
+        "list": "List"
+      },
+      "customize": "Customize",
+      "customizeTitle": "Customize your garage",
+      "fieldsLabel": "Show on each vehicle",
+      "orderLabel": "Your order",
+      "orderHint": "Drag a vehicle by its handle, or use Up and Down. Saving a new order switches the sort to My order.",
+      "drag": "Drag {{name}}",
+      "up": "Up",
+      "down": "Down",
+      "moveUp": "Move {{name}} up",
+      "moveDown": "Move {{name}} down"
+    }
   },
   "errors": {
     "validation_failed": "Some fields need attention.",
@@ -108,6 +136,8 @@
     "apiDocs": "API documentation",
     "channelsIntro": "Get a message when a reminder becomes due soon or overdue.",
     "addChannel": "Add channel",
+    "showTips": "Show tips on vehicle pages",
+    "showTipsHint": "Advice worked out from each vehicle's own records. Hiding them saves space; you can turn them back on here.",
     "editChannel": "Edit channel",
     "scanHint": "Reminders are checked on a timer. Check them now to send any due soon or overdue messages straight away. Each reminder only notifies once per change.",
     "scanNow": "Check reminders now",
@@ -830,6 +860,7 @@
   },
   "tips": {
     "title": "Tips for this vehicle",
+    "hide": "Hide tips",
     "ask": "Get model-specific tips",
     "askAgain": "Refresh model-specific tips",
     "asking": "Thinking…",

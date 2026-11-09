@@ -44,8 +44,10 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { ErrorNote } from '../components/ui/ErrorNote';
 import { FormDialog } from '../components/ui/FormDialog';
 import { SelectField, TextField } from '../components/ui/fields';
+import { ToggleSwitch } from '../components/ui/ToggleSwitch';
 import { useFormat } from '../lib/format';
 import { useMe } from '../lib/useMe';
+import { useViewPrefs } from '../lib/useViewPrefs';
 import { type ThemePreference, useTheme } from '../theme/theme';
 
 export const Route = createFileRoute('/settings')({ component: SettingsPage });
@@ -87,6 +89,7 @@ function Saved({ show }: { show: boolean }) {
 function Profile() {
   const { t, i18n } = useTranslation();
   const me = useMe();
+  const view = useViewPrefs();
   const update = useUpdateMe();
   const { theme, setTheme } = useTheme();
   const [name, setName] = useState(me?.displayName ?? '');
@@ -152,6 +155,14 @@ function Profile() {
           }}
           options={[{ value: 'en', label: t('settings.languages.en') }]}
         />
+        <div className="flex flex-col gap-1">
+          <ToggleSwitch
+            label={t('settings.showTips')}
+            isSelected={view.showTips}
+            onChange={view.setShowTips}
+          />
+          <p className="text-caption text-ink-muted">{t('settings.showTipsHint')}</p>
+        </div>
       </div>
     </Section>
   );

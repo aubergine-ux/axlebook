@@ -1,6 +1,14 @@
-import { sectionOf, VEHICLE_SECTIONS, type VehicleSection } from '@axlebook/shared';
+import {
+  GARAGE_LAYOUTS,
+  GARAGE_SORTS,
+  sectionOf,
+  sortGarage,
+  VEHICLE_SECTIONS,
+  type VehicleSection,
+} from '@axlebook/shared';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import { Switch } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -8,9 +16,14 @@ import { aiStatusQuery } from '../api/extras';
 import { vehiclesQuery } from '../api/vehicles';
 import { Icon } from '../components/Icon';
 import { PageHeader } from '../components/PageHeader';
-import { LinkButton } from '../components/ui/Button';
+import { Segmented } from '../components/records/RecordForm';
+import { Button, LinkButton } from '../components/ui/Button';
+import { ErrorNote } from '../components/ui/ErrorNote';
+import { SelectField } from '../components/ui/fields';
 import { QueryState } from '../components/ui/QueryState';
-import { VehicleCard } from '../components/vehicles/VehicleCard';
+import { GarageCustomize } from '../components/vehicles/GarageCustomize';
+import { GARAGE_GRID, VehicleCard } from '../components/vehicles/VehicleCard';
+import { useViewPrefs } from '../lib/useViewPrefs';
 
 export const Route = createFileRoute('/')({
   validateSearch: z.object({
@@ -28,6 +41,9 @@ function GaragePage() {
   const navigate = useNavigate({ from: '/' });
   const query = useQuery(vehiclesQuery(archived ? 'all' : 'false'));
   const ai = useQuery(aiStatusQuery).data;
+  const view = useViewPrefs();
+  const prefs = view.garage;
+  const [customizing, setCustomizing] = useState(false);
 
   return (
     <>
@@ -69,7 +85,8 @@ function GaragePage() {
         </Switch>
       </div>
       <QueryState query={query}>
-        {(all) => {
+        {(unsorted) => {
+          const all = sortGarage(unsorted, prefs);
           const present = new Set(all.map((v) => sectionOf(v.category)));
           const vehicles = section ? all.filter((v) => sectionOf(v.category) === section) : all;
           // Sections only appear once the garage has more than one kind of vehicle.
@@ -104,16 +121,53 @@ function GaragePage() {
                   </ul>
                 </nav>
               )}
+              {all.length > 0 && (
+                <div className="mb-4 flex flex-wrap items-end gap-3">
+                  <SelectField
+                    label={t('garage.view.sortLabel')}
+                    value={prefs.sort}
+                    onChange={(sort) => view.setGarage({ sort })}
+                    options={GARAGE_SORTS.map((s) => ({
+                      value: s,
+                      label: t(`garage.view.sorts.${s}`),
+                    }))}
+                    className="w-full sm:w-56"
+                  />
+                  <Segmented
+                    label={t('garage.view.layoutLabel')}
+                    value={prefs.layout}
+                    onChange={(layout) => view.setGarage({ layout })}
+                    options={GARAGE_LAYOUTS.map((l) => ({
+                      value: l,
+                      label: t(`garage.view.layouts.${l}`),
+                    }))}
+                  />
+                  <Button onPress={() => setCustomizing(true)}>{t('garage.view.customize')}</Button>
+                  <ErrorNote error={view.error} className="w-full" />
+                  <GarageCustomize
+                    isOpen={customizing}
+                    onOpenChange={setCustomizing}
+                    prefs={prefs}
+                    vehicles={all}
+                    onSave={view.setGarage}
+                  />
+                </div>
+              )}
               {vehicles.length === 0 ? (
                 <p className="rounded-lg border border-dashed border-line-strong bg-surface-raised p-8 text-center text-ink-muted">
                   {section ? t(`garage.sectionEmpty.${section}`) : t('garage.empty')}
                 </p>
               ) : (
-                <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <ul className={GARAGE_GRID[prefs.layout]}>
                   {vehicles.map((v) => (
-                    <li key={v.id} className="flex">
+                    <li
+                      key={v.id}
+                      className={
+                        prefs.layout === 'list' ? 'border-b border-line last:border-b-0' : 'flex'
+                      }
+                    >
                       <div className="w-full">
-                        <VehicleCard vehicle={v} />
+                        <VehicleCard vehicle={v} layout={prefs.layout} fields={prefs.fields} />
                       </div>
                     </li>
                   ))}

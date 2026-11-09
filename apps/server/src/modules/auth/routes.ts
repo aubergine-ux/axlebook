@@ -8,6 +8,7 @@ import {
   Me,
   MeUpdate,
   PasswordChange,
+  parseViewPrefs,
   SetupInput,
 } from '@axlebook/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
@@ -149,6 +150,9 @@ export const authRoutes =
       async (req) => {
         const u = currentUser(req);
         const b = req.body;
+        const prefs = parseViewPrefs(u.view_prefs);
+        if (b.garage) prefs.garage = b.garage;
+        if (b.showTips !== undefined) prefs.showTips = b.showTips;
         const row = await db
           .updateTable('users')
           .set({
@@ -157,6 +161,7 @@ export const authRoutes =
             ...(b.unitSystem && { unit_system: b.unitSystem }),
             ...(b.locale && { locale: b.locale }),
             ...(b.theme && { theme: b.theme }),
+            ...((b.garage || b.showTips !== undefined) && { view_prefs: JSON.stringify(prefs) }),
             updated_at: nowIso(),
           })
           .where('id', '=', u.id)

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { GaragePrefs } from '../domain/garage';
 import { UNIT_SYSTEMS } from '../domain/units';
 import { optionalText } from './text';
 
@@ -25,6 +26,8 @@ export const Me = z
     unitSystem: z.enum(UNIT_SYSTEMS),
     locale: z.string(),
     theme: z.enum(THEMES),
+    garage: GaragePrefs,
+    showTips: z.boolean(),
     hasPassword: z.boolean(),
     oidcLinked: z.boolean(),
   })
@@ -59,6 +62,8 @@ export const MeUpdate = z.object({
   unitSystem: z.enum(UNIT_SYSTEMS).optional(),
   locale: z.string().min(2).max(10).optional(),
   theme: z.enum(THEMES).optional(),
+  garage: GaragePrefs.optional(),
+  showTips: z.boolean().optional(),
 });
 export const PasswordChange = z.object({ current: z.string().max(200).optional(), next: Password });
 

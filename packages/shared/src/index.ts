@@ -1,5 +1,6 @@
 export * from './domain/dates';
 export * from './domain/fuel-economy';
+export * from './domain/garage';
 export * from './domain/maintenance';
 export * from './domain/money';
 export * from './domain/reminder-status';

@@ -2,7 +2,7 @@ import type { Vehicle, VehicleSummary } from '@axlebook/shared';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { mockApi, renderApp } from '../../test-utils';
+import { mockApi, renderApp, testMe } from '../../test-utils';
 
 const base: Vehicle = {
   id: 1,
@@ -58,6 +58,51 @@ describe('garage', () => {
       .getByRole('link', { name: '2018 Honda Civic' })
       .closest('article') as HTMLElement;
     expect(within(civic).getByText('No reading yet')).toBeInTheDocument();
+  });
+
+  it('sorts, changes layout, and saves the view to the account', async () => {
+    const calls = mockApi({
+      'GET /api/v1/vehicles': [
+        summary({ id: 1, nickname: 'Taco', costToDate: 10_000, licensePlate: 'ABC 123' }),
+        summary({ id: 2, nickname: 'Civic', costToDate: 90_000 }),
+      ],
+      'PATCH /api/v1/me': ({ body }: { body: unknown }) => ({ ...testMe, ...(body as object) }),
+    });
+    renderApp('/');
+    await screen.findByRole('link', { name: 'Taco' });
+    const names = () => screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    const lastPatch = () => calls.filter((c) => c.method === 'PATCH').at(-1)?.body;
+    expect(names()).toEqual(['Taco', 'Civic']);
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Sort' }), 'cost');
+    await waitFor(() => expect(names()).toEqual(['Civic', 'Taco']));
+    expect(lastPatch()).toMatchObject({ garage: { sort: 'cost', layout: 'cards' } });
+
+    await userEvent.click(screen.getByRole('radio', { name: 'List' }));
+    await waitFor(() =>
+      expect(lastPatch()).toMatchObject({ garage: { sort: 'cost', layout: 'list' } }),
+    );
+
+    // Customize: show the plate, hide the cost, and move Taco to the top.
+    await userEvent.click(screen.getByRole('button', { name: 'Customize' }));
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: 'License plate' }));
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: 'Spent' }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Move Taco up' }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    await waitFor(() =>
+      expect(lastPatch()).toEqual({
+        garage: {
+          sort: 'custom',
+          layout: 'list',
+          fields: ['odometer', 'nextReminder', 'licensePlate'],
+          order: [1, 2],
+        },
+      }),
+    );
+    await waitFor(() => expect(names()).toEqual(['Taco', 'Civic']));
+    expect(screen.getByText('ABC 123')).toBeInTheDocument();
+    expect(screen.queryByText('Spent')).not.toBeInTheDocument();
   });
 
   it('shows the empty state', async () => {

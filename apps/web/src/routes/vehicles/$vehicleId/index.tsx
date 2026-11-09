@@ -19,6 +19,7 @@ import { StatTile } from '../../../components/StatTile';
 import { Button, LinkButton } from '../../../components/ui/Button';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
 import { useFormat } from '../../../lib/format';
+import { useViewPrefs } from '../../../lib/useViewPrefs';
 
 export const Route = createFileRoute('/vehicles/$vehicleId/')({ component: Overview });
 
@@ -36,6 +37,7 @@ function Overview() {
   const archive = useArchiveVehicle();
   const remove = useDeleteVehicle();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const view = useViewPrefs();
   if (!v) return null;
 
   const title = vehicleTitle(v);
@@ -121,7 +123,7 @@ function Overview() {
               </ul>
             )}
           </section>
-          <TipsCard vehicle={v} />
+          {view.showTips && <TipsCard vehicle={v} />}
           <section
             aria-labelledby="recent-h"
             className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"

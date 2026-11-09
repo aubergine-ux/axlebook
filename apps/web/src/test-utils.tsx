@@ -20,6 +20,13 @@ export const testMe = {
   unitSystem: 'imperial',
   locale: 'en',
   theme: 'system',
+  garage: {
+    sort: 'custom',
+    layout: 'cards',
+    fields: ['odometer', 'nextReminder', 'cost'],
+    order: [],
+  },
+  showTips: true,
   hasPassword: true,
   oidcLinked: false,
 };

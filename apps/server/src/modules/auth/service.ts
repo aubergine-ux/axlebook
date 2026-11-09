@@ -1,4 +1,4 @@
-import type { Me, UserAdmin } from '@axlebook/shared';
+import { type Me, parseViewPrefs, type UserAdmin } from '@axlebook/shared';
 import type { Config } from '../../config';
 import type { DB } from '../../db/connection';
 import type { User } from '../../db/schema';
@@ -16,6 +16,7 @@ export function toMe(user: User, config: Config): Me {
     unitSystem: user.unit_system ?? config.defaults.unitSystem,
     locale: user.locale ?? config.defaults.locale,
     theme: user.theme,
+    ...parseViewPrefs(user.view_prefs),
     hasPassword: Boolean(user.password_hash),
     oidcLinked: Boolean(user.oidc_subject),
   };

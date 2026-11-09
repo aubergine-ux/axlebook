@@ -2,6 +2,7 @@ import type { Tip, Vehicle } from '@axlebook/shared';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { aiStatusQuery, tipsQuery, useAiTips } from '../../api/extras';
+import { useViewPrefs } from '../../lib/useViewPrefs';
 import { Button } from '../ui/Button';
 import { ErrorNote } from '../ui/ErrorNote';
 
@@ -17,6 +18,7 @@ export function TipsCard({ vehicle }: { vehicle: Vehicle }) {
   const tips = useQuery(tipsQuery(vehicle.id));
   const ai = useQuery(aiStatusQuery).data;
   const ask = useAiTips(vehicle.id);
+  const view = useViewPrefs();
   const list = tips.data?.tips ?? [];
   if (tips.isPending || (list.length === 0 && !ai?.enabled)) return null;
   const hasAi = list.some((x) => x.source === 'ai');
@@ -26,9 +28,18 @@ export function TipsCard({ vehicle }: { vehicle: Vehicle }) {
       aria-labelledby="tips-h"
       className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
     >
-      <h2 id="tips-h" className="mb-3 text-heading font-semibold">
-        {t('tips.title')}
-      </h2>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 id="tips-h" className="text-heading font-semibold">
+          {t('tips.title')}
+        </h2>
+        <Button
+          variant="ghost"
+          className="-my-2 -mr-2 text-ink-muted"
+          onPress={() => view.setShowTips(false)}
+        >
+          {t('tips.hide')}
+        </Button>
+      </div>
       <ul className="flex flex-col divide-y divide-line">
         {list.map((tip) => {
           // Data tips are translated from their code; AI tips bring their own text.

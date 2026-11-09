@@ -21,6 +21,8 @@ export interface UsersTable {
   theme: 'system' | 'light' | 'dark';
   disabled: number;
   calendar_token: Generated<string | null>;
+  /** JSON ViewPrefs; null means the defaults. */
+  view_prefs: Generated<string | null>;
   created_at: string;
   updated_at: string;
 }
