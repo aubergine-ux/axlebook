@@ -80,7 +80,7 @@ phone home, and your records never leave your network unless you send them somew
     <td width="50%" valign="top">
       <img src="logo-assets/icons/png/orange/vehicle-96.png" width="28" alt=""><br>
       <b>Every kind of vehicle</b><br>
-      Cars and pickups, motorcycles, dirt bikes, ATVs, snowmobiles, semis and trailers, each in its own garage section. Engine hours for the machines that don't count miles, mi/kWh for EVs, and nicknames so "Old Blue" is what you see.
+      Cars and pickups, motorcycles, dirt bikes, ATVs, snowmobiles, semis and trailers, each in its own garage section. Engine hours for the machines that don't count miles, mi/kWh for EVs, and nicknames so "Old Blue" is what you see. Lay the garage out your way: cards, compact or a list, sorted how you like or in your own order, showing the figures you care about.
     </td>
     <td width="50%" valign="top">
       <img src="logo-assets/icons/png/orange/planner-96.png" width="28" alt=""><br>
@@ -97,7 +97,7 @@ phone home, and your records never leave your network unless you send them somew
     <td width="50%" valign="top">
       <img src="logo-assets/icons/png/orange/upgrade-96.png" width="28" alt=""><br>
       <b>Tips from its own numbers</b><br>
-      Economy slipping, too many partial fills, an overdue job that's costing you fuel, a sled that needs putting away for summer. Advice for that vehicle, not a generic list.
+      Economy slipping, too many partial fills, an overdue job that's costing you fuel, a sled that needs putting away for summer. Advice for that vehicle, not a generic list. Don't want them? Hide them with one tap.
     </td>
   </tr>
   <tr>
