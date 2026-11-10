@@ -226,7 +226,7 @@ GitHub Container Registry with each release:
 ```yaml
 services:
   axlebook:
-    image: ghcr.io/aubergine-ux/axlebook:latest # or pin a version, e.g. :0.1
+    image: ghcr.io/aubergine-ux/axlebook:latest # or pin a major version, e.g. :1
     restart: unless-stopped
     ports:
       - "8080:8080"
