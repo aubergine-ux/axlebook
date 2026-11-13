@@ -20,6 +20,7 @@ import { AppError } from '../../lib/errors';
 import { getInstanceSettings } from '../../lib/instance-settings';
 import { FailureLimiter } from '../../lib/rate-limit';
 import { nowIso } from '../../lib/time';
+import { appUrl } from '../../lib/urls';
 import { currentUser } from '../../plugins/auth';
 import { currentOdometers } from '../odometer/routes';
 import { requireVehicle } from '../vehicles/access';
@@ -90,7 +91,7 @@ export const historyRoutes =
   async (app) => {
     /** Links are absolute, so they can be pasted into a message. */
     const origin = (req: FastifyRequest) =>
-      (config.baseUrl?.toString() ?? `${req.protocol}://${req.host}`).replace(/\/+$/, '');
+      appUrl(config, '')?.replace(/\/+$/, '') ?? `${req.protocol}://${req.host}${config.basePath}`;
     const toLink = (r: LinkRow, req: FastifyRequest): HistoryLink => ({
       id: r.id,
       vehicleId: r.vehicle_id,

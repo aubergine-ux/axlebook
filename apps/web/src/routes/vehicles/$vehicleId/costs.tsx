@@ -103,7 +103,7 @@ function CostsTab() {
                 <Link
                   to="/vehicles/$vehicleId/edit"
                   params={{ vehicleId }}
-                  className="text-orange-text underline-offset-2 hover:underline"
+                  className="font-semibold underline underline-offset-2"
                 >
                   {t('vehicle.editVehicle')}
                 </Link>

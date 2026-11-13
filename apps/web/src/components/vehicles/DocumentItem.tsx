@@ -2,6 +2,7 @@ import type { VehicleDocument } from '@axlebook/shared';
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { withBase } from '../../lib/base';
 import { useFormat } from '../../lib/format';
 import { StatusBadge } from '../ui/StatusBadge';
 
@@ -56,7 +57,7 @@ export function DocumentItem({
         {d.notes && <p className="mt-1 text-caption text-ink-muted">{d.notes}</p>}
         {d.file && (
           <a
-            href={d.file.url}
+            href={withBase(d.file.url)}
             target="_blank"
             rel="noreferrer"
             className="mt-1 inline-block text-label text-orange-text underline-offset-2 hover:underline"

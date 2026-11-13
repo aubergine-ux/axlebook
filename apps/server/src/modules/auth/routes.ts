@@ -20,6 +20,7 @@ import { hashPassword, needsRehash, randomToken, sha256, verifyPassword } from '
 import { AppError } from '../../lib/errors';
 import { FailureLimiter } from '../../lib/rate-limit';
 import { nowIso } from '../../lib/time';
+import { appUrl } from '../../lib/urls';
 import { createSession, currentUser, destroySession, TOKEN_PREFIX } from '../../plugins/auth';
 import { finishLogin, startLogin } from './oidc';
 import { isSetupRequired, performSetup, toMe } from './service';
@@ -121,13 +122,16 @@ export const authRoutes =
       { schema: { tags, summary: 'Single sign-on callback (redirects)', hide: !config.auth.oidc } },
       async (req, reply) => {
         try {
-          const base = config.baseUrl ?? new URL(`${req.protocol}://${req.host}`);
-          const user = await finishLogin(db, config, new URL(req.url, base));
+          // The address the identity provider sent the browser back to, mount path included.
+          const current = new URL(
+            appUrl(config, req.url) ?? `${req.protocol}://${req.host}${req.url}`,
+          );
+          const user = await finishLogin(db, config, current);
           await createSession(db, config, req, reply, user.id);
-          return reply.redirect('/');
+          return reply.redirect(`${config.basePath}/`);
         } catch (err) {
           req.log.warn({ err }, 'oidc login failed');
-          return reply.redirect('/login?error=oidc_failed');
+          return reply.redirect(`${config.basePath}/login?error=oidc_failed`);
         }
       },
     );

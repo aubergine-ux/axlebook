@@ -4,6 +4,7 @@ import type { DB } from '../../db/connection';
 import type { User } from '../../db/schema';
 import { AppError } from '../../lib/errors';
 import { nowIso } from '../../lib/time';
+import { appUrl } from '../../lib/urls';
 
 type OidcConfig = NonNullable<Config['auth']['oidc']>;
 
@@ -33,7 +34,7 @@ function discover(oidc: OidcConfig) {
 
 export function callbackUrl(config: Config): string {
   if (!config.baseUrl) throw new Error('BASE_URL is required for OIDC');
-  return new URL('/api/v1/auth/oidc/callback', config.baseUrl).toString();
+  return appUrl(config, '/api/v1/auth/oidc/callback') as string;
 }
 
 export async function startLogin(config: Config): Promise<string> {

@@ -101,7 +101,15 @@ test('import a spreadsheet covering two vehicles, then add a maintenance schedul
   await page
     .locator('input[type="file"]')
     .setInputFiles({ name: 'garage.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) });
-  await expect(page.getByText('Columns matched automatically. Check them below.')).toBeVisible();
+  // The first import matches the columns; the second one, with the same headers, starts from
+  // the mapping the first one saved.
+  await expect(
+    page.getByText(
+      p === 'desktop'
+        ? 'Columns matched automatically. Check them below.'
+        : /Using the mapping you saved for this layout/,
+    ),
+  ).toBeVisible();
   await page.getByRole('button', { name: 'Preview' }).click();
   await expect(page.getByText('3 of 3 rows are ready to import.')).toBeVisible();
   await page.getByRole('button', { name: 'Import everything' }).click();

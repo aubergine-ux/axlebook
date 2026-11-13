@@ -1,5 +1,6 @@
 import type { VehicleHistory } from '@axlebook/shared';
 import { useTranslation } from 'react-i18next';
+import { withBase } from '../../lib/base';
 import { useFormat } from '../../lib/format';
 
 /**
@@ -46,8 +47,8 @@ export function HistoryReport({ history: h }: { history: VehicleHistory }) {
           <h1 className="ax-display text-[28px] leading-[32px]">{v.title}</h1>
         </div>
         <div className="flex items-center gap-2">
-          <img src="/brand/mark.svg" alt="" className="on-light h-7 w-7" />
-          <img src="/brand/mark-dark.svg" alt="" className="on-dark h-7 w-7" />
+          <img src={withBase('/brand/mark.svg')} alt="" className="on-light h-7 w-7" />
+          <img src={withBase('/brand/mark-dark.svg')} alt="" className="on-dark h-7 w-7" />
           <span className="text-heading font-semibold">{t('appName')}</span>
         </div>
       </header>

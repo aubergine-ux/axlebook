@@ -6,6 +6,7 @@ import type { Config } from '../../config';
 import type { DB } from '../../db/connection';
 import { randomToken } from '../../lib/crypto';
 import { translator } from '../../lib/i18n';
+import { appUrl } from '../../lib/urls';
 import { currentUser } from '../../plugins/auth';
 import { currentOdometers } from '../odometer/routes';
 import { vehiclePace } from '../reminders/service';
@@ -38,7 +39,7 @@ const nextDay = (iso: string) => {
 
 export function feedUrl(config: Config, token: string) {
   return config.baseUrl
-    ? new URL(`/calendar/${token}.ics`, config.baseUrl).toString()
+    ? (appUrl(config, `/calendar/${token}.ics`) as string)
     : `/calendar/${token}.ics`;
 }
 
@@ -192,9 +193,7 @@ export function registerCalendarFeed(
         `DTEND;VALUE=DATE:${ymd(nextDay(day))}`,
         `SUMMARY:${esc(summary)}`,
         ...(desc ? [`DESCRIPTION:${esc(desc)}`] : []),
-        ...(config.baseUrl
-          ? [`URL:${new URL(`/vehicles/${v.id}/reminders`, config.baseUrl).toString()}`]
-          : []),
+        ...(config.baseUrl ? [`URL:${appUrl(config, `/vehicles/${v.id}/reminders`)}`] : []),
         'TRANSP:TRANSPARENT',
         'END:VEVENT',
       );
@@ -219,9 +218,7 @@ export function registerCalendarFeed(
         `DTEND;VALUE=DATE:${ymd(nextDay(d.expires_on))}`,
         `SUMMARY:${esc(tr('calendar.document', { title: d.title, vehicle: v.nickname ?? vehicleTitle(v) }))}`,
         ...(d.number ? [`DESCRIPTION:${esc(d.number)}`] : []),
-        ...(config.baseUrl
-          ? [`URL:${new URL(`/vehicles/${v.id}/documents`, config.baseUrl).toString()}`]
-          : []),
+        ...(config.baseUrl ? [`URL:${appUrl(config, `/vehicles/${v.id}/documents`)}`] : []),
         'TRANSP:TRANSPARENT',
         'END:VEVENT',
       );

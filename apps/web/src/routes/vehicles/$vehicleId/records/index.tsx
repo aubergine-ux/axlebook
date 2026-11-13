@@ -11,6 +11,7 @@ import { Segmented } from '../../../../components/records/RecordForm';
 import { RecordRow } from '../../../../components/records/RecordRow';
 import { Button, buttonClass, LinkButton } from '../../../../components/ui/Button';
 import { TextField } from '../../../../components/ui/fields';
+import { withBase } from '../../../../lib/base';
 import { useFormat } from '../../../../lib/format';
 
 export const Route = createFileRoute('/vehicles/$vehicleId/records/')({
@@ -71,7 +72,7 @@ function RecordsTab() {
           </LinkButton>
         )}
         <a
-          href={`/api/v1/vehicles/${id}/export.csv?kind=${kind}`}
+          href={withBase(`/api/v1/vehicles/${id}/export.csv?kind=${kind}`)}
           className={buttonClass('secondary')}
           download
         >

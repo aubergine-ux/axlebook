@@ -5,6 +5,7 @@ import type {
   VehicleHistory,
 } from '@axlebook/shared';
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import { BASE } from '../lib/base';
 import { ApiRequestError, api } from './client';
 
 export const historyQuery = (vehicleId: number, o: HistoryOptions) =>
@@ -24,7 +25,7 @@ export const sharedHistoryQuery = (token: string) =>
     queryFn: async () => {
       let res: Response;
       try {
-        res = await fetch(`/api/public/history/${encodeURIComponent(token)}`, {
+        res = await fetch(`${BASE}/api/public/history/${encodeURIComponent(token)}`, {
           credentials: 'omit',
         });
       } catch {

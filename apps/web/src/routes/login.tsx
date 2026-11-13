@@ -9,6 +9,7 @@ import { AuthLayout } from '../components/AuthLayout';
 import { Button, buttonClass } from '../components/ui/Button';
 import { ErrorNote } from '../components/ui/ErrorNote';
 import { TextField } from '../components/ui/fields';
+import { withBase } from '../lib/base';
 
 export const Route = createFileRoute('/login')({
   validateSearch: z.object({ error: z.string().optional() }),
@@ -64,7 +65,10 @@ function LoginPage() {
           {status.localLogin && (
             <p className="my-4 text-center text-caption text-ink-muted">{t('auth.or')}</p>
           )}
-          <a href="/api/v1/auth/oidc/start" className={buttonClass('secondary', 'w-full')}>
+          <a
+            href={withBase('/api/v1/auth/oidc/start')}
+            className={buttonClass('secondary', 'w-full')}
+          >
             {t('auth.sso', { label: status.oidc.label })}
           </a>
         </>

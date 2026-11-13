@@ -16,6 +16,7 @@ import { ErrorNote } from '../../../components/ui/ErrorNote';
 import { FormDialog } from '../../../components/ui/FormDialog';
 import { SelectField, TextAreaField, TextField } from '../../../components/ui/fields';
 import { ToggleSwitch } from '../../../components/ui/ToggleSwitch';
+import { withBase } from '../../../lib/base';
 import { useFormat } from '../../../lib/format';
 import { todayIso } from '../../../lib/today';
 import { fieldErrors } from '../../../lib/validation';
@@ -61,7 +62,7 @@ function TripsTab() {
             className="w-32"
           />
           <a
-            href={`/api/v1/vehicles/${id}/mileage.csv?year=${report.year}`}
+            href={withBase(`/api/v1/vehicles/${id}/mileage.csv?year=${report.year}`)}
             download
             className={buttonClass('secondary')}
           >

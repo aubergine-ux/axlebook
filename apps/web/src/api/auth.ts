@@ -1,5 +1,6 @@
 import type { AuthStatus, Me } from '@axlebook/shared';
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import { withBase } from '../lib/base';
 import { api } from './client';
 
 export const authStatusQuery = queryOptions({
@@ -32,7 +33,7 @@ export function useLogout() {
     mutationFn: () => api<void>('/auth/logout', { method: 'POST' }),
     onSuccess: () => {
       qc.clear();
-      window.location.assign('/login');
+      window.location.assign(withBase('/login'));
     },
   });
 }

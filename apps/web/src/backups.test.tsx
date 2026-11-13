@@ -51,9 +51,7 @@ describe('backups on the server', () => {
 
     await user.click(within(block).getByRole('button', { name: 'Restore' }));
     const dialog = await screen.findByRole('alertdialog');
-    expect(dialog).toHaveTextContent(
-      'What’s here now is saved as a backup first'.replace('’', "'"),
-    );
+    expect(dialog).toHaveTextContent("What's here now is saved as a backup first");
     // Nothing happens until it's confirmed.
     expect(calls.some((c) => c.url.endsWith('/restore'))).toBe(false);
     await user.click(within(dialog).getByRole('button', { name: 'Replace everything' }));

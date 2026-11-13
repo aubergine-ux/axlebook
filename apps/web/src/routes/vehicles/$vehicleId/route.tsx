@@ -8,6 +8,7 @@ import { vehicleQuery } from '../../../api/vehicles';
 import { LinkButton } from '../../../components/ui/Button';
 import { OdometerReadout } from '../../../components/ui/OdometerReadout';
 import { QueryState } from '../../../components/ui/QueryState';
+import { withBase } from '../../../lib/base';
 
 export const Route = createFileRoute('/vehicles/$vehicleId')({ component: VehicleLayout });
 
@@ -95,7 +96,7 @@ function VehicleLayout() {
             <header className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end">
               {v.photoUrl && (
                 <img
-                  src={v.photoUrl}
+                  src={withBase(v.photoUrl)}
                   alt={t('garage.photoAlt', { name: title })}
                   className="aspect-[16/9] w-full rounded-lg object-cover shadow-card sm:w-48"
                 />

@@ -48,6 +48,7 @@ import { ErrorNote } from '../components/ui/ErrorNote';
 import { FormDialog } from '../components/ui/FormDialog';
 import { SelectField, TextField } from '../components/ui/fields';
 import { ToggleSwitch } from '../components/ui/ToggleSwitch';
+import { withBase } from '../lib/base';
 import { useFormat } from '../lib/format';
 import { useMe } from '../lib/useMe';
 import { useViewPrefs } from '../lib/useViewPrefs';
@@ -355,7 +356,7 @@ function Tokens() {
         ))}
       </ul>
       <a
-        href="/api/docs"
+        href={withBase('/api/docs')}
         className="mt-3 inline-block text-label text-orange-text underline-offset-2 hover:underline"
         target="_blank"
         rel="noreferrer"
@@ -653,7 +654,7 @@ function Data() {
   const restore = useRestoreBackup();
   return (
     <Section id="data" title={t('settings.data')} intro={t('settings.backupHint')}>
-      <a href="/api/v1/backup" className={buttonClass('secondary')} download>
+      <a href={withBase('/api/v1/backup')} className={buttonClass('secondary')} download>
         {t('settings.backup')}
       </a>
       {me?.role === 'admin' && (
@@ -741,7 +742,7 @@ function StoredBackups() {
                 </span>
               </span>
               <a
-                href={`/api/v1/backups/${encodeURIComponent(b.name)}`}
+                href={withBase(`/api/v1/backups/${encodeURIComponent(b.name)}`)}
                 className={buttonClass('secondary')}
                 download
               >

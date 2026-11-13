@@ -1,4 +1,5 @@
 import type { ApiErrorBody, ErrorCode } from '@axlebook/shared';
+import { BASE } from '../lib/base';
 
 /** Thrown for any non-2xx response. `code` maps to the `errors.*` translation keys. */
 export class ApiRequestError extends Error {
@@ -18,7 +19,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   let res: Response;
   try {
-    res = await fetch(`/api/v1${path}`, { credentials: 'same-origin', ...init, headers });
+    res = await fetch(`${BASE}/api/v1${path}`, { credentials: 'same-origin', ...init, headers });
   } catch {
     throw new ApiRequestError(0, 'network');
   }

@@ -5,10 +5,19 @@ import os from 'node:os';
 import path from 'node:path';
 
 const port = process.argv[2] ?? '18765';
+// An optional public address, e.g. http://localhost:18767/garage to run under a subpath.
+const baseUrl = process.argv[3];
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'axlebook-e2e-'));
 const child = spawn(process.execPath, ['apps/server/dist/server.js'], {
   stdio: 'inherit',
-  env: { ...process.env, PORT: port, DATA_DIR: dataDir, LOG_LEVEL: 'warn', NODE_ENV: 'production' },
+  env: {
+    ...process.env,
+    PORT: port,
+    DATA_DIR: dataDir,
+    LOG_LEVEL: 'warn',
+    NODE_ENV: 'production',
+    ...(baseUrl && { BASE_URL: baseUrl }),
+  },
 });
 const stop = () => {
   child.kill();

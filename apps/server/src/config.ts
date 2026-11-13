@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { UNIT_SYSTEMS } from '@axlebook/shared';
 import { z } from 'zod';
+import { normalizeBasePath } from './lib/urls';
 
 const bool = z
   .enum(['true', 'false', '1', '0', 'yes', 'no', ''])
@@ -15,6 +16,9 @@ const EnvSchema = z.object({
   DATA_DIR: z.string().default('./data'),
   DATABASE_URL: z.string().optional(),
   BASE_URL: z.url().optional(),
+  // The path Axlebook is served under behind a reverse proxy, e.g. /axlebook. Defaults to the
+  // path of BASE_URL.
+  BASE_PATH: z.string().max(200).optional(),
   TRUST_PROXY: bool,
   DEFAULT_UNIT_SYSTEM: z.enum(UNIT_SYSTEMS).default('imperial'),
   DEFAULT_CURRENCY: z
@@ -79,6 +83,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
       ? ({ kind: 'postgres', url: databaseUrl } as const)
       : ({ kind: 'sqlite', file: databaseUrl ?? path.join(dataDir, 'axlebook.db') } as const),
     baseUrl: e.BASE_URL ? new URL(e.BASE_URL) : undefined,
+    basePath: normalizeBasePath(
+      e.BASE_PATH ?? (e.BASE_URL ? new URL(e.BASE_URL).pathname : undefined),
+    ),
     trustProxy: e.TRUST_PROXY,
     defaults: {
       unitSystem: e.DEFAULT_UNIT_SYSTEM,

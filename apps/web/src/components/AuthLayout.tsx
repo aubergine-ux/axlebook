@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { withBase } from '../lib/base';
 
 /** Centered card on the graphite brand ground, for sign-in and setup. */
 export function AuthLayout({
@@ -17,8 +18,12 @@ export function AuthLayout({
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-3 text-on-graphite">
           <div className="flex items-center gap-2">
-            <img src="/brand/mark-dark.svg" alt="" className="h-9 w-9" />
-            <img src="/brand/wordmark-dark.svg" alt={t('appName')} className="h-6 w-auto" />
+            <img src={withBase('/brand/mark-dark.svg')} alt="" className="h-9 w-9" />
+            <img
+              src={withBase('/brand/wordmark-dark.svg')}
+              alt={t('appName')}
+              className="h-6 w-auto"
+            />
           </div>
           <p className="text-caption text-on-graphite/70">{t('auth.tagline')}</p>
         </div>

@@ -5,6 +5,7 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ApiRequestError } from './api/client';
+import { BASE } from './lib/base';
 import { routeTree } from './routeTree.gen';
 import { ThemeProvider } from './theme/theme';
 
@@ -29,6 +30,8 @@ const queryClient = new QueryClient({
 
 const router = createRouter({
   routeTree,
+  // Empty at the root; the mount path behind a reverse proxy at a subpath.
+  basepath: BASE || '/',
   context: { queryClient },
   defaultPreload: 'intent',
   scrollRestoration: true,

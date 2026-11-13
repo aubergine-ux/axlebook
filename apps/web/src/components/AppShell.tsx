@@ -2,6 +2,7 @@ import { Link, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLogout } from '../api/auth';
+import { withBase } from '../lib/base';
 import { useMe } from '../lib/useMe';
 import { Icon, type IconName } from './Icon';
 import { OfflineBanner } from './OfflineBanner';
@@ -88,10 +89,18 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="flex shrink-0 items-center gap-2 rounded-sm"
           >
             {/* Flat mark below 64 px (brand guide); variants swap with the theme. */}
-            <img src="/brand/mark.svg" alt="" className="on-light h-7 w-7" />
-            <img src="/brand/mark-dark.svg" alt="" className="on-dark h-7 w-7" />
-            <img src="/brand/wordmark.svg" alt="" className="on-light h-[18px] w-auto" />
-            <img src="/brand/wordmark-dark.svg" alt="" className="on-dark h-[18px] w-auto" />
+            <img src={withBase('/brand/mark.svg')} alt="" className="on-light h-7 w-7" />
+            <img src={withBase('/brand/mark-dark.svg')} alt="" className="on-dark h-7 w-7" />
+            <img
+              src={withBase('/brand/wordmark.svg')}
+              alt=""
+              className="on-light h-[18px] w-auto"
+            />
+            <img
+              src={withBase('/brand/wordmark-dark.svg')}
+              alt=""
+              className="on-dark h-[18px] w-auto"
+            />
           </Link>
           <nav aria-label={t('nav.main')} className="hidden md:block">
             <ul className="flex gap-1">

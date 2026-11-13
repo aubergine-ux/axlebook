@@ -16,6 +16,7 @@ import type {
   VehicleTips,
 } from '@axlebook/shared';
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import { withBase } from '../lib/base';
 import { api } from './client';
 
 /** Endpoints for local AI, schedules, tips, commercial tools, calendar and spreadsheet import. */
@@ -161,7 +162,8 @@ export function useCalendarFeed() {
 }
 
 /** The feed link as an absolute URL calendar apps can subscribe to. */
-export const absoluteFeedUrl = (url: string) => new URL(url, window.location.origin).toString();
+export const absoluteFeedUrl = (url: string) =>
+  new URL(withBase(url), window.location.origin).toString();
 
 // ── Spreadsheet import ──────────────────────────────────────────────────────
 

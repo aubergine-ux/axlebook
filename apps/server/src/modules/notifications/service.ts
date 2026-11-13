@@ -19,6 +19,7 @@ import { AppError } from '../../lib/errors';
 import { translator } from '../../lib/i18n';
 import { getInstanceSettings } from '../../lib/instance-settings';
 import { nowIso } from '../../lib/time';
+import { appUrl } from '../../lib/urls';
 import { presentDocuments } from '../documents/routes';
 import type { ReminderService } from '../reminders/service';
 import { garageVehicleIds } from '../vehicles/access';
@@ -167,7 +168,7 @@ export class NotificationService {
         event: 'test',
         title: t('notify.testTitle'),
         body: t('notify.testBody'),
-        url: this.config.baseUrl?.toString(),
+        url: appUrl(this.config, '/'),
       },
       null,
     );
@@ -597,7 +598,7 @@ export class NotificationService {
       event: 'digest',
       title: t('notify.digestTitle', { count: lines.length }),
       body: lines.slice(0, 40).join('\n'),
-      url: this.config.baseUrl ? new URL('/reminders', this.config.baseUrl).toString() : undefined,
+      url: appUrl(this.config, '/reminders'),
     };
   }
 
@@ -615,9 +616,7 @@ export class NotificationService {
             date: d.expiresOn,
           })
         : '',
-      url: this.config.baseUrl
-        ? new URL(`/vehicles/${d.vehicleId}/documents`, this.config.baseUrl).toString()
-        : undefined,
+      url: appUrl(this.config, `/vehicles/${d.vehicleId}/documents`),
     };
   }
 
@@ -647,9 +646,7 @@ export class NotificationService {
         vehicle: r.vehicleTitle,
       }),
       body: parts.join(' '),
-      url: this.config.baseUrl
-        ? new URL(`/vehicles/${r.vehicleId}/reminders`, this.config.baseUrl).toString()
-        : undefined,
+      url: appUrl(this.config, `/vehicles/${r.vehicleId}/reminders`),
       reminder: {
         id: r.id,
         title: r.title,

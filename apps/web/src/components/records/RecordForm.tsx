@@ -23,6 +23,7 @@ import {
   useUploadAttachment,
   vehicleRemindersQuery,
 } from '../../api/resources';
+import { withBase } from '../../lib/base';
 import { useFormat } from '../../lib/format';
 import { todayIso } from '../../lib/today';
 import { fieldErrors, parseReading } from '../../lib/validation';
@@ -527,7 +528,7 @@ export function RecordForm({
           {record?.attachments.map((a) => (
             <li key={a.id} className="flex items-center gap-3">
               <a
-                href={a.url}
+                href={withBase(a.url)}
                 target="_blank"
                 rel="noreferrer"
                 className="flex-1 truncate text-orange-text underline-offset-2 hover:underline"

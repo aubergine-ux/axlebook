@@ -26,6 +26,7 @@ import { ApiRequestError } from '../../api/client';
 import { useDecodeVin } from '../../api/lookups';
 import { configQuery } from '../../api/system';
 import type { PhotoChange } from '../../api/vehicles';
+import { withBase } from '../../lib/base';
 import { resizeImage } from '../../lib/image';
 import { fieldErrors } from '../../lib/validation';
 import { Icon } from '../Icon';
@@ -458,7 +459,7 @@ export function VehicleForm({
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex h-24 w-36 items-center justify-center overflow-hidden rounded-md border border-line bg-surface-sunken">
             {preview ? (
-              <img src={preview} alt="" className="h-full w-full object-cover" />
+              <img src={withBase(preview)} alt="" className="h-full w-full object-cover" />
             ) : (
               <span className="text-caption text-ink-muted">
                 {photoBusy ? t('vehicle.photo.processing') : t('vehicle.photo.none')}

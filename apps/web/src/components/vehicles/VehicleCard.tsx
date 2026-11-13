@@ -9,6 +9,7 @@ import { Link } from '@tanstack/react-router';
 import type { TFunction } from 'i18next';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { withBase } from '../../lib/base';
 import { useFormat } from '../../lib/format';
 import { Icon } from '../Icon';
 import { OdometerReadout } from '../ui/OdometerReadout';
@@ -111,7 +112,7 @@ export function VehicleCard({
     >
       {vehicle.photoUrl ? (
         <img
-          src={vehicle.photoUrl}
+          src={withBase(vehicle.photoUrl)}
           alt={t('garage.photoAlt', { name: title })}
           loading="lazy"
           className="h-full w-full object-cover"

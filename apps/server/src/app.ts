@@ -17,6 +17,7 @@ import { type Ai, disabledAi, OllamaAi } from './lib/ai';
 import { FileStore } from './lib/files';
 import { type Lookups, NhtsaLookups } from './lib/nhtsa';
 import { getSetting } from './lib/settings';
+import { stripBasePath } from './lib/urls';
 import { VERSION } from './lib/version';
 import { assistantRoutes, MODEL_SETTING } from './modules/assistant/routes';
 import { authRoutes } from './modules/auth/routes';
@@ -77,6 +78,8 @@ export async function buildApp({
             redact: ['req.headers.authorization', 'req.headers.cookie'],
           },
     trustProxy: config.trustProxy,
+    // Behind a proxy that forwards /axlebook/... as is, routes still match without the prefix.
+    rewriteUrl: (req) => stripBasePath(req.url ?? '/', config.basePath),
     bodyLimit: 4 * 1024 * 1024,
   }).withTypeProvider<ZodTypeProvider>();
 
@@ -108,7 +111,7 @@ export async function buildApp({
         version: VERSION,
         license: { name: 'AGPL-3.0-only', url: 'https://www.gnu.org/licenses/agpl-3.0.html' },
       },
-      servers: [{ url: '/' }],
+      servers: [{ url: `${config.basePath}/` }],
       components: {
         securitySchemes: {
           session: { type: 'apiKey', in: 'cookie', name: 'axlebook_session' },
@@ -231,7 +234,7 @@ export async function buildApp({
   // Shared history links are read without signing in, so they live outside /api/v1 too.
   registerPublicHistory(app, { db, config });
 
-  await registerSpa(app, config.webDir);
+  await registerSpa(app, config.webDir, config.basePath);
 
   return Object.assign(app, {
     services: { vehicles, records, reminders, notifications, insights, importer, ai, backups },
