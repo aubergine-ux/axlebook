@@ -24,6 +24,7 @@ import { calendarRoutes, registerCalendarFeed } from './modules/calendar/routes'
 import { commercialRoutes } from './modules/commercial/routes';
 import { documentRoutes } from './modules/documents/routes';
 import { historyRoutes, registerPublicHistory } from './modules/history/routes';
+import { BackupService } from './modules/import-export/backup';
 import { importExportRoutes } from './modules/import-export/routes';
 import { insightRoutes } from './modules/insights/routes';
 import { InsightService } from './modules/insights/service';
@@ -137,6 +138,7 @@ export async function buildApp({
     const chosen = await getSetting<string | null>(db, MODEL_SETTING, null);
     if (chosen) ai.setModel(chosen);
   }
+  const backups = new BackupService(db, config, records, photos, attachments, app.log);
   const insights = new InsightService(db, config, ai);
   const importer = new SpreadsheetImporter(db, config, ai, vehicles, records);
 
@@ -213,7 +215,7 @@ export async function buildApp({
   await app.register(reminderRoutes(reminders), api);
   await app.register(inventoryRoutes({ db, records }), api);
   await app.register(reportRoutes({ db, config }), api);
-  await app.register(importExportRoutes({ db, config, records, photos, attachments }), api);
+  await app.register(importExportRoutes({ db, records, backups }), api);
   await app.register(notificationRoutes({ db, notifications }), api);
   await app.register(insightRoutes({ insights, ai }), api);
   await app.register(commercialRoutes({ db, config }), api);
@@ -232,7 +234,7 @@ export async function buildApp({
   await registerSpa(app, config.webDir);
 
   return Object.assign(app, {
-    services: { vehicles, records, reminders, notifications, insights, importer, ai },
+    services: { vehicles, records, reminders, notifications, insights, importer, ai, backups },
   });
 }
 

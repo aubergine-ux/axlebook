@@ -260,6 +260,26 @@
         "5": "Friday",
         "6": "Saturday"
       }
+    },
+    "stored": {
+      "title": "Backups on the server",
+      "hint": "Axlebook can write a full backup to the backups folder of its data volume on a schedule and delete the oldest. Copy that folder somewhere else as well: a backup on the same disk doesn't survive the disk.",
+      "toggle": "Back up on a schedule",
+      "every": "How often",
+      "hours_one": "Every hour",
+      "hours_other": "Every {{count}} hours",
+      "keep": "Keep",
+      "copies_one": "The latest one",
+      "copies_other": "The latest {{count}}",
+      "now": "Back up now",
+      "none": "No backups stored yet.",
+      "download": "Download",
+      "restore": "Restore",
+      "mb": "{{value}} MB",
+      "kb": "{{value}} KB",
+      "restoreTitle": "Restore this backup?",
+      "restoreBody": "Every vehicle and record is replaced with what's in {{name}}. What's here now is saved as a backup first, so you can come back to it. Accounts are kept.",
+      "restoreConfirm": "Replace everything"
     }
   },
   "vehicle": {

@@ -15,6 +15,7 @@ import { type FormEvent, type ReactNode, useState } from 'react';
 import { FileTrigger, Form } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 import { useLogout } from '../api/auth';
+import { storedBackupsQuery, useStoredBackupAction } from '../api/backups';
 import {
   absoluteFeedUrl,
   aiStatusQuery,
@@ -672,7 +673,106 @@ function Data() {
           )}
         </div>
       )}
+      {me?.role === 'admin' && <StoredBackups />}
     </Section>
+  );
+}
+
+/** Backups the server keeps on its own data volume: the schedule, the list, and restoring one. */
+function StoredBackups() {
+  const { t } = useTranslation();
+  const f = useFormat();
+  const settings = useQuery(settingsQuery).data;
+  const save = useSaveSettings();
+  const list = useQuery(storedBackupsQuery).data ?? [];
+  const action = useStoredBackupAction();
+  const [restoring, setRestoring] = useState<string | null>(null);
+  if (!settings) return null;
+  const size = (bytes: number) =>
+    bytes >= 1_048_576
+      ? t('settings.stored.mb', { value: f.decimals(bytes / 1_048_576, 1) })
+      : t('settings.stored.kb', { value: f.number(Math.max(1, Math.round(bytes / 1024))) });
+  return (
+    <div className="mt-4 border-t border-line pt-4">
+      <h3 className="mb-1 text-label">{t('settings.stored.title')}</h3>
+      <p className="mb-3 max-w-2xl text-caption text-ink-muted">{t('settings.stored.hint')}</p>
+      <ErrorNote error={save.error ?? action.error} className="mb-2" />
+      <div className="flex flex-wrap items-end gap-4">
+        <ToggleSwitch
+          label={t('settings.stored.toggle')}
+          isSelected={settings.backupEnabled}
+          onChange={(backupEnabled) => save.mutate({ backupEnabled })}
+        />
+        <SelectField
+          label={t('settings.stored.every')}
+          value={String(settings.backupEveryHours)}
+          onChange={(v) => save.mutate({ backupEveryHours: Number(v) })}
+          options={[...new Set([6, 12, 24, 72, 168, settings.backupEveryHours])]
+            .sort((a, b) => a - b)
+            .map((h) => ({ value: String(h), label: t('settings.stored.hours', { count: h }) }))}
+          className="w-40"
+        />
+        <SelectField
+          label={t('settings.stored.keep')}
+          value={String(settings.backupKeep)}
+          onChange={(v) => save.mutate({ backupKeep: Number(v) })}
+          options={[...new Set([3, 7, 14, 30, 90, settings.backupKeep])]
+            .sort((a, b) => a - b)
+            .map((n) => ({ value: String(n), label: t('settings.stored.copies', { count: n }) }))}
+          className="w-40"
+        />
+        <Button isDisabled={action.isPending} onPress={() => action.mutate({ make: true })}>
+          {t('settings.stored.now')}
+        </Button>
+      </div>
+      {list.length === 0 ? (
+        <p className="mt-3 text-caption text-ink-muted">{t('settings.stored.none')}</p>
+      ) : (
+        <ul className="mt-3">
+          {list.map((b) => (
+            <li
+              key={b.name}
+              className="flex flex-wrap items-center gap-2 border-b border-line py-2 last:border-b-0"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block font-mono text-data break-all">{b.name}</span>
+                <span className="font-mono text-caption text-ink-muted">
+                  {f.date(b.createdAt.slice(0, 10))} · {size(b.size)}
+                </span>
+              </span>
+              <a
+                href={`/api/v1/backups/${encodeURIComponent(b.name)}`}
+                className={buttonClass('secondary')}
+                download
+              >
+                {t('settings.stored.download')}
+              </a>
+              <Button onPress={() => setRestoring(b.name)}>{t('settings.stored.restore')}</Button>
+              <Button
+                variant="ghost"
+                isDisabled={action.isPending}
+                onPress={() => action.mutate({ remove: b.name })}
+              >
+                {t('actions.delete')}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <ConfirmDialog
+        isOpen={restoring !== null}
+        onOpenChange={(o) => !o && setRestoring(null)}
+        title={t('settings.stored.restoreTitle')}
+        confirmLabel={t('settings.stored.restoreConfirm')}
+        isPending={action.isPending}
+        onConfirm={() =>
+          restoring &&
+          action.mutate({ restore: restoring }, { onSuccess: () => setRestoring(null) })
+        }
+      >
+        {t('settings.stored.restoreBody', { name: restoring ?? '' })}
+      </ConfirmDialog>
+    </div>
   );
 }
 

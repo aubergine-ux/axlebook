@@ -40,6 +40,7 @@ async function main() {
   }
 
   app.services.notifications.start();
+  app.services.backups.start();
   // Local assistant: download the model once in the background (OLLAMA_PULL=false to skip).
   const ai = app.services.ai;
   if (ai instanceof OllamaAi && config.ai?.pull) void ai.ensureModel();
@@ -47,6 +48,7 @@ async function main() {
   const shutdown = async (signal: string) => {
     app.log.info({ signal }, 'shutting down');
     app.services.notifications.stop();
+    app.services.backups.stop();
     await app.close();
     await db.close();
     process.exit(0);

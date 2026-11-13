@@ -11,6 +11,11 @@ export const InstanceSettings = z
      * recalls. Off by default: nothing leaves the server unless an admin turns this on.
      */
     onlineLookups: z.boolean(),
+    /** Write a backup to the data volume on a schedule. */
+    backupEnabled: z.boolean(),
+    backupEveryHours: z.number().int().min(1).max(720),
+    /** How many stored backups to keep; older ones are deleted. */
+    backupKeep: z.number().int().min(1).max(365),
   })
   .meta({ id: 'InstanceSettings' });
 export type InstanceSettings = z.infer<typeof InstanceSettings>;

@@ -1,149 +1,33 @@
-import {
-  ApiError,
-  fromMilli,
-  ImportResult,
-  RECORD_KINDS,
-  RecordInput,
-  type RecordKind,
-} from '@axlebook/shared';
+import { ApiError, ImportResult, RECORD_KINDS, RecordInput } from '@axlebook/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
-import { strFromU8, strToU8, unzipSync, type Zippable, zipSync } from 'fflate';
 import { z } from 'zod';
-import type { Config } from '../../config';
 import type { DB } from '../../db/connection';
-import type { Database, User } from '../../db/schema';
-import { parseCsv, stringifyCsv } from '../../lib/csv';
+import { parseCsv } from '../../lib/csv';
 import { AppError } from '../../lib/errors';
-import type { FileStore } from '../../lib/files';
-import { VERSION } from '../../lib/version';
 import { currentUser, requireAdmin } from '../../plugins/auth';
 import type { RecordService } from '../records/service';
 import { requireVehicle } from '../vehicles/access';
+import type { BackupService } from './backup';
 import { readForeign } from './foreign';
-import { AXLEBOOK_HEADERS, rowsToRecords } from './parse';
+import { rowsToRecords } from './parse';
 
 const VehicleParam = z.object({ vehicleId: z.coerce.number().int().positive() });
 const errors = { 400: ApiError, 403: ApiError, 404: ApiError };
 
-/**
- * Tables in a backup, in insert order. `fks` are remapped to the new ids; a required
- * link that can't be resolved drops the row, an optional one (`optional`) becomes null.
- * `noId` tables have composite keys.
- */
-const BACKUP_TABLES: {
-  name: keyof Database;
-  fks: Record<string, keyof Database>;
-  optional?: string[];
-  noId?: true;
-}[] = [
-  { name: 'users', fks: {} },
-  { name: 'vehicles', fks: { owner_id: 'users' } },
-  { name: 'vehicle_shares', fks: { vehicle_id: 'vehicles', user_id: 'users' }, noId: true },
-  { name: 'vehicle_mutes', fks: { vehicle_id: 'vehicles', user_id: 'users' }, noId: true },
-  {
-    name: 'records',
-    fks: { vehicle_id: 'vehicles', created_by: 'users' },
-    optional: ['created_by'],
-  },
-  { name: 'tags', fks: {} },
-  { name: 'record_tags', fks: { record_id: 'records', tag_id: 'tags' }, noId: true },
-  {
-    name: 'attachments',
-    fks: { vehicle_id: 'vehicles', record_id: 'records' },
-    optional: ['record_id'],
-  },
-  {
-    name: 'odometer_readings',
-    fks: { vehicle_id: 'vehicles', record_id: 'records' },
-    optional: ['record_id'],
-  },
-  { name: 'reminders', fks: { vehicle_id: 'vehicles' } },
-  {
-    name: 'reminder_completions',
-    fks: { reminder_id: 'reminders', record_id: 'records' },
-    optional: ['record_id'],
-  },
-  { name: 'parts', fks: { owner_id: 'users', vehicle_id: 'vehicles' }, optional: ['vehicle_id'] },
-  { name: 'record_parts', fks: { record_id: 'records', part_id: 'parts' }, optional: ['part_id'] },
-  {
-    name: 'plan_items',
-    fks: { vehicle_id: 'vehicles', converted_record_id: 'records' },
-    optional: ['converted_record_id'],
-  },
-  { name: 'notification_channels', fks: { user_id: 'users' } },
-  { name: 'recalls', fks: { vehicle_id: 'vehicles' } },
-  { name: 'trips', fks: { vehicle_id: 'vehicles', created_by: 'users' }, optional: ['created_by'] },
-  { name: 'vehicle_documents', fks: { vehicle_id: 'vehicles' } },
-  {
-    name: 'inspections',
-    fks: { vehicle_id: 'vehicles', created_by: 'users' },
-    optional: ['created_by'],
-  },
-];
-
-/** Tables deliberately left out of backups: sign-ins, delivery history and regenerable caches. */
-export const NOT_BACKED_UP = [
-  'sessions',
-  'api_tokens',
-  'instance_settings', // saved separately as `settings`, admins only
-  'notification_log',
-  'vehicle_insights',
-  'history_links', // access grants: make new ones after a restore
-  'notification_queue',
-  'import_mappings', // point at vehicle ids; saved again by the next import
-] as const;
-export const BACKED_UP = BACKUP_TABLES.map((t) => t.name);
-
-type Rows = Record<string, Record<string, unknown>[]>;
+export { BACKED_UP, NOT_BACKED_UP } from './backup';
 
 export const importExportRoutes =
   ({
     db,
     records,
-    photos,
-    attachments,
+    backups,
   }: {
     db: DB;
-    config?: Config;
     records: RecordService;
-    photos: FileStore;
-    attachments: FileStore;
+    backups: BackupService;
   }): FastifyPluginAsyncZod =>
   async (app) => {
     const tags = ['import-export'];
-
-    /** A vehicle's records in Axlebook's own CSV columns, oldest first. */
-    async function vehicleCsv(user: User, vehicleId: number, kind: 'all' | RecordKind) {
-      const query = {
-        vehicleId,
-        kind: kind === 'all' ? [] : [kind],
-        sort: 'date_asc' as const,
-        limit: 500,
-      };
-      const page = await records.list(user, { ...query, offset: 0 });
-      let items = page.items;
-      for (let offset = 500; offset < page.total; offset += 500)
-        items = items.concat((await records.list(user, { ...query, offset })).items);
-      return stringifyCsv([
-        [...AXLEBOOK_HEADERS],
-        ...items.map((r) => [
-          r.date,
-          r.odometer,
-          r.kind,
-          r.title,
-          fromMilli(r.cost).toFixed(2),
-          r.notes,
-          r.tags.join('; '),
-          r.expenseCategory,
-          r.fuel ? fromMilli(r.fuel.volume) : null,
-          r.fuel?.pricePerUnit != null ? fromMilli(r.fuel.pricePerUnit) : null,
-          r.fuel ? r.fuel.isFull : null,
-          r.fuel ? r.fuel.missedPrevious : null,
-          r.fuel?.grade,
-          r.fuel?.station,
-        ]),
-      ]);
-    }
 
     // ── CSV export ─────────────────────────────────────────────────────────
     app.get(
@@ -162,7 +46,7 @@ export const importExportRoutes =
       async (req, reply) => {
         const user = currentUser(req);
         const v = await requireVehicle(db, user, req.params.vehicleId, 'view');
-        const csv = await vehicleCsv(user, v.id, req.query.kind);
+        const csv = await backups.vehicleCsv(user, v.id, req.query.kind);
         const name = `${v.year}-${v.make}-${v.model}-${req.query.kind}`
           .toLowerCase()
           .replace(/[^a-z0-9-]+/g, '-');
@@ -276,126 +160,6 @@ export const importExportRoutes =
       },
     );
 
-    // ── Backup ─────────────────────────────────────────────────────────────
-    async function collect(user: User): Promise<Rows> {
-      const all = user.role === 'admin';
-      const vq = db.selectFrom('vehicles').selectAll();
-      const vehicles = all
-        ? await vq.execute()
-        : await vq.where('owner_id', '=', user.id).execute();
-      const vIds = vehicles.map((v) => v.id);
-      const none = <T>(): Promise<T[]> => Promise.resolve([]);
-      const records = vIds.length
-        ? await db.selectFrom('records').selectAll().where('vehicle_id', 'in', vIds).execute()
-        : [];
-      const rIds = records.map((r) => r.id);
-      const recordTags = rIds.length
-        ? await db.selectFrom('record_tags').selectAll().where('record_id', 'in', rIds).execute()
-        : [];
-      const tagIds = [...new Set(recordTags.map((t) => t.tag_id))];
-      const reminders = vIds.length
-        ? await db.selectFrom('reminders').selectAll().where('vehicle_id', 'in', vIds).execute()
-        : [];
-      const remIds = reminders.map((r) => r.id);
-      const [
-        users,
-        shares,
-        tagsRows,
-        files,
-        readings,
-        completions,
-        parts,
-        recordParts,
-        plan,
-        channels,
-        inspections,
-      ] = await Promise.all([
-        all ? db.selectFrom('users').selectAll().execute() : Promise.resolve([user]),
-        all ? db.selectFrom('vehicle_shares').selectAll().execute() : none(),
-        tagIds.length
-          ? db.selectFrom('tags').selectAll().where('id', 'in', tagIds).execute()
-          : none(),
-        vIds.length
-          ? db.selectFrom('attachments').selectAll().where('vehicle_id', 'in', vIds).execute()
-          : none(),
-        vIds.length
-          ? db.selectFrom('odometer_readings').selectAll().where('vehicle_id', 'in', vIds).execute()
-          : none(),
-        remIds.length
-          ? db
-              .selectFrom('reminder_completions')
-              .selectAll()
-              .where('reminder_id', 'in', remIds)
-              .execute()
-          : none(),
-        all
-          ? db.selectFrom('parts').selectAll().execute()
-          : db.selectFrom('parts').selectAll().where('owner_id', '=', user.id).execute(),
-        rIds.length
-          ? db.selectFrom('record_parts').selectAll().where('record_id', 'in', rIds).execute()
-          : none(),
-        vIds.length
-          ? db.selectFrom('plan_items').selectAll().where('vehicle_id', 'in', vIds).execute()
-          : none(),
-        all
-          ? db.selectFrom('notification_channels').selectAll().execute()
-          : db
-              .selectFrom('notification_channels')
-              .selectAll()
-              .where('user_id', '=', user.id)
-              .execute(),
-        vIds.length
-          ? db.selectFrom('inspections').selectAll().where('vehicle_id', 'in', vIds).execute()
-          : none(),
-      ]);
-      const recalls = vIds.length
-        ? await db.selectFrom('recalls').selectAll().where('vehicle_id', 'in', vIds).execute()
-        : [];
-      const mutes = vIds.length
-        ? await db
-            .selectFrom('vehicle_mutes')
-            .selectAll()
-            .where('vehicle_id', 'in', vIds)
-            .where(
-              'user_id',
-              'in',
-              users.map((u) => u.id),
-            )
-            .execute()
-        : [];
-      const trips = vIds.length
-        ? await db.selectFrom('trips').selectAll().where('vehicle_id', 'in', vIds).execute()
-        : [];
-      const documents = vIds.length
-        ? await db
-            .selectFrom('vehicle_documents')
-            .selectAll()
-            .where('vehicle_id', 'in', vIds)
-            .execute()
-        : [];
-      return {
-        users,
-        vehicles,
-        vehicle_shares: shares,
-        vehicle_mutes: mutes,
-        records,
-        tags: tagsRows,
-        record_tags: recordTags,
-        attachments: files,
-        odometer_readings: readings,
-        reminders,
-        reminder_completions: completions,
-        parts,
-        record_parts: recordParts,
-        plan_items: plan,
-        notification_channels: channels,
-        inspections,
-        recalls,
-        trips,
-        vehicle_documents: documents,
-      } as unknown as Rows;
-    }
-
     app.get(
       '/backup',
       {
@@ -409,57 +173,12 @@ export const importExportRoutes =
       },
       async (req, reply) => {
         const user = currentUser(req);
-        const rows = await collect(user);
-        const settings =
-          user.role === 'admin'
-            ? await db.selectFrom('instance_settings').selectAll().execute()
-            : [];
-        const files: Zippable = {};
-        const read = async (store: FileStore, key: string) => {
-          const chunks: Buffer[] = [];
-          for await (const c of store.stream(key)) chunks.push(c as Buffer);
-          return new Uint8Array(Buffer.concat(chunks));
-        };
-        for (const v of rows.vehicles ?? []) {
-          const key = v.photo_key as string | null;
-          if (key) files[`photos/${key}`] = await read(photos, key).catch(() => new Uint8Array());
-        }
-        for (const a of rows.attachments ?? []) {
-          const key = a.storage_key as string;
-          files[`attachments/${key}`] = [
-            await read(attachments, key).catch(() => new Uint8Array()),
-            { level: 0 },
-          ];
-        }
-        // Scans of documents live in the same store as receipts.
-        for (const d of rows.vehicle_documents ?? []) {
-          const key = d.storage_key as string | null;
-          if (key)
-            files[`attachments/${key}`] = [
-              await read(attachments, key).catch(() => new Uint8Array()),
-              { level: 0 },
-            ];
-        }
-        const manifest = {
-          format: 'axlebook-backup',
-          version: 1,
-          appVersion: VERSION,
-          exportedAt: new Date().toISOString(),
-          settings,
-          tables: rows,
-        };
-        files['backup.json'] = strToU8(JSON.stringify(manifest));
-        // The same records as plain CSV, one file per vehicle, readable without Axlebook.
-        for (const v of rows.vehicles ?? []) {
-          const slug = `${v.year}-${v.make}-${v.model}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-          files[`csv/${v.id}-${slug}.csv`] = strToU8(await vehicleCsv(user, v.id as number, 'all'));
-        }
-        const zip = zipSync(files, { level: 6 });
+        const zip = await backups.zip(user);
         const date = new Date().toISOString().slice(0, 10);
         return reply
           .header('Content-Type', 'application/zip')
           .header('Content-Disposition', `attachment; filename="axlebook-backup-${date}.zip"`)
-          .send(Buffer.from(zip));
+          .send(zip);
       },
     );
 
@@ -481,111 +200,108 @@ export const importExportRoutes =
       },
       async (req) => {
         requireAdmin(req);
-        const any = await db.selectFrom('vehicles').select('id').limit(1).executeTakeFirst();
-        if (any) throw new AppError('restore_not_empty');
         const file = await req.file();
         if (!file) throw new AppError('validation_failed', { field: 'file', reason: 'missing' });
-        let entries: Record<string, Uint8Array>;
-        try {
-          entries = unzipSync(new Uint8Array(await file.toBuffer()));
-        } catch {
-          throw new AppError('unsupported_file');
-        }
-        const manifestBytes = entries['backup.json'];
-        if (!manifestBytes) throw new AppError('unsupported_file');
-        const manifest = JSON.parse(strFromU8(manifestBytes)) as {
-          format?: string;
-          version?: number;
-          settings?: { key: string; value: string; updated_at: string }[];
-          tables?: Rows;
-        };
-        if (manifest.format !== 'axlebook-backup' || manifest.version !== 1 || !manifest.tables)
-          throw new AppError('unsupported_file');
-        const tables = manifest.tables;
-
-        const counts: Record<string, number> = {};
-        await db.transaction().execute(async (trx) => {
-          const maps = new Map<string, Map<number, number>>();
-          const mapFor = (t: string) => {
-            let m = maps.get(t);
-            if (!m) {
-              m = new Map();
-              maps.set(t, m);
-            }
-            return m;
-          };
-          for (const s of manifest.settings ?? []) {
-            await trx
-              .insertInto('instance_settings')
-              .values(s)
-              .onConflict((oc) =>
-                oc.column('key').doUpdateSet({ value: s.value, updated_at: s.updated_at }),
-              )
-              .execute();
-          }
-          for (const t of BACKUP_TABLES) {
-            let n = 0;
-            for (const raw of tables[t.name] ?? []) {
-              const row: Record<string, unknown> = { ...raw };
-              const oldId = row.id as number | undefined;
-              delete row.id;
-              let orphan = false;
-              for (const [col, target] of Object.entries(t.fks)) {
-                if (row[col] == null) continue;
-                const mapped = maps.get(target)?.get(row[col] as number);
-                if (mapped != null) row[col] = mapped;
-                else if (t.optional?.includes(col)) row[col] = null;
-                else orphan = true;
-              }
-              if (orphan) continue;
-              if (t.name === 'users') {
-                const existing = await trx
-                  .selectFrom('users')
-                  .select('id')
-                  .where('username', '=', row.username as string)
-                  .executeTakeFirst();
-                if (existing) {
-                  mapFor('users').set(oldId as number, existing.id);
-                  continue;
-                }
-              }
-              if (t.name === 'tags') {
-                const existing = await trx
-                  .selectFrom('tags')
-                  .select('id')
-                  .where('name_key', '=', row.name_key as string)
-                  .executeTakeFirst();
-                if (existing) {
-                  mapFor('tags').set(oldId as number, existing.id);
-                  continue;
-                }
-              }
-              if (t.noId) {
-                await trx
-                  .insertInto(t.name)
-                  .values(row as never)
-                  .execute();
-              } else {
-                const inserted = await trx
-                  .insertInto(t.name)
-                  .values(row as never)
-                  .returning('id' as never)
-                  .executeTakeFirstOrThrow();
-                mapFor(t.name).set(oldId as number, (inserted as { id: number }).id);
-              }
-              n++;
-            }
-            counts[t.name] = n;
-          }
-        });
-
-        for (const [path, bytes] of Object.entries(entries)) {
-          const [dir, key] = path.split('/');
-          if (!key || bytes.length === 0) continue;
-          const store = dir === 'photos' ? photos : dir === 'attachments' ? attachments : null;
-          if (store) await store.write(key, Buffer.from(bytes));
-        }
+        const counts = await backups.restore(new Uint8Array(await file.toBuffer()));
         return { restored: counts };
+      },
+    );
+
+    // ── Backups kept on the server ─────────────────────────────────────────
+    const Stored = z.object({ name: z.string(), size: z.number().int(), createdAt: z.string() });
+    const NameParam = z.object({ name: z.string().max(80) });
+
+    app.get(
+      '/backups',
+      {
+        schema: {
+          tags,
+          summary: 'Backups kept on the server, newest first (admin)',
+          description:
+            'Scheduled backups are written to `backups/` on the data volume when switched on in Settings, and the oldest are deleted beyond the number to keep.',
+          response: { 200: z.array(Stored), 403: ApiError },
+        },
+      },
+      async (req) => {
+        requireAdmin(req);
+        return backups.stored();
+      },
+    );
+
+    app.post(
+      '/backups',
+      {
+        schema: {
+          tags,
+          summary: 'Make a backup on the server now (admin)',
+          response: { 201: Stored, 403: ApiError },
+        },
+      },
+      async (req, reply) => {
+        requireAdmin(req);
+        return reply.status(201).send(await backups.store('manual'));
+      },
+    );
+
+    app.get(
+      '/backups/:name',
+      {
+        schema: {
+          tags,
+          summary: 'Download a stored backup (admin)',
+          params: NameParam,
+          response: { 200: z.unknown().describe('application/zip'), 403: ApiError, 404: ApiError },
+        },
+      },
+      async (req, reply) => {
+        requireAdmin(req);
+        const data = await backups.read(req.params.name);
+        return reply
+          .header('Content-Type', 'application/zip')
+          .header('Content-Disposition', `attachment; filename="${req.params.name}"`)
+          .send(data);
+      },
+    );
+
+    app.delete(
+      '/backups/:name',
+      {
+        schema: {
+          tags,
+          summary: 'Delete a stored backup (admin)',
+          params: NameParam,
+          response: { 204: z.null(), 403: ApiError, 404: ApiError },
+        },
+      },
+      async (req, reply) => {
+        requireAdmin(req);
+        await backups.read(req.params.name);
+        await backups.remove(req.params.name);
+        return reply.status(204).send(null);
+      },
+    );
+
+    app.post(
+      '/backups/:name/restore',
+      {
+        schema: {
+          tags,
+          summary: 'Restore a stored backup over this instance (admin)',
+          description:
+            "Replaces every vehicle and its records with what the backup holds. What is here now is saved as a new backup first (its name ends in `-prerestore`), so this can be undone. Accounts are kept; `confirm` must be the backup's name.",
+          params: NameParam,
+          body: z.object({ confirm: z.string() }),
+          response: {
+            200: z.object({ restored: z.record(z.string(), z.number().int()) }),
+            ...errors,
+          },
+        },
+      },
+      async (req) => {
+        requireAdmin(req);
+        if (req.body.confirm !== req.params.name)
+          throw new AppError('validation_failed', { field: 'confirm', reason: 'mismatch' });
+        return { restored: await backups.restoreStored(req.params.name) };
       },
     );
   };

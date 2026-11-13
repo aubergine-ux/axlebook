@@ -16,6 +16,9 @@ export async function getInstanceSettings(db: DB, config: Config): Promise<Insta
     soonDistanceMi: stored.soonDistanceMi ?? 500,
     soonDistanceKm: stored.soonDistanceKm ?? 800,
     onlineLookups: stored.onlineLookups ?? false,
+    backupEnabled: stored.backupEnabled ?? false,
+    backupEveryHours: stored.backupEveryHours ?? 24,
+    backupKeep: stored.backupKeep ?? 7,
   };
 }
 

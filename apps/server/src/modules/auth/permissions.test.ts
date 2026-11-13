@@ -62,6 +62,7 @@ const ids = {} as Record<
   number
 >;
 let uploadId = '';
+let stored = '';
 
 const v = () => `/api/v1/vehicles/${ids.vehicle}`;
 const record = {
@@ -555,6 +556,27 @@ const ROUTES: Record<string, Route> = {
       payload: { state: 'dismissed' },
     }),
   },
+  'GET /api/v1/backups': { rule: 'admin', make: () => ({ method: 'GET', url: '/api/v1/backups' }) },
+  'POST /api/v1/backups': {
+    rule: 'admin',
+    make: () => ({ method: 'POST', url: '/api/v1/backups' }),
+  },
+  'GET /api/v1/backups/{name}': {
+    rule: 'admin',
+    make: () => ({ method: 'GET', url: `/api/v1/backups/${stored}` }),
+  },
+  'DELETE /api/v1/backups/{name}': {
+    rule: 'admin',
+    make: () => ({ method: 'DELETE', url: `/api/v1/backups/${stored}` }),
+  },
+  'POST /api/v1/backups/{name}/restore': {
+    rule: 'admin',
+    make: () => ({
+      method: 'POST',
+      url: `/api/v1/backups/${stored}/restore`,
+      payload: { confirm: stored },
+    }),
+  },
   'DELETE /api/v1/import/mappings/{id}': {
     rule: 'mine',
     make: () => ({ method: 'DELETE', url: `/api/v1/import/mappings/${ids.mapping}` }),
@@ -696,6 +718,7 @@ beforeAll(async () => {
   ids.trip = (await json(o.req({ method: 'POST', url: `${v()}/trips`, payload: trip }))).id;
   ids.document = (await json(o.req({ method: 'POST', url: `${v()}/documents`, payload: doc }))).id;
   await o.req({ method: 'PUT', url: `/api/v1/documents/${ids.document}/file`, ...pdf() });
+  stored = (await json(t.req({ method: 'POST', url: '/api/v1/backups' }))).name;
   ids.link = (await json(o.req({ method: 'POST', url: `${v()}/history-links`, payload: {} }))).id;
   ids.recall = (
     await t.db
