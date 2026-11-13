@@ -199,6 +199,33 @@ export function registerCalendarFeed(
         'END:VEVENT',
       );
     }
+    // Registration, insurance, inspections and permits show up on the day they run out.
+    const documents = vIds.length
+      ? await db
+          .selectFrom('vehicle_documents')
+          .selectAll()
+          .where('vehicle_id', 'in', vIds)
+          .where('expires_on', 'is not', null)
+          .execute()
+      : [];
+    for (const d of documents) {
+      const v = vehicles.find((x) => x.id === d.vehicle_id);
+      if (!v || !d.expires_on) continue;
+      lines.push(
+        'BEGIN:VEVENT',
+        `UID:document-${d.id}@axlebook`,
+        `DTSTAMP:${stamp}`,
+        `DTSTART;VALUE=DATE:${ymd(d.expires_on)}`,
+        `DTEND;VALUE=DATE:${ymd(nextDay(d.expires_on))}`,
+        `SUMMARY:${esc(tr('calendar.document', { title: d.title, vehicle: v.nickname ?? vehicleTitle(v) }))}`,
+        ...(d.number ? [`DESCRIPTION:${esc(d.number)}`] : []),
+        ...(config.baseUrl
+          ? [`URL:${new URL(`/vehicles/${v.id}/documents`, config.baseUrl).toString()}`]
+          : []),
+        'TRANSP:TRANSPARENT',
+        'END:VEVENT',
+      );
+    }
     lines.push('END:VCALENDAR');
     return reply
       .header('Content-Type', 'text/calendar; charset=utf-8')

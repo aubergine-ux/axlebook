@@ -25,6 +25,7 @@ import { Route as VehiclesVehicleIdRouteRouteImport } from './routes/vehicles/$v
 import { Route as VehiclesNewRouteImport } from './routes/vehicles/new'
 import { Route as VehiclesVehicleIdIndexRouteImport } from './routes/vehicles/$vehicleId/index'
 import { Route as VehiclesVehicleIdCostsRouteImport } from './routes/vehicles/$vehicleId/costs'
+import { Route as VehiclesVehicleIdDocumentsRouteImport } from './routes/vehicles/$vehicleId/documents'
 import { Route as VehiclesVehicleIdEditRouteImport } from './routes/vehicles/$vehicleId/edit'
 import { Route as VehiclesVehicleIdFuelRouteImport } from './routes/vehicles/$vehicleId/fuel'
 import { Route as VehiclesVehicleIdIftaRouteImport } from './routes/vehicles/$vehicleId/ifta'
@@ -34,6 +35,7 @@ import { Route as VehiclesVehicleIdOdometerRouteImport } from './routes/vehicles
 import { Route as VehiclesVehicleIdPlanRouteImport } from './routes/vehicles/$vehicleId/plan'
 import { Route as VehiclesVehicleIdRemindersRouteImport } from './routes/vehicles/$vehicleId/reminders'
 import { Route as VehiclesVehicleIdSharingRouteImport } from './routes/vehicles/$vehicleId/sharing'
+import { Route as VehiclesVehicleIdTripsRouteImport } from './routes/vehicles/$vehicleId/trips'
 import { Route as VehiclesVehicleIdRecordsIndexRouteImport } from './routes/vehicles/$vehicleId/records/index'
 import { Route as VehiclesVehicleIdRecordsNewRouteImport } from './routes/vehicles/$vehicleId/records/new'
 
@@ -117,6 +119,12 @@ const VehiclesVehicleIdCostsRoute = VehiclesVehicleIdCostsRouteImport.update({
   path: '/costs',
   getParentRoute: () => VehiclesVehicleIdRouteRoute,
 } as any)
+const VehiclesVehicleIdDocumentsRoute =
+  VehiclesVehicleIdDocumentsRouteImport.update({
+    id: '/documents',
+    path: '/documents',
+    getParentRoute: () => VehiclesVehicleIdRouteRoute,
+  } as any)
 const VehiclesVehicleIdEditRoute = VehiclesVehicleIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -166,6 +174,11 @@ const VehiclesVehicleIdSharingRoute =
     path: '/sharing',
     getParentRoute: () => VehiclesVehicleIdRouteRoute,
   } as any)
+const VehiclesVehicleIdTripsRoute = VehiclesVehicleIdTripsRouteImport.update({
+  id: '/trips',
+  path: '/trips',
+  getParentRoute: () => VehiclesVehicleIdRouteRoute,
+} as any)
 const VehiclesVehicleIdRecordsIndexRoute =
   VehiclesVehicleIdRecordsIndexRouteImport.update({
     id: '/records/',
@@ -195,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/costs': typeof VehiclesVehicleIdCostsRoute
+  '/vehicles/$vehicleId/documents': typeof VehiclesVehicleIdDocumentsRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
   '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
@@ -204,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/vehicles/$vehicleId/plan': typeof VehiclesVehicleIdPlanRoute
   '/vehicles/$vehicleId/reminders': typeof VehiclesVehicleIdRemindersRoute
   '/vehicles/$vehicleId/sharing': typeof VehiclesVehicleIdSharingRoute
+  '/vehicles/$vehicleId/trips': typeof VehiclesVehicleIdTripsRoute
   '/vehicles/$vehicleId/': typeof VehiclesVehicleIdIndexRoute
   '/vehicles/$vehicleId/records/new': typeof VehiclesVehicleIdRecordsNewRoute
   '/vehicles/$vehicleId/records/': typeof VehiclesVehicleIdRecordsIndexRoute
@@ -223,6 +238,7 @@ export interface FileRoutesByTo {
   '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/costs': typeof VehiclesVehicleIdCostsRoute
+  '/vehicles/$vehicleId/documents': typeof VehiclesVehicleIdDocumentsRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
   '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
@@ -232,6 +248,7 @@ export interface FileRoutesByTo {
   '/vehicles/$vehicleId/plan': typeof VehiclesVehicleIdPlanRoute
   '/vehicles/$vehicleId/reminders': typeof VehiclesVehicleIdRemindersRoute
   '/vehicles/$vehicleId/sharing': typeof VehiclesVehicleIdSharingRoute
+  '/vehicles/$vehicleId/trips': typeof VehiclesVehicleIdTripsRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdIndexRoute
   '/vehicles/$vehicleId/records/new': typeof VehiclesVehicleIdRecordsNewRoute
   '/vehicles/$vehicleId/records': typeof VehiclesVehicleIdRecordsIndexRoute
@@ -253,6 +270,7 @@ export interface FileRoutesById {
   '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/costs': typeof VehiclesVehicleIdCostsRoute
+  '/vehicles/$vehicleId/documents': typeof VehiclesVehicleIdDocumentsRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
   '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
@@ -262,6 +280,7 @@ export interface FileRoutesById {
   '/vehicles/$vehicleId/plan': typeof VehiclesVehicleIdPlanRoute
   '/vehicles/$vehicleId/reminders': typeof VehiclesVehicleIdRemindersRoute
   '/vehicles/$vehicleId/sharing': typeof VehiclesVehicleIdSharingRoute
+  '/vehicles/$vehicleId/trips': typeof VehiclesVehicleIdTripsRoute
   '/vehicles/$vehicleId/': typeof VehiclesVehicleIdIndexRoute
   '/vehicles/$vehicleId/records/new': typeof VehiclesVehicleIdRecordsNewRoute
   '/vehicles/$vehicleId/records/': typeof VehiclesVehicleIdRecordsIndexRoute
@@ -284,6 +303,7 @@ export interface FileRouteTypes {
     | '/records/$recordId'
     | '/vehicles/new'
     | '/vehicles/$vehicleId/costs'
+    | '/vehicles/$vehicleId/documents'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
     | '/vehicles/$vehicleId/ifta'
@@ -293,6 +313,7 @@ export interface FileRouteTypes {
     | '/vehicles/$vehicleId/plan'
     | '/vehicles/$vehicleId/reminders'
     | '/vehicles/$vehicleId/sharing'
+    | '/vehicles/$vehicleId/trips'
     | '/vehicles/$vehicleId/'
     | '/vehicles/$vehicleId/records/new'
     | '/vehicles/$vehicleId/records/'
@@ -312,6 +333,7 @@ export interface FileRouteTypes {
     | '/records/$recordId'
     | '/vehicles/new'
     | '/vehicles/$vehicleId/costs'
+    | '/vehicles/$vehicleId/documents'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
     | '/vehicles/$vehicleId/ifta'
@@ -321,6 +343,7 @@ export interface FileRouteTypes {
     | '/vehicles/$vehicleId/plan'
     | '/vehicles/$vehicleId/reminders'
     | '/vehicles/$vehicleId/sharing'
+    | '/vehicles/$vehicleId/trips'
     | '/vehicles/$vehicleId'
     | '/vehicles/$vehicleId/records/new'
     | '/vehicles/$vehicleId/records'
@@ -341,6 +364,7 @@ export interface FileRouteTypes {
     | '/records/$recordId'
     | '/vehicles/new'
     | '/vehicles/$vehicleId/costs'
+    | '/vehicles/$vehicleId/documents'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
     | '/vehicles/$vehicleId/ifta'
@@ -350,6 +374,7 @@ export interface FileRouteTypes {
     | '/vehicles/$vehicleId/plan'
     | '/vehicles/$vehicleId/reminders'
     | '/vehicles/$vehicleId/sharing'
+    | '/vehicles/$vehicleId/trips'
     | '/vehicles/$vehicleId/'
     | '/vehicles/$vehicleId/records/new'
     | '/vehicles/$vehicleId/records/'
@@ -486,6 +511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VehiclesVehicleIdCostsRouteImport
       parentRoute: typeof VehiclesVehicleIdRouteRoute
     }
+    '/vehicles/$vehicleId/documents': {
+      id: '/vehicles/$vehicleId/documents'
+      path: '/documents'
+      fullPath: '/vehicles/$vehicleId/documents'
+      preLoaderRoute: typeof VehiclesVehicleIdDocumentsRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
     '/vehicles/$vehicleId/edit': {
       id: '/vehicles/$vehicleId/edit'
       path: '/edit'
@@ -549,6 +581,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VehiclesVehicleIdSharingRouteImport
       parentRoute: typeof VehiclesVehicleIdRouteRoute
     }
+    '/vehicles/$vehicleId/trips': {
+      id: '/vehicles/$vehicleId/trips'
+      path: '/trips'
+      fullPath: '/vehicles/$vehicleId/trips'
+      preLoaderRoute: typeof VehiclesVehicleIdTripsRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
     '/vehicles/$vehicleId/records/': {
       id: '/vehicles/$vehicleId/records/'
       path: '/records'
@@ -568,6 +607,7 @@ declare module '@tanstack/react-router' {
 
 interface VehiclesVehicleIdRouteRouteChildren {
   VehiclesVehicleIdCostsRoute: typeof VehiclesVehicleIdCostsRoute
+  VehiclesVehicleIdDocumentsRoute: typeof VehiclesVehicleIdDocumentsRoute
   VehiclesVehicleIdEditRoute: typeof VehiclesVehicleIdEditRoute
   VehiclesVehicleIdFuelRoute: typeof VehiclesVehicleIdFuelRoute
   VehiclesVehicleIdIftaRoute: typeof VehiclesVehicleIdIftaRoute
@@ -577,6 +617,7 @@ interface VehiclesVehicleIdRouteRouteChildren {
   VehiclesVehicleIdPlanRoute: typeof VehiclesVehicleIdPlanRoute
   VehiclesVehicleIdRemindersRoute: typeof VehiclesVehicleIdRemindersRoute
   VehiclesVehicleIdSharingRoute: typeof VehiclesVehicleIdSharingRoute
+  VehiclesVehicleIdTripsRoute: typeof VehiclesVehicleIdTripsRoute
   VehiclesVehicleIdIndexRoute: typeof VehiclesVehicleIdIndexRoute
   VehiclesVehicleIdRecordsNewRoute: typeof VehiclesVehicleIdRecordsNewRoute
   VehiclesVehicleIdRecordsIndexRoute: typeof VehiclesVehicleIdRecordsIndexRoute
@@ -585,6 +626,7 @@ interface VehiclesVehicleIdRouteRouteChildren {
 const VehiclesVehicleIdRouteRouteChildren: VehiclesVehicleIdRouteRouteChildren =
   {
     VehiclesVehicleIdCostsRoute: VehiclesVehicleIdCostsRoute,
+    VehiclesVehicleIdDocumentsRoute: VehiclesVehicleIdDocumentsRoute,
     VehiclesVehicleIdEditRoute: VehiclesVehicleIdEditRoute,
     VehiclesVehicleIdFuelRoute: VehiclesVehicleIdFuelRoute,
     VehiclesVehicleIdIftaRoute: VehiclesVehicleIdIftaRoute,
@@ -594,6 +636,7 @@ const VehiclesVehicleIdRouteRouteChildren: VehiclesVehicleIdRouteRouteChildren =
     VehiclesVehicleIdPlanRoute: VehiclesVehicleIdPlanRoute,
     VehiclesVehicleIdRemindersRoute: VehiclesVehicleIdRemindersRoute,
     VehiclesVehicleIdSharingRoute: VehiclesVehicleIdSharingRoute,
+    VehiclesVehicleIdTripsRoute: VehiclesVehicleIdTripsRoute,
     VehiclesVehicleIdIndexRoute: VehiclesVehicleIdIndexRoute,
     VehiclesVehicleIdRecordsNewRoute: VehiclesVehicleIdRecordsNewRoute,
     VehiclesVehicleIdRecordsIndexRoute: VehiclesVehicleIdRecordsIndexRoute,

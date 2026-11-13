@@ -39,6 +39,7 @@ const BACKUP_TABLES: {
   { name: 'users', fks: {} },
   { name: 'vehicles', fks: { owner_id: 'users' } },
   { name: 'vehicle_shares', fks: { vehicle_id: 'vehicles', user_id: 'users' }, noId: true },
+  { name: 'vehicle_mutes', fks: { vehicle_id: 'vehicles', user_id: 'users' }, noId: true },
   {
     name: 'records',
     fks: { vehicle_id: 'vehicles', created_by: 'users' },
@@ -71,6 +72,8 @@ const BACKUP_TABLES: {
   },
   { name: 'notification_channels', fks: { user_id: 'users' } },
   { name: 'recalls', fks: { vehicle_id: 'vehicles' } },
+  { name: 'trips', fks: { vehicle_id: 'vehicles', created_by: 'users' }, optional: ['created_by'] },
+  { name: 'vehicle_documents', fks: { vehicle_id: 'vehicles' } },
   {
     name: 'inspections',
     fks: { vehicle_id: 'vehicles', created_by: 'users' },
@@ -85,6 +88,7 @@ export const NOT_BACKED_UP = [
   'instance_settings', // saved separately as `settings`, admins only
   'notification_log',
   'vehicle_insights',
+  'notification_queue',
   'import_mappings', // point at vehicle ids; saved again by the next import
 ] as const;
 export const BACKED_UP = BACKUP_TABLES.map((t) => t.name);
@@ -346,10 +350,33 @@ export const importExportRoutes =
       const recalls = vIds.length
         ? await db.selectFrom('recalls').selectAll().where('vehicle_id', 'in', vIds).execute()
         : [];
+      const mutes = vIds.length
+        ? await db
+            .selectFrom('vehicle_mutes')
+            .selectAll()
+            .where('vehicle_id', 'in', vIds)
+            .where(
+              'user_id',
+              'in',
+              users.map((u) => u.id),
+            )
+            .execute()
+        : [];
+      const trips = vIds.length
+        ? await db.selectFrom('trips').selectAll().where('vehicle_id', 'in', vIds).execute()
+        : [];
+      const documents = vIds.length
+        ? await db
+            .selectFrom('vehicle_documents')
+            .selectAll()
+            .where('vehicle_id', 'in', vIds)
+            .execute()
+        : [];
       return {
         users,
         vehicles,
         vehicle_shares: shares,
+        vehicle_mutes: mutes,
         records,
         tags: tagsRows,
         record_tags: recordTags,
@@ -363,6 +390,8 @@ export const importExportRoutes =
         notification_channels: channels,
         inspections,
         recalls,
+        trips,
+        vehicle_documents: documents,
       } as unknown as Rows;
     }
 
@@ -400,6 +429,15 @@ export const importExportRoutes =
             await read(attachments, key).catch(() => new Uint8Array()),
             { level: 0 },
           ];
+        }
+        // Scans of documents live in the same store as receipts.
+        for (const d of rows.vehicle_documents ?? []) {
+          const key = d.storage_key as string | null;
+          if (key)
+            files[`attachments/${key}`] = [
+              await read(attachments, key).catch(() => new Uint8Array()),
+              { level: 0 },
+            ];
         }
         const manifest = {
           format: 'axlebook-backup',

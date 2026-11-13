@@ -22,6 +22,7 @@ import { assistantRoutes, MODEL_SETTING } from './modules/assistant/routes';
 import { authRoutes } from './modules/auth/routes';
 import { calendarRoutes, registerCalendarFeed } from './modules/calendar/routes';
 import { commercialRoutes } from './modules/commercial/routes';
+import { documentRoutes } from './modules/documents/routes';
 import { importExportRoutes } from './modules/import-export/routes';
 import { insightRoutes } from './modules/insights/routes';
 import { InsightService } from './modules/insights/service';
@@ -39,6 +40,7 @@ import { settingsRoutes } from './modules/settings/routes';
 import { spreadsheetRoutes } from './modules/spreadsheet/routes';
 import { SpreadsheetImporter } from './modules/spreadsheet/service';
 import { systemRoutes } from './modules/system/routes';
+import { tripRoutes } from './modules/trips/routes';
 import { userRoutes } from './modules/users/routes';
 import { vehicleRoutes } from './modules/vehicles/routes';
 import { VehicleService } from './modules/vehicles/service';
@@ -150,6 +152,12 @@ export async function buildApp({
       .select('storage_key')
       .where('vehicle_id', 'in', vehicleIds)
       .execute();
+    const docs = await db
+      .selectFrom('vehicle_documents')
+      .select('storage_key')
+      .where('vehicle_id', 'in', vehicleIds)
+      .execute();
+    for (const d of docs) if (d.storage_key) await attachments.remove(d.storage_key);
     for (const p of ph) if (p.photo_key) await photos.remove(p.photo_key);
     for (const a of at) await attachments.remove(a.storage_key);
   };
@@ -212,6 +220,8 @@ export async function buildApp({
   await app.register(spreadsheetRoutes(importer), api);
   await app.register(assistantRoutes({ db, config, ai }), api);
   await app.register(lookupRoutes({ db, config, lookups }), api);
+  await app.register(tripRoutes({ db }), api);
+  await app.register(documentRoutes({ db, config, files: attachments }), api);
   // The calendar feed lives outside /api so calendar apps can subscribe with a plain URL.
   registerCalendarFeed(app, { db, config });
 

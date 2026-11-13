@@ -55,7 +55,9 @@ const ids = {} as Record<
   | 'token'
   | 'channel'
   | 'mapping'
-  | 'recall',
+  | 'recall'
+  | 'trip'
+  | 'document',
   number
 >;
 let uploadId = '';
@@ -69,6 +71,13 @@ const record = {
   cost: 50_000,
 };
 const reminder = { title: 'Grease', dueMode: 'date', dueDate: '2027-01-01' };
+const trip = {
+  date: '2026-10-02',
+  startOdometer: 100_100,
+  endOdometer: 100_150,
+  purpose: 'Delivery',
+};
+const doc = { type: 'insurance', title: 'Policy', expiresOn: '2027-06-01' };
 const png = () => multipartFile('file', 'p.png', tinyPng, 'image/png');
 const pdf = () => multipartFile('file', 'r.pdf', tinyPdf, 'application/pdf');
 
@@ -446,6 +455,68 @@ const ROUTES: Record<string, Route> = {
   },
   // Lookups are off here, so an allowed caller gets "switched off" rather than a network call.
   'POST /api/v1/lookups/vin': { rule: 'self' },
+  'GET /api/v1/vehicles/{vehicleId}/trips': {
+    rule: 'read',
+    make: () => ({ method: 'GET', url: `${v()}/trips` }),
+  },
+  'POST /api/v1/vehicles/{vehicleId}/trips': {
+    rule: 'write',
+    make: () => ({ method: 'POST', url: `${v()}/trips`, payload: trip }),
+  },
+  'PATCH /api/v1/trips/{id}': {
+    rule: 'write',
+    make: () => ({ method: 'PATCH', url: `/api/v1/trips/${ids.trip}`, payload: trip }),
+  },
+  'DELETE /api/v1/trips/{id}': {
+    rule: 'write',
+    make: () => ({ method: 'DELETE', url: `/api/v1/trips/${ids.trip}` }),
+  },
+  'GET /api/v1/vehicles/{vehicleId}/mileage': {
+    rule: 'read',
+    make: () => ({ method: 'GET', url: `${v()}/mileage` }),
+  },
+  'GET /api/v1/vehicles/{vehicleId}/mileage.csv': {
+    rule: 'read',
+    make: () => ({ method: 'GET', url: `${v()}/mileage.csv` }),
+  },
+  'GET /api/v1/documents': { rule: 'self' },
+  'GET /api/v1/vehicles/{vehicleId}/documents': {
+    rule: 'read',
+    make: () => ({ method: 'GET', url: `${v()}/documents` }),
+  },
+  'POST /api/v1/vehicles/{vehicleId}/documents': {
+    rule: 'write',
+    make: () => ({ method: 'POST', url: `${v()}/documents`, payload: doc }),
+  },
+  'PATCH /api/v1/documents/{id}': {
+    rule: 'write',
+    make: () => ({ method: 'PATCH', url: `/api/v1/documents/${ids.document}`, payload: doc }),
+  },
+  'PUT /api/v1/documents/{id}/file': {
+    rule: 'write',
+    make: () => ({ method: 'PUT', url: `/api/v1/documents/${ids.document}/file`, ...pdf() }),
+  },
+  'GET /api/v1/documents/{id}/file': {
+    rule: 'read',
+    make: () => ({ method: 'GET', url: `/api/v1/documents/${ids.document}/file` }),
+  },
+  'DELETE /api/v1/documents/{id}/file': {
+    rule: 'write',
+    make: () => ({ method: 'DELETE', url: `/api/v1/documents/${ids.document}/file` }),
+  },
+  'DELETE /api/v1/documents/{id}': {
+    rule: 'write',
+    make: () => ({ method: 'DELETE', url: `/api/v1/documents/${ids.document}` }),
+  },
+  // Muting is each person's own switch; anyone who can see the vehicle may set theirs.
+  'GET /api/v1/vehicles/{vehicleId}/notifications': {
+    rule: 'read',
+    make: () => ({ method: 'GET', url: `${v()}/notifications` }),
+  },
+  'PUT /api/v1/vehicles/{vehicleId}/notifications': {
+    rule: 'read',
+    make: () => ({ method: 'PUT', url: `${v()}/notifications`, payload: { muted: true } }),
+  },
   'GET /api/v1/vehicles/{vehicleId}/ownership': {
     rule: 'read',
     make: () => ({ method: 'GET', url: `${v()}/ownership` }),
@@ -604,6 +675,9 @@ beforeAll(async () => {
       .returning('id')
       .executeTakeFirstOrThrow()
   ).id;
+  ids.trip = (await json(o.req({ method: 'POST', url: `${v()}/trips`, payload: trip }))).id;
+  ids.document = (await json(o.req({ method: 'POST', url: `${v()}/documents`, payload: doc }))).id;
+  await o.req({ method: 'PUT', url: `/api/v1/documents/${ids.document}/file`, ...pdf() });
   ids.recall = (
     await t.db
       .insertInto('recalls')

@@ -1,11 +1,16 @@
 import { z } from 'zod';
 import { GaragePrefs } from '../domain/garage';
+import { NotifyPrefs } from '../domain/notify';
 import { UNIT_SYSTEMS } from '../domain/units';
 import { optionalText } from './text';
 
 export const ROLES = ['admin', 'editor', 'viewer'] as const;
 export type Role = (typeof ROLES)[number];
 export const THEMES = ['system', 'light', 'dark'] as const;
+/** How dates are written: the locale's own way, or a fixed order. */
+export const DATE_FORMATS = ['auto', 'mdy', 'dmy', 'ymd'] as const;
+export type DateFormat = (typeof DATE_FORMATS)[number];
+const Currency = z.string().regex(/^[A-Z]{3}$/);
 
 export const Username = z
   .string()
@@ -28,6 +33,10 @@ export const Me = z
     theme: z.enum(THEMES),
     garage: GaragePrefs,
     showTips: z.boolean(),
+    /** This person's own currency for display; null follows the instance. */
+    currency: z.string().nullable(),
+    dateFormat: z.enum(DATE_FORMATS),
+    notify: NotifyPrefs,
     hasPassword: z.boolean(),
     oidcLinked: z.boolean(),
   })
@@ -64,6 +73,9 @@ export const MeUpdate = z.object({
   theme: z.enum(THEMES).optional(),
   garage: GaragePrefs.optional(),
   showTips: z.boolean().optional(),
+  currency: Currency.nullable().optional(),
+  dateFormat: z.enum(DATE_FORMATS).optional(),
+  notify: NotifyPrefs.partial().optional(),
 });
 export const PasswordChange = z.object({ current: z.string().max(200).optional(), next: Password });
 

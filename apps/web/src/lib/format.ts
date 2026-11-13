@@ -1,6 +1,7 @@
 import {
   computeEconomy,
   convertDistance,
+  type DateFormat,
   displayUnitsFor,
   type FuelUnit,
   formatMoney,
@@ -15,13 +16,35 @@ import { useTranslation } from 'react-i18next';
 import { authStatusQuery } from '../api/auth';
 import { configQuery } from '../api/system';
 
+/**
+ * A calendar date (YYYY-MM-DD) the way this person wants dates written: the locale's own style,
+ * or a fixed numeric order. No time zones are involved.
+ */
+export function formatDate(
+  iso: string,
+  format: DateFormat,
+  locale: string,
+  style: 'medium' | 'short' = 'medium',
+): string {
+  const day = iso.slice(0, 10);
+  const [y = '', m = '', d = ''] = day.split('-');
+  if (format === 'ymd') return day;
+  if (format === 'mdy') return `${m}/${d}/${y}`;
+  if (format === 'dmy') return `${d}/${m}/${y}`;
+  return new Intl.DateTimeFormat(locale, { dateStyle: style, timeZone: 'UTC' }).format(
+    new Date(`${day}T00:00:00Z`),
+  );
+}
+
 /** Locale-, currency- and unit-aware formatters for the signed-in user. */
 export function useFormat() {
   const { t, i18n } = useTranslation();
   const { data: config } = useQuery(configQuery);
   const { data: status } = useQuery(authStatusQuery);
   const locale = i18n.language;
-  const currency = config?.currency ?? 'USD';
+  // A person's own currency only changes the symbol; amounts are never converted.
+  const currency = status?.user?.currency ?? config?.currency ?? 'USD';
+  const dateFormat = status?.user?.dateFormat ?? 'auto';
   const unitSystem: UnitSystem =
     status?.user?.unitSystem ?? config?.defaultUnitSystem ?? 'imperial';
   const display = displayUnitsFor(unitSystem);
@@ -47,9 +70,7 @@ export function useFormat() {
     decimals,
     /** Calendar date stored as YYYY-MM-DD; formatted without timezone shifts. */
     date: (iso: string, style: 'medium' | 'short' = 'medium') =>
-      new Intl.DateTimeFormat(locale, { dateStyle: style, timeZone: 'UTC' }).format(
-        new Date(`${iso.slice(0, 10)}T00:00:00Z`),
-      ),
+      formatDate(iso, dateFormat, locale, style),
     month: (ym: string) =>
       new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(
         new Date(`${ym}-01T00:00:00Z`),

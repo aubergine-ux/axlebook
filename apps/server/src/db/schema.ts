@@ -23,6 +23,13 @@ export interface UsersTable {
   calendar_token: Generated<string | null>;
   /** JSON ViewPrefs; null means the defaults. */
   view_prefs: Generated<string | null>;
+  /** JSON NotifyPrefs; null means the defaults. */
+  notify_prefs: Generated<string | null>;
+  /** YYYY-MM-DD the weekly digest last went out. */
+  last_digest_on: Generated<string | null>;
+  /** This person's own currency code; null follows the instance. */
+  currency: Generated<string | null>;
+  date_format: Generated<'mdy' | 'dmy' | 'ymd' | null>;
   created_at: string;
   updated_at: string;
 }
@@ -223,7 +230,7 @@ export interface ApiTokensTable {
 export interface NotificationChannelsTable {
   id: Generated<number>;
   user_id: number;
-  type: 'email' | 'webhook' | 'ntfy' | 'gotify' | 'discord';
+  type: 'email' | 'webhook' | 'ntfy' | 'gotify' | 'discord' | 'apprise';
   name: string;
   config: string;
   enabled: number;
@@ -293,7 +300,59 @@ export interface RecallsTable {
   updated_at: string;
 }
 
+export interface TripsTable {
+  id: Generated<number>;
+  vehicle_id: number;
+  date: string;
+  start_odometer: number;
+  end_odometer: number;
+  purpose: string;
+  from_place: string | null;
+  to_place: string | null;
+  business: Generated<number>;
+  notes: string | null;
+  created_by: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VehicleDocumentsTable {
+  id: Generated<number>;
+  vehicle_id: number;
+  type: 'registration' | 'insurance' | 'dot_inspection' | 'permit' | 'emissions' | 'other';
+  title: string;
+  number: string | null;
+  expires_on: string | null;
+  notes: string | null;
+  storage_key: string | null;
+  original_name: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  last_notified_status: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VehicleMutesTable {
+  vehicle_id: number;
+  user_id: number;
+  created_at: string;
+}
+
+export interface NotificationQueueTable {
+  id: Generated<number>;
+  user_id: number;
+  reminder_id: number | null;
+  /** JSON Message */
+  message: string;
+  created_at: string;
+}
+
 export interface Database {
+  vehicle_mutes: VehicleMutesTable;
+  notification_queue: NotificationQueueTable;
+  trips: TripsTable;
+  vehicle_documents: VehicleDocumentsTable;
   recalls: RecallsTable;
   import_mappings: ImportMappingsTable;
   inspections: InspectionsTable;

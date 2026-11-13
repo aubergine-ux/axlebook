@@ -4,19 +4,30 @@ import {
   type ChannelConfig,
   ChannelConfig as ChannelConfigSchema,
   type ChannelInput,
+  digestDue,
+  inQuietHours,
+  parseNotifyPrefs,
   type Reminder,
+  type VehicleDocument,
 } from '@axlebook/shared';
 import type { FastifyBaseLogger } from 'fastify';
 import nodemailer, { type Transporter } from 'nodemailer';
 import type { Config } from '../../config';
 import type { DB } from '../../db/connection';
-import type { ChannelRow, User } from '../../db/schema';
+import type { ChannelRow, User, VehicleRow } from '../../db/schema';
 import { AppError } from '../../lib/errors';
 import { translator } from '../../lib/i18n';
+import { getInstanceSettings } from '../../lib/instance-settings';
 import { nowIso } from '../../lib/time';
+import { presentDocuments } from '../documents/routes';
 import type { ReminderService } from '../reminders/service';
+import { garageVehicleIds } from '../vehicles/access';
 
 export interface Message {
+  /** What this is about; webhooks receive it as `event`. */
+  event: 'reminder.status' | 'document.status' | 'digest' | 'test';
+  /** Overdue or expired: channels that have a priority raise it. */
+  urgent?: boolean;
   title: string;
   body: string;
   url?: string;
@@ -153,6 +164,7 @@ export class NotificationService {
     await this.deliver(
       row,
       {
+        event: 'test',
         title: t('notify.testTitle'),
         body: t('notify.testBody'),
         url: this.config.baseUrl?.toString(),
@@ -223,7 +235,7 @@ export class NotificationService {
             Title: /^[\x20-\x7e]*$/.test(msg.title)
               ? msg.title
               : `=?UTF-8?B?${Buffer.from(msg.title).toString('base64')}?=`,
-            Tags: msg.reminder?.status === 'overdue' ? 'warning' : 'wrench',
+            Tags: msg.urgent ? 'warning' : 'wrench',
             ...(msg.url && { Click: msg.url }),
             ...(config.token && { Authorization: `Bearer ${config.token}` }),
           },
@@ -236,7 +248,7 @@ export class NotificationService {
             body: JSON.stringify({
               title: msg.title,
               message: text,
-              priority: msg.reminder?.status === 'overdue' ? 7 : 5,
+              priority: msg.urgent ? 7 : 5,
             }),
           },
         );
@@ -248,9 +260,20 @@ export class NotificationService {
             allowed_mentions: { parse: [] },
           }),
         });
+      case 'apprise':
+        return post(config.url, {
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: msg.title,
+            body: text,
+            type: msg.urgent ? 'warning' : 'info',
+            ...(config.urls && { urls: config.urls }),
+            ...(config.tag && { tag: config.tag }),
+          }),
+        });
       case 'webhook': {
         const body = JSON.stringify({
-          event: msg.reminder ? 'reminder.status' : 'test',
+          event: msg.event,
           title: msg.title,
           body: msg.body,
           url: msg.url ?? null,
@@ -269,14 +292,143 @@ export class NotificationService {
     }
   }
 
-  // ── Reminder scan ─────────────────────────────────────────────────────────
+  // ── Scan ──────────────────────────────────────────────────────────────────
+
+  /** The server's local date, weekday and time of day, which quiet hours and digests go by. */
+  private clock(now: Date) {
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat('en-CA', {
+        timeZone: this.config.timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+        weekday: 'short',
+      })
+        .formatToParts(now)
+        .map((p) => [p.type, p.value]),
+    );
+    return {
+      date: `${parts.year}-${parts.month}-${parts.day}`,
+      clock: `${parts.hour}:${parts.minute}`,
+      weekday: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(parts.weekday as string),
+    };
+  }
+
+  private channelsOf(userId: number) {
+    return this.db
+      .selectFrom('notification_channels')
+      .selectAll()
+      .where('user_id', '=', userId)
+      .where('enabled', '=', 1)
+      .execute();
+  }
+
+  /** Send to every channel a person has, or hold the message until their quiet hours end. */
+  private async sendTo(
+    user: User,
+    msg: Message,
+    reminderId: number | null,
+    clock: string,
+  ): Promise<number> {
+    const channels = await this.channelsOf(user.id);
+    if (channels.length === 0) return 0;
+    if (inQuietHours(parseNotifyPrefs(user.notify_prefs), clock)) {
+      await this.db
+        .insertInto('notification_queue')
+        .values({
+          user_id: user.id,
+          reminder_id: reminderId,
+          message: JSON.stringify(msg),
+          created_at: nowIso(),
+        })
+        .execute();
+      return 0;
+    }
+    let sent = 0;
+    for (const ch of channels) if (await this.deliver(ch, msg, reminderId)) sent++;
+    return sent;
+  }
+
+  /** Everyone who should hear about a vehicle: its owner and the people it's shared with, minus anyone who muted it. */
+  private async audience(vehicle: Pick<VehicleRow, 'id' | 'owner_id'>): Promise<User[]> {
+    const shared = await this.db
+      .selectFrom('vehicle_shares')
+      .select('user_id')
+      .where('vehicle_id', '=', vehicle.id)
+      .execute();
+    const muted = new Set(
+      (
+        await this.db
+          .selectFrom('vehicle_mutes')
+          .select('user_id')
+          .where('vehicle_id', '=', vehicle.id)
+          .execute()
+      ).map((m) => m.user_id),
+    );
+    const users = await this.db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', 'in', [vehicle.owner_id, ...shared.map((s) => s.user_id)])
+      .where('disabled', '=', 0)
+      .execute();
+    return users.filter((u) => !muted.has(u.id));
+  }
+
+  /** Messages held during quiet hours go out once those hours are over. */
+  private async flushQueue(clock: string): Promise<number> {
+    const waiting = await this.db
+      .selectFrom('notification_queue')
+      .selectAll()
+      .orderBy('id')
+      .execute();
+    if (waiting.length === 0) return 0;
+    const users = await this.db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', 'in', [...new Set(waiting.map((w) => w.user_id))])
+      .execute();
+    let sent = 0;
+    for (const user of users) {
+      if (inQuietHours(parseNotifyPrefs(user.notify_prefs), clock)) continue;
+      const mine = waiting.filter((w) => w.user_id === user.id);
+      const channels = user.disabled ? [] : await this.channelsOf(user.id);
+      for (const w of mine)
+        for (const ch of channels)
+          if (await this.deliver(ch, JSON.parse(w.message) as Message, w.reminder_id)) sent++;
+      await this.db
+        .deleteFrom('notification_queue')
+        .where(
+          'id',
+          'in',
+          mine.map((w) => w.id),
+        )
+        .execute();
+    }
+    return sent;
+  }
+
+  /**
+   * One pass: send what quiet hours held back, then notify about reminders and documents that
+   * got worse, then weekly digests. Each step of a reminder or document is announced once.
+   */
+  async scan(now = new Date()): Promise<{ notified: number }> {
+    const at = this.clock(now);
+    let notified = await this.flushQueue(at.clock);
+    notified += await this.scanReminders(at.clock);
+    notified += await this.scanDocuments(at);
+    notified += await this.sendDigests(at);
+    return { notified };
+  }
 
   /**
    * Notify each person who can see a vehicle when one of its reminders gets worse
    * (upcoming → due soon → overdue). Each step is sent once. When a reminder
    * improves (completed or rescheduled), the marker resets so later steps notify again.
    */
-  async scan(): Promise<{ notified: number }> {
+  private async scanReminders(clock: string): Promise<number> {
     const rows = await this.db
       .selectFrom('reminders')
       .innerJoin('vehicles', 'vehicles.id', 'reminders.vehicle_id')
@@ -284,7 +436,7 @@ export class NotificationService {
       .where('reminders.archived_at', 'is', null)
       .where('vehicles.archived_at', 'is', null)
       .execute();
-    if (rows.length === 0) return { notified: 0 };
+    if (rows.length === 0) return 0;
     const vehicles = await this.db
       .selectFrom('vehicles')
       .selectAll()
@@ -313,35 +465,160 @@ export class NotificationService {
 
       const vehicle = vehicles.find((v) => v.id === r.vehicleId);
       if (!vehicle) continue;
-      const shared = await this.db
-        .selectFrom('vehicle_shares')
-        .select('user_id')
-        .where('vehicle_id', '=', vehicle.id)
-        .execute();
-      const recipients = await this.db
-        .selectFrom('users')
-        .selectAll()
-        .where('id', 'in', [vehicle.owner_id, ...shared.map((s) => s.user_id)])
-        .where('disabled', '=', 0)
-        .execute();
-      for (const user of recipients) {
-        const channels = await this.db
-          .selectFrom('notification_channels')
-          .selectAll()
-          .where('user_id', '=', user.id)
-          .where('enabled', '=', 1)
-          .execute();
-        if (channels.length === 0) continue;
-        const msg = this.reminderMessage(r, user.locale);
-        for (const ch of channels) if (await this.deliver(ch, msg, r.id)) notified++;
-      }
+      for (const user of await this.audience(vehicle))
+        notified += await this.sendTo(user, this.reminderMessage(r, user.locale), r.id, clock);
       await this.db
         .updateTable('reminders')
         .set({ last_notified_status: r.status, last_notified_at: nowIso() })
         .where('id', '=', r.id)
         .execute();
     }
-    return { notified };
+    return notified;
+  }
+
+  /** The same escalation for documents: expiring soon, then expired. */
+  private async scanDocuments(at: { date: string; clock: string }): Promise<number> {
+    const rows = await this.db
+      .selectFrom('vehicle_documents')
+      .innerJoin('vehicles', 'vehicles.id', 'vehicle_documents.vehicle_id')
+      .selectAll('vehicle_documents')
+      .where('vehicle_documents.expires_on', 'is not', null)
+      .where('vehicles.archived_at', 'is', null)
+      .execute();
+    if (rows.length === 0) return 0;
+    const vehicles = await this.db
+      .selectFrom('vehicles')
+      .selectAll()
+      .where('id', 'in', [...new Set(rows.map((r) => r.vehicle_id))])
+      .execute();
+    const { soonDays } = await getInstanceSettings(this.db, this.config);
+    const docs = presentDocuments(
+      rows,
+      new Map(vehicles.map((v) => [v.id, v])),
+      new Map(),
+      at.date,
+      soonDays,
+    );
+    const lastBy = new Map(rows.map((r) => [r.id, r.last_notified_status]));
+    let notified = 0;
+    for (const d of docs) {
+      const last = (lastBy.get(d.id) ?? 'upcoming') as keyof typeof RANK;
+      if (RANK[d.status] <= RANK[last] || d.status === 'upcoming') continue;
+      const vehicle = vehicles.find((v) => v.id === d.vehicleId);
+      if (!vehicle) continue;
+      for (const user of await this.audience(vehicle))
+        notified += await this.sendTo(user, this.documentMessage(d, user.locale), null, at.clock);
+      await this.db
+        .updateTable('vehicle_documents')
+        .set({ last_notified_status: d.status })
+        .where('id', '=', d.id)
+        .execute();
+    }
+    return notified;
+  }
+
+  /** The weekly summary, for everyone who asked for one and whose day and hour have come. */
+  private async sendDigests(at: { date: string; weekday: number; clock: string }): Promise<number> {
+    const users = await this.db
+      .selectFrom('users')
+      .selectAll()
+      .where('disabled', '=', 0)
+      .where('notify_prefs', 'is not', null)
+      .execute();
+    let notified = 0;
+    for (const user of users) {
+      const prefs = parseNotifyPrefs(user.notify_prefs);
+      if (!digestDue(prefs, at, user.last_digest_on)) continue;
+      // During quiet hours it waits for the next scan rather than joining the queue late.
+      if (inQuietHours(prefs, at.clock)) continue;
+      const channels = await this.channelsOf(user.id);
+      const msg = channels.length ? await this.digestMessage(user) : null;
+      if (msg) for (const ch of channels) if (await this.deliver(ch, msg, null)) notified++;
+      await this.db
+        .updateTable('users')
+        .set({ last_digest_on: at.date })
+        .where('id', '=', user.id)
+        .execute();
+    }
+    return notified;
+  }
+
+  /** What needs attention across one person's garage, or null when nothing does. */
+  async digestMessage(user: User): Promise<Message | null> {
+    const t = translator(user.locale);
+    const muted = new Set(
+      (
+        await this.db
+          .selectFrom('vehicle_mutes')
+          .select('vehicle_id')
+          .where('user_id', '=', user.id)
+          .execute()
+      ).map((m) => m.vehicle_id),
+    );
+    const due = (await this.reminders.listAll(user)).filter(
+      (r) => (r.status === 'overdue' || r.status === 'due_soon') && !muted.has(r.vehicleId),
+    );
+    const access = await garageVehicleIds(this.db, user);
+    const ids = [...access.keys()].filter((id) => !muted.has(id));
+    const vehicles = ids.length
+      ? await this.db
+          .selectFrom('vehicles')
+          .selectAll()
+          .where('id', 'in', ids)
+          .where('archived_at', 'is', null)
+          .execute()
+      : [];
+    const docRows = vehicles.length
+      ? await this.db
+          .selectFrom('vehicle_documents')
+          .selectAll()
+          .where(
+            'vehicle_id',
+            'in',
+            vehicles.map((v) => v.id),
+          )
+          .where('expires_on', 'is not', null)
+          .execute()
+      : [];
+    const { soonDays } = await getInstanceSettings(this.db, this.config);
+    const docs = presentDocuments(
+      docRows,
+      new Map(vehicles.map((v) => [v.id, v])),
+      access,
+      this.reminders.today(),
+      soonDays,
+    ).filter((d) => d.status !== 'upcoming');
+    if (due.length === 0 && docs.length === 0) return null;
+    const lines = [
+      ...due.map((r) => `• ${this.reminderMessage(r, user.locale).title}`),
+      ...docs.map((d) => `• ${this.documentMessage(d, user.locale).title}`),
+    ];
+    return {
+      event: 'digest',
+      title: t('notify.digestTitle', { count: lines.length }),
+      body: lines.slice(0, 40).join('\n'),
+      url: this.config.baseUrl ? new URL('/reminders', this.config.baseUrl).toString() : undefined,
+    };
+  }
+
+  documentMessage(d: VehicleDocument, locale: string | null): Message {
+    const t = translator(locale);
+    return {
+      event: 'document.status',
+      urgent: d.status === 'overdue',
+      title: t(d.status === 'overdue' ? 'notify.docExpired' : 'notify.docSoon', {
+        title: d.title,
+        vehicle: d.vehicleTitle,
+      }),
+      body: d.expiresOn
+        ? t(d.status === 'overdue' ? 'notify.docExpiredOn' : 'notify.docExpiresOn', {
+            date: d.expiresOn,
+          })
+        : '',
+      url: this.config.baseUrl
+        ? new URL(`/vehicles/${d.vehicleId}/documents`, this.config.baseUrl).toString()
+        : undefined,
+    };
   }
 
   reminderMessage(r: Reminder, locale: string | null): Message {
@@ -363,6 +640,8 @@ export class NotificationService {
       );
     }
     return {
+      event: 'reminder.status',
+      urgent: r.status === 'overdue',
       title: t(`notify.${r.status === 'overdue' ? 'overdue' : 'due_soon'}`, {
         title: r.title,
         vehicle: r.vehicleTitle,

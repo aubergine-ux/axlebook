@@ -29,6 +29,9 @@ export const testMe = {
     order: [],
   },
   showTips: true,
+  currency: null,
+  dateFormat: 'auto',
+  notify: { quietStart: null, quietEnd: null, digest: false, digestDay: 1, digestHour: 8 },
   hasPassword: true,
   oidcLinked: false,
 };

@@ -18,6 +18,8 @@ const TABS = [
   'costs',
   'reminders',
   'odometer',
+  'trips',
+  'documents',
   'inspections',
   'ifta',
   'plan',
@@ -31,6 +33,8 @@ const PATHS: Record<Tab, string> = {
   costs: '/vehicles/$vehicleId/costs',
   reminders: '/vehicles/$vehicleId/reminders',
   odometer: '/vehicles/$vehicleId/odometer',
+  trips: '/vehicles/$vehicleId/trips',
+  documents: '/vehicles/$vehicleId/documents',
   inspections: '/vehicles/$vehicleId/inspections',
   ifta: '/vehicles/$vehicleId/ifta',
   plan: '/vehicles/$vehicleId/plan',
@@ -64,6 +68,8 @@ function VehicleLayout() {
         const tabs = TABS.filter(
           (tab) =>
             (tab !== 'sharing' || v.access === 'owner') &&
+            // The trip log is for vehicles used for work.
+            (tab !== 'trips' || v.usage === 'business') &&
             // DVIRs for trucks and trailers; IFTA only for the power unit.
             (tab !== 'inspections' || isCommercial(v.category)) &&
             (tab !== 'ifta' || v.category === 'semi'),

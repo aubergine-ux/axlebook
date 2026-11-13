@@ -2,6 +2,8 @@ import {
   CHANNEL_TYPES,
   type Channel,
   type ChannelType,
+  DATE_FORMATS,
+  type NotifyPrefs,
   ROLES,
   type Role,
   UNIT_SYSTEMS,
@@ -155,6 +157,16 @@ function Profile() {
           }}
           options={[{ value: 'en', label: t('settings.languages.en') }]}
         />
+        <SelectField
+          label={t('settings.dateFormat')}
+          value={me.dateFormat}
+          onChange={(v) => update.mutate({ dateFormat: v })}
+          options={DATE_FORMATS.map((d) => ({
+            value: d,
+            label: t(`settings.dateFormats.${d}`),
+          }))}
+        />
+        <OwnCurrency />
         <div className="flex flex-col gap-1">
           <ToggleSwitch
             label={t('settings.showTips')}
@@ -165,6 +177,37 @@ function Profile() {
         </div>
       </div>
     </Section>
+  );
+}
+
+/** A person's own currency for how amounts are shown. Amounts themselves are never converted. */
+function OwnCurrency() {
+  const { t } = useTranslation();
+  const me = useMe();
+  const update = useUpdateMe();
+  const instance = useQuery(configQuery).data?.currency ?? '';
+  const [value, setValue] = useState(me?.currency ?? '');
+  const [error, setError] = useState<string>();
+  const commit = () => {
+    const code = value.trim().toUpperCase();
+    if (code === (me?.currency ?? '')) return;
+    if (code !== '' && !/^[A-Z]{3}$/.test(code)) return setError(t('settings.currencyInvalid'));
+    setError(undefined);
+    update.mutate({ currency: code === '' ? null : code });
+  };
+  return (
+    <TextField
+      label={t('settings.ownCurrency')}
+      description={t('settings.ownCurrencyHint', { currency: instance })}
+      value={value}
+      onChange={setValue}
+      onBlur={commit}
+      error={error}
+      placeholder={instance}
+      inputClassName="font-mono uppercase"
+      maxLength={3}
+      autoComplete="off"
+    />
   );
 }
 
@@ -330,6 +373,8 @@ function ChannelForm({ channel, onDone }: { channel?: Channel; onDone: () => voi
   const [name, setName] = useState(channel?.name ?? '');
   const [enabled, setEnabled] = useState(channel?.enabled ?? true);
   const [url, setUrl] = useState(cfg.url ?? '');
+  const [urls, setUrls] = useState(cfg.urls ?? '');
+  const [tag, setTag] = useState(cfg.tag ?? '');
   const [to, setTo] = useState(cfg.to ?? '');
   const [token, setToken] = useState(cfg.token ?? cfg.secret ?? '');
   const submit = (e: FormEvent) => {
@@ -343,7 +388,9 @@ function ChannelForm({ channel, onDone }: { channel?: Channel; onDone: () => voi
             ? { type, url, ...(token && { token }) }
             : type === 'webhook'
               ? { type, url, ...(token && { secret: token }) }
-              : { type, url };
+              : type === 'apprise'
+                ? { type, url, ...(urls && { urls }), ...(tag && { tag }) }
+                : { type, url };
     action.mutate(
       {
         id: channel?.id,
@@ -389,6 +436,24 @@ function ChannelForm({ channel, onDone }: { channel?: Channel; onDone: () => voi
           inputClassName="font-mono"
         />
       )}
+      {type === 'apprise' && (
+        <>
+          <p className="text-caption text-ink-muted">{t('settings.appriseHint')}</p>
+          <TextField
+            label={t('settings.appriseUrls')}
+            description={t('settings.appriseUrlsHint')}
+            value={urls}
+            onChange={setUrls}
+            inputClassName="font-mono"
+          />
+          <TextField
+            label={t('settings.appriseTag')}
+            value={tag}
+            onChange={setTag}
+            inputClassName="font-mono"
+          />
+        </>
+      )}
       {type === 'webhook' && (
         <TextField
           label={t('settings.channelSecret')}
@@ -409,6 +474,84 @@ function ChannelForm({ channel, onDone }: { channel?: Channel; onDone: () => voi
         <Button onPress={onDone}>{t('actions.cancel')}</Button>
       </div>
     </Form>
+  );
+}
+
+/** Quiet hours and the weekly digest. Saved as each one changes. */
+function NotifyPrefsForm() {
+  const { t } = useTranslation();
+  const me = useMe();
+  const update = useUpdateMe();
+  if (!me) return null;
+  const n = me.notify;
+  const save = (notify: Partial<NotifyPrefs>) => update.mutate({ notify });
+  const quiet = n.quietStart != null && n.quietEnd != null;
+  return (
+    <div className="mt-4 flex flex-col gap-4 border-t border-line pt-4">
+      <ErrorNote error={update.error} />
+      <div className="flex flex-col gap-2">
+        <ToggleSwitch
+          label={t('settings.quiet.toggle')}
+          isSelected={quiet}
+          onChange={(on) =>
+            save(
+              on
+                ? { quietStart: '22:00', quietEnd: '07:00' }
+                : { quietStart: null, quietEnd: null },
+            )
+          }
+        />
+        <p className="text-caption text-ink-muted">{t('settings.quiet.hint')}</p>
+        {quiet && (
+          <div className="grid max-w-sm grid-cols-2 gap-3">
+            <TextField
+              label={t('settings.quiet.from')}
+              type="time"
+              value={n.quietStart ?? ''}
+              onChange={(v) => v && save({ quietStart: v.slice(0, 5) })}
+              inputClassName="font-mono"
+            />
+            <TextField
+              label={t('settings.quiet.until')}
+              type="time"
+              value={n.quietEnd ?? ''}
+              onChange={(v) => v && save({ quietEnd: v.slice(0, 5) })}
+              inputClassName="font-mono"
+            />
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col gap-2">
+        <ToggleSwitch
+          label={t('settings.digest.toggle')}
+          isSelected={n.digest}
+          onChange={(digest) => save({ digest })}
+        />
+        <p className="text-caption text-ink-muted">{t('settings.digest.hint')}</p>
+        {n.digest && (
+          <div className="grid max-w-sm grid-cols-2 gap-3">
+            <SelectField
+              label={t('settings.digest.day')}
+              value={String(n.digestDay)}
+              onChange={(v) => save({ digestDay: Number(v) })}
+              options={(['1', '2', '3', '4', '5', '6', '0'] as const).map((d) => ({
+                value: d,
+                label: t(`settings.digest.days.${d}`),
+              }))}
+            />
+            <SelectField
+              label={t('settings.digest.hour')}
+              value={String(n.digestHour)}
+              onChange={(v) => save({ digestHour: Number(v) })}
+              options={Array.from({ length: 24 }, (_, h) => ({
+                value: String(h),
+                label: `${String(h).padStart(2, '0')}:00`,
+              }))}
+            />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -486,6 +629,7 @@ function Channels() {
           )}
         </div>
       )}
+      <NotifyPrefsForm />
       <FormDialog
         isOpen={editing !== null}
         onOpenChange={(o) => !o && setEditing(null)}

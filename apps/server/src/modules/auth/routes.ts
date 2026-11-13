@@ -8,6 +8,7 @@ import {
   Me,
   MeUpdate,
   PasswordChange,
+  parseNotifyPrefs,
   parseViewPrefs,
   SetupInput,
 } from '@axlebook/shared';
@@ -162,6 +163,11 @@ export const authRoutes =
             ...(b.locale && { locale: b.locale }),
             ...(b.theme && { theme: b.theme }),
             ...((b.garage || b.showTips !== undefined) && { view_prefs: JSON.stringify(prefs) }),
+            ...(b.currency !== undefined && { currency: b.currency }),
+            ...(b.dateFormat && { date_format: b.dateFormat === 'auto' ? null : b.dateFormat }),
+            ...(b.notify && {
+              notify_prefs: JSON.stringify({ ...parseNotifyPrefs(u.notify_prefs), ...b.notify }),
+            }),
             updated_at: nowIso(),
           })
           .where('id', '=', u.id)

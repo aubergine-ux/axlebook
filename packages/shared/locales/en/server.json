@@ -8,6 +8,11 @@
     "dueAt": "Due at {{odometer}} {{unit}}.",
     "distanceOver": "{{distance}} {{unit}} past due.",
     "distanceLeft": "{{distance}} {{unit}} to go.",
+    "docExpired": "Expired: {{title}} for the {{vehicle}}",
+    "docSoon": "Expires soon: {{title}} for the {{vehicle}}",
+    "docExpiredOn": "Expired on {{date}}.",
+    "docExpiresOn": "Expires on {{date}}.",
+    "digestTitle": "Axlebook this week: {{count}} to look at",
     "testTitle": "Axlebook test notification",
     "testBody": "If you can read this, notifications from Axlebook are working."
   },
@@ -16,6 +21,7 @@
     "event": "{{title}} ({{vehicle}})",
     "overdue": "Overdue: {{title}} ({{vehicle}})",
     "dueAt": "Also due at {{odometer}} {{unit}}.",
+    "document": "{{title}} expires ({{vehicle}})",
     "estimated": "Date estimated from about {{pace}} {{unit}} a day."
   }
 }

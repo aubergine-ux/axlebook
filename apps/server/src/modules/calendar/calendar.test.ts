@@ -52,6 +52,12 @@ describe('calendar feed', () => {
       url: `/api/v1/vehicles/${v.id}/reminders`,
       payload: { title: 'Oil change', dueMode: 'distance', dueOdometer: 90_000 },
     });
+    await t.req({
+      method: 'POST',
+      headers: origin,
+      url: `/api/v1/vehicles/${v.id}/documents`,
+      payload: { type: 'insurance', title: 'Insurance', number: 'PN-88', expiresOn: '2027-06-30' },
+    });
     const { url } = (await post('/api/v1/me/calendar')).json();
     expect(url).toMatch(/^https:\/\/garage\.example\.com\/calendar\/[\w-]{20,}\.ics$/);
 
@@ -65,6 +71,8 @@ describe('calendar feed', () => {
     expect(body).toContain('DTSTART;VALUE=DATE:20270331\r\nDTEND;VALUE=DATE:20270401');
     expect(body).toContain('SUMMARY:Registration\\; renewal\\, county (Taco)');
     expect(body).toContain('DESCRIPTION:Bring proof of insurance');
+    expect(body).toContain('DTSTART;VALUE=DATE:20270630\r\nDTEND;VALUE=DATE:20270701');
+    expect(body).toContain('SUMMARY:Insurance expires (Taco)\r\nDESCRIPTION:PN-88');
     // A distance-only reminder has no date until the odometer log shows how much it's driven.
     expect(body).not.toContain('Oil change');
     for (const line of body.split('\r\n')) expect(Buffer.byteLength(line)).toBeLessThanOrEqual(75);

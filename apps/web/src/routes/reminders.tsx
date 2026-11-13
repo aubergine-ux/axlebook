@@ -3,12 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { allDocumentsQuery } from '../api/fleet';
 import { remindersQuery } from '../api/resources';
 import { PageHeader } from '../components/PageHeader';
 import { ReminderForm } from '../components/reminders/ReminderForm';
 import { ReminderItem } from '../components/reminders/ReminderItem';
 import { FormDialog } from '../components/ui/FormDialog';
 import { QueryState } from '../components/ui/QueryState';
+import { DocumentItem } from '../components/vehicles/DocumentItem';
 
 export const Route = createFileRoute('/reminders')({ component: RemindersPage });
 
@@ -18,9 +20,27 @@ function RemindersPage() {
   const { t } = useTranslation();
   const query = useQuery(remindersQuery());
   const [editing, setEditing] = useState<Reminder | null>(null);
+  // Documents that have expired or are about to: they need doing just like a reminder.
+  const documents = (useQuery(allDocumentsQuery).data ?? []).filter((d) => d.status !== 'upcoming');
   return (
     <>
       <PageHeader title={t('nav.reminders')} />
+      {documents.length > 0 && (
+        <section
+          aria-labelledby="h-documents"
+          className="mb-6 rounded-lg border border-line bg-surface-raised px-4 shadow-card md:px-6"
+        >
+          <h2 id="h-documents" className="pt-4 text-heading font-semibold">
+            {t('documents.attention')}{' '}
+            <span className="font-mono text-ink-muted">{documents.length}</span>
+          </h2>
+          <ul>
+            {documents.map((d) => (
+              <DocumentItem key={d.id} document={d} showVehicle />
+            ))}
+          </ul>
+        </section>
+      )}
       <QueryState query={query}>
         {(list) =>
           list.length === 0 ? (

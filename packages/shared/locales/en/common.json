@@ -153,7 +153,8 @@
       "ntfy": "ntfy",
       "gotify": "Gotify",
       "discord": "Discord",
-      "webhook": "Webhook"
+      "webhook": "Webhook",
+      "apprise": "Apprise"
     },
     "channelUrl": "URL",
     "channelTo": "Email address",
@@ -224,6 +225,41 @@
       "title": "Online lookups",
       "body": "Off by default: Axlebook contacts nothing outside your server. Turn this on to decode VINs and check for safety recalls with NHTSA, a US government service. Only the VIN, or the make, model and year, is sent.",
       "toggle": "Allow VIN and recall lookups"
+    },
+    "appriseHint": "The address of your Apprise API server's notify endpoint: …/notify/your-key for a saved configuration, or …/notify with the Apprise URLs below.",
+    "appriseUrls": "Apprise URLs",
+    "appriseUrlsHint": "Comma-separated. Only needed without a saved configuration.",
+    "appriseTag": "Tag",
+    "dateFormat": "Dates",
+    "dateFormats": {
+      "auto": "As my language writes them",
+      "mdy": "Month/Day/Year",
+      "dmy": "Day/Month/Year",
+      "ymd": "Year-Month-Day"
+    },
+    "ownCurrency": "My currency",
+    "ownCurrencyHint": "Three letters, like EUR. Blank uses the server's ({{currency}}). Amounts aren't converted.",
+    "currencyInvalid": "Three letters, like USD or EUR",
+    "quiet": {
+      "toggle": "Quiet hours",
+      "hint": "Nothing is sent during these hours; it arrives when they end. Times are on the server's clock.",
+      "from": "From",
+      "until": "Until"
+    },
+    "digest": {
+      "toggle": "Weekly digest",
+      "hint": "One message a week listing everything overdue, due soon or about to expire.",
+      "day": "Day",
+      "hour": "Time",
+      "days": {
+        "0": "Sunday",
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday"
+      }
     }
   },
   "vehicle": {
@@ -304,7 +340,9 @@
       "sharing": "Sharing",
       "inspections": "Inspections",
       "ifta": "IFTA",
-      "costs": "Costs"
+      "costs": "Costs",
+      "trips": "Trips",
+      "documents": "Documents"
     },
     "stats": {
       "odometer": "Odometer",
@@ -359,7 +397,9 @@
       "hint": "Looking it up fills in year, make, model, trim and engine.",
       "invalid": "A VIN has 17 letters and digits, and never I, O or Q.",
       "done": "Filled in from the VIN. Check it before saving."
-    }
+    },
+    "notify": "Notify me about this vehicle",
+    "notifyHint": "Off mutes its reminders and documents for you, and leaves it out of your weekly digest. Other people it's shared with aren't affected."
   },
   "units": {
     "odometer": {
@@ -1150,6 +1190,81 @@
       "tax": "Tax",
       "loan": "Loan",
       "other": "Parking, tolls and other"
+    }
+  },
+  "trips": {
+    "add": "Log a trip",
+    "edit": "Edit trip",
+    "year": "Year",
+    "downloadCsv": "Download CSV",
+    "business": "Business distance",
+    "total": "Driven in total",
+    "totalHint": "From the odometer log",
+    "share": "Business share",
+    "percent": "{{value}}%",
+    "count": "Trips",
+    "byPurpose": "By purpose",
+    "empty": "No trips logged for this year.",
+    "personal": "Personal",
+    "isBusiness": "Business trip",
+    "beforeStart": "Can't be lower than the start reading",
+    "distanceHint": "{{distance}} {{unit}}",
+    "purposeHint": "What the trip was for, e.g. the client or the job.",
+    "deleteTitle": "Delete this trip?",
+    "deleteBody": "“{{purpose}}” will be removed from the log and the mileage report.",
+    "fields": {
+      "date": "Date",
+      "purpose": "Purpose",
+      "start": "Start",
+      "end": "End",
+      "startUnit": "Start ({{unit}})",
+      "endUnit": "End ({{unit}})",
+      "distance": "Distance",
+      "from": "From",
+      "to": "To",
+      "notes": "Notes"
+    }
+  },
+  "documents": {
+    "intro": "Registration, insurance, inspection certificates and permits. Give one an expiry date and Axlebook reminds you before it runs out.",
+    "add": "Add a document",
+    "edit": "Edit document",
+    "empty": "No documents yet.",
+    "attention": "Documents",
+    "open": "Open {{name}}",
+    "addFile": "Add a scan",
+    "replaceFile": "Replace the scan",
+    "fileHint": "A photo or PDF, optional.",
+    "titleHint": "Leave blank to use the type.",
+    "expiryHint": "Leave blank if it never expires.",
+    "noExpiry": "No expiry",
+    "expiresToday": "Expires today",
+    "expiresOn": "Expires {{date}}",
+    "expiresIn_one": "Expires in {{count}} day",
+    "expiresIn_other": "Expires in {{count}} days",
+    "expiredAgo_one": "Expired {{count}} day ago",
+    "expiredAgo_other": "Expired {{count}} days ago",
+    "deleteTitle": "Delete this document?",
+    "deleteBody": "“{{title}}” and its scan will be removed.",
+    "status": {
+      "overdue": "Expired",
+      "due_soon": "Expires soon",
+      "upcoming": "Valid"
+    },
+    "types": {
+      "registration": "Registration",
+      "insurance": "Insurance",
+      "dot_inspection": "DOT annual inspection",
+      "permit": "Permit",
+      "emissions": "Emissions or safety test",
+      "other": "Other"
+    },
+    "fields": {
+      "type": "Type",
+      "title": "Name",
+      "number": "Number",
+      "expiresOn": "Expires",
+      "notes": "Notes"
     }
   }
 }

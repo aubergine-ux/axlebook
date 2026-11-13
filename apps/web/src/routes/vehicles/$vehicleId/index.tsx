@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { muteQuery, useSetMute } from '../../../api/fleet';
 import {
   fuelQuery,
   recordsQuery,
@@ -18,6 +19,7 @@ import { ReminderItem } from '../../../components/reminders/ReminderItem';
 import { StatTile } from '../../../components/StatTile';
 import { Button, LinkButton } from '../../../components/ui/Button';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
+import { ToggleSwitch } from '../../../components/ui/ToggleSwitch';
 import { RecallsCard } from '../../../components/vehicles/RecallsCard';
 import { SpecsCard } from '../../../components/vehicles/SpecsCard';
 import { useFormat } from '../../../lib/format';
@@ -40,6 +42,8 @@ function Overview() {
   const remove = useDeleteVehicle();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const view = useViewPrefs();
+  const mute = useQuery(muteQuery(id)).data;
+  const setMute = useSetMute(id);
   if (!v) return null;
 
   const title = vehicleTitle(v);
@@ -197,6 +201,16 @@ function Overview() {
                 <h3 className="mt-4 mb-1 text-label">{t('vehicle.notes')}</h3>
                 <p className="whitespace-pre-wrap">{v.notes}</p>
               </>
+            )}
+            {mute && (
+              <div className="mt-4 border-t border-line pt-4">
+                <ToggleSwitch
+                  label={t('vehicle.notify')}
+                  isSelected={!mute.muted}
+                  onChange={(on) => setMute.mutate(!on)}
+                />
+                <p className="mt-1 text-caption text-ink-muted">{t('vehicle.notifyHint')}</p>
+              </div>
             )}
             {v.archivedAt && (
               <p

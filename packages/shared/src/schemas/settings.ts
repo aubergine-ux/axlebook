@@ -16,7 +16,7 @@ export const InstanceSettings = z
 export type InstanceSettings = z.infer<typeof InstanceSettings>;
 export const InstanceSettingsUpdate = InstanceSettings.partial();
 
-export const CHANNEL_TYPES = ['email', 'ntfy', 'gotify', 'discord', 'webhook'] as const;
+export const CHANNEL_TYPES = ['email', 'ntfy', 'gotify', 'discord', 'apprise', 'webhook'] as const;
 export type ChannelType = (typeof CHANNEL_TYPES)[number];
 
 export const ChannelConfig = z.discriminatedUnion('type', [
@@ -24,6 +24,16 @@ export const ChannelConfig = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ntfy'), url: z.url(), token: z.string().max(200).optional() }),
   z.object({ type: z.literal('gotify'), url: z.url(), token: z.string().min(1).max(200) }),
   z.object({ type: z.literal('discord'), url: z.url() }),
+  /**
+   * An Apprise API server: `url` is its notify endpoint (`…/notify/<key>` for a saved
+   * configuration, or `…/notify` together with `urls`, a comma-separated list of Apprise URLs).
+   */
+  z.object({
+    type: z.literal('apprise'),
+    url: z.url(),
+    urls: z.string().max(2000).optional(),
+    tag: z.string().max(100).optional(),
+  }),
   z.object({ type: z.literal('webhook'), url: z.url(), secret: z.string().max(200).optional() }),
 ]);
 export type ChannelConfig = z.infer<typeof ChannelConfig>;
