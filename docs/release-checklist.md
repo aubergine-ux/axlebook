@@ -1,5 +1,8 @@
 # v1.0 release checklist
 
+> This is the audit done for 1.0.0. What 1.1.0 added is in [CHANGELOG.md](../CHANGELOG.md), and its
+> tests are described in [ARCHITECTURE.md](../ARCHITECTURE.md#tests).
+
 Audited 2026-11-04 against commit `a64f767` and later. Every item was checked against the code
 and by running it; nothing is marked from memory. **PASS** = verified, with the evidence named.
 **FIXED** = was failing, fixed during the audit, now verified. **DEVIATION** = works, but
