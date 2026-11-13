@@ -23,6 +23,7 @@ import { authRoutes } from './modules/auth/routes';
 import { calendarRoutes, registerCalendarFeed } from './modules/calendar/routes';
 import { commercialRoutes } from './modules/commercial/routes';
 import { documentRoutes } from './modules/documents/routes';
+import { historyRoutes, registerPublicHistory } from './modules/history/routes';
 import { importExportRoutes } from './modules/import-export/routes';
 import { insightRoutes } from './modules/insights/routes';
 import { InsightService } from './modules/insights/service';
@@ -224,6 +225,9 @@ export async function buildApp({
   await app.register(documentRoutes({ db, config, files: attachments }), api);
   // The calendar feed lives outside /api so calendar apps can subscribe with a plain URL.
   registerCalendarFeed(app, { db, config });
+  await app.register(historyRoutes({ db, config }), api);
+  // Shared history links are read without signing in, so they live outside /api/v1 too.
+  registerPublicHistory(app, { db, config });
 
   await registerSpa(app, config.webDir);
 

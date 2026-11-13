@@ -57,7 +57,8 @@ const ids = {} as Record<
   | 'mapping'
   | 'recall'
   | 'trip'
-  | 'document',
+  | 'document'
+  | 'link',
   number
 >;
 let uploadId = '';
@@ -517,6 +518,23 @@ const ROUTES: Record<string, Route> = {
     rule: 'read',
     make: () => ({ method: 'PUT', url: `${v()}/notifications`, payload: { muted: true } }),
   },
+  'GET /api/v1/vehicles/{vehicleId}/history': {
+    rule: 'read',
+    make: () => ({ method: 'GET', url: `${v()}/history?costs=true&vin=true&notes=true` }),
+  },
+  // Handing the history to strangers is the owner's call, like sharing.
+  'GET /api/v1/vehicles/{vehicleId}/history-links': {
+    rule: 'owner',
+    make: () => ({ method: 'GET', url: `${v()}/history-links` }),
+  },
+  'POST /api/v1/vehicles/{vehicleId}/history-links': {
+    rule: 'owner',
+    make: () => ({ method: 'POST', url: `${v()}/history-links`, payload: {} }),
+  },
+  'DELETE /api/v1/history-links/{id}': {
+    rule: 'owner',
+    make: () => ({ method: 'DELETE', url: `/api/v1/history-links/${ids.link}` }),
+  },
   'GET /api/v1/vehicles/{vehicleId}/ownership': {
     rule: 'read',
     make: () => ({ method: 'GET', url: `${v()}/ownership` }),
@@ -678,6 +696,7 @@ beforeAll(async () => {
   ids.trip = (await json(o.req({ method: 'POST', url: `${v()}/trips`, payload: trip }))).id;
   ids.document = (await json(o.req({ method: 'POST', url: `${v()}/documents`, payload: doc }))).id;
   await o.req({ method: 'PUT', url: `/api/v1/documents/${ids.document}/file`, ...pdf() });
+  ids.link = (await json(o.req({ method: 'POST', url: `${v()}/history-links`, payload: {} }))).id;
   ids.recall = (
     await t.db
       .insertInto('recalls')

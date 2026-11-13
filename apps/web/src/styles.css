@@ -106,3 +106,24 @@
     }
   }
 }
+
+/* Paper is white whatever theme is on screen: printing uses the kit's light surface and ink. */
+@media print {
+  :root,
+  :root[data-theme="dark"] {
+    color-scheme: light;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --surface-sunken: #e8eaec;
+    --line: #d8dbdf;
+    --line-strong: #7d848b;
+    --ink: #16191c;
+    --ink-muted: #5a6169;
+  }
+  :root .on-light {
+    display: inline-block;
+  }
+  :root .on-dark {
+    display: none;
+  }
+}

@@ -342,7 +342,8 @@
       "ifta": "IFTA",
       "costs": "Costs",
       "trips": "Trips",
-      "documents": "Documents"
+      "documents": "Documents",
+      "history": "History"
     },
     "stats": {
       "odometer": "Odometer",
@@ -1265,6 +1266,62 @@
       "number": "Number",
       "expiresOn": "Expires",
       "notes": "Notes"
+    }
+  },
+  "history": {
+    "intro": "Every service, repair and upgrade with its date and odometer reading, laid out to hand to a buyer. Print it, save it as a PDF, or share a read-only link.",
+    "kicker": "Service history",
+    "print": "Print or save as PDF",
+    "showCosts": "Costs",
+    "showVin": "VIN",
+    "showNotes": "Notes",
+    "odometer": "Odometer",
+    "jobs": "Jobs on record",
+    "period": "Covering",
+    "range": "{{from}} to {{to}}",
+    "spent": "Spent on upkeep",
+    "empty": "No services, repairs or upgrades recorded yet.",
+    "generated": "Generated {{date}}",
+    "footer": "Kept with Axlebook",
+    "columns": {
+      "date": "Date",
+      "odometer": "Odometer",
+      "work": "Work done",
+      "cost": "Cost"
+    },
+    "share": {
+      "title": "Share a read-only link",
+      "intro": "Anyone with the link can read this report without an account. They can't see anything else, and you can switch the link off at any time.",
+      "label": "Who it's for",
+      "expires": "Stops working",
+      "create": "Create link",
+      "usesOptions": "The link shows what's switched on above: costs, VIN and notes are left out unless you turn them on first.",
+      "unnamed": "Unnamed link",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "revoke": "Switch off",
+      "until": "until {{date}}",
+      "includes": "Includes: {{what}}",
+      "views_one": "opened {{count}} time",
+      "views_other": "opened {{count}} times",
+      "states": {
+        "active": "Active",
+        "expired": "Expired",
+        "revoked": "Switched off"
+      },
+      "expiry": {
+        "7": "In a week",
+        "30": "In 30 days",
+        "90": "In 90 days",
+        "365": "In a year",
+        "never": "Never"
+      }
+    },
+    "shared": {
+      "readOnly": "A read-only copy of this vehicle's service history.",
+      "expires": "A read-only copy. This link works until {{date}}.",
+      "goneTitle": "This link doesn't work any more",
+      "goneBody": "It has expired or the owner switched it off. Ask them for a new one."
     }
   }
 }

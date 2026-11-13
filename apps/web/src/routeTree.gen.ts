@@ -20,6 +20,7 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SetupRouteImport } from './routes/setup'
+import { Route as HTokenRouteImport } from './routes/h/$token'
 import { Route as RecordsRecordIdRouteImport } from './routes/records/$recordId'
 import { Route as VehiclesVehicleIdRouteRouteImport } from './routes/vehicles/$vehicleId/route'
 import { Route as VehiclesNewRouteImport } from './routes/vehicles/new'
@@ -28,6 +29,7 @@ import { Route as VehiclesVehicleIdCostsRouteImport } from './routes/vehicles/$v
 import { Route as VehiclesVehicleIdDocumentsRouteImport } from './routes/vehicles/$vehicleId/documents'
 import { Route as VehiclesVehicleIdEditRouteImport } from './routes/vehicles/$vehicleId/edit'
 import { Route as VehiclesVehicleIdFuelRouteImport } from './routes/vehicles/$vehicleId/fuel'
+import { Route as VehiclesVehicleIdHistoryRouteImport } from './routes/vehicles/$vehicleId/history'
 import { Route as VehiclesVehicleIdIftaRouteImport } from './routes/vehicles/$vehicleId/ifta'
 import { Route as VehiclesVehicleIdImportRouteImport } from './routes/vehicles/$vehicleId/import'
 import { Route as VehiclesVehicleIdInspectionsRouteImport } from './routes/vehicles/$vehicleId/inspections'
@@ -94,6 +96,11 @@ const SetupRoute = SetupRouteImport.update({
   path: '/setup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HTokenRoute = HTokenRouteImport.update({
+  id: '/h/$token',
+  path: '/h/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecordsRecordIdRoute = RecordsRecordIdRouteImport.update({
   id: '/records/$recordId',
   path: '/records/$recordId',
@@ -135,6 +142,12 @@ const VehiclesVehicleIdFuelRoute = VehiclesVehicleIdFuelRouteImport.update({
   path: '/fuel',
   getParentRoute: () => VehiclesVehicleIdRouteRoute,
 } as any)
+const VehiclesVehicleIdHistoryRoute =
+  VehiclesVehicleIdHistoryRouteImport.update({
+    id: '/history',
+    path: '/history',
+    getParentRoute: () => VehiclesVehicleIdRouteRoute,
+  } as any)
 const VehiclesVehicleIdIftaRoute = VehiclesVehicleIdIftaRouteImport.update({
   id: '/ifta',
   path: '/ifta',
@@ -205,12 +218,14 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRouteRouteWithChildren
+  '/h/$token': typeof HTokenRoute
   '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/costs': typeof VehiclesVehicleIdCostsRoute
   '/vehicles/$vehicleId/documents': typeof VehiclesVehicleIdDocumentsRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
+  '/vehicles/$vehicleId/history': typeof VehiclesVehicleIdHistoryRoute
   '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
   '/vehicles/$vehicleId/import': typeof VehiclesVehicleIdImportRoute
   '/vehicles/$vehicleId/inspections': typeof VehiclesVehicleIdInspectionsRoute
@@ -235,12 +250,14 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
+  '/h/$token': typeof HTokenRoute
   '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/costs': typeof VehiclesVehicleIdCostsRoute
   '/vehicles/$vehicleId/documents': typeof VehiclesVehicleIdDocumentsRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
+  '/vehicles/$vehicleId/history': typeof VehiclesVehicleIdHistoryRoute
   '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
   '/vehicles/$vehicleId/import': typeof VehiclesVehicleIdImportRoute
   '/vehicles/$vehicleId/inspections': typeof VehiclesVehicleIdInspectionsRoute
@@ -267,12 +284,14 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRouteRouteWithChildren
+  '/h/$token': typeof HTokenRoute
   '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
   '/vehicles/$vehicleId/costs': typeof VehiclesVehicleIdCostsRoute
   '/vehicles/$vehicleId/documents': typeof VehiclesVehicleIdDocumentsRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
+  '/vehicles/$vehicleId/history': typeof VehiclesVehicleIdHistoryRoute
   '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
   '/vehicles/$vehicleId/import': typeof VehiclesVehicleIdImportRoute
   '/vehicles/$vehicleId/inspections': typeof VehiclesVehicleIdInspectionsRoute
@@ -300,12 +319,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/setup'
     | '/vehicles/$vehicleId'
+    | '/h/$token'
     | '/records/$recordId'
     | '/vehicles/new'
     | '/vehicles/$vehicleId/costs'
     | '/vehicles/$vehicleId/documents'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
+    | '/vehicles/$vehicleId/history'
     | '/vehicles/$vehicleId/ifta'
     | '/vehicles/$vehicleId/import'
     | '/vehicles/$vehicleId/inspections'
@@ -330,12 +351,14 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/setup'
+    | '/h/$token'
     | '/records/$recordId'
     | '/vehicles/new'
     | '/vehicles/$vehicleId/costs'
     | '/vehicles/$vehicleId/documents'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
+    | '/vehicles/$vehicleId/history'
     | '/vehicles/$vehicleId/ifta'
     | '/vehicles/$vehicleId/import'
     | '/vehicles/$vehicleId/inspections'
@@ -361,12 +384,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/setup'
     | '/vehicles/$vehicleId'
+    | '/h/$token'
     | '/records/$recordId'
     | '/vehicles/new'
     | '/vehicles/$vehicleId/costs'
     | '/vehicles/$vehicleId/documents'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
+    | '/vehicles/$vehicleId/history'
     | '/vehicles/$vehicleId/ifta'
     | '/vehicles/$vehicleId/import'
     | '/vehicles/$vehicleId/inspections'
@@ -393,6 +418,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SetupRoute: typeof SetupRoute
   VehiclesVehicleIdRouteRoute: typeof VehiclesVehicleIdRouteRouteWithChildren
+  HTokenRoute: typeof HTokenRoute
   RecordsRecordIdRoute: typeof RecordsRecordIdRoute
   VehiclesNewRoute: typeof VehiclesNewRoute
 }
@@ -476,6 +502,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SetupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/h/$token': {
+      id: '/h/$token'
+      path: '/h/$token'
+      fullPath: '/h/$token'
+      preLoaderRoute: typeof HTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/records/$recordId': {
       id: '/records/$recordId'
       path: '/records/$recordId'
@@ -530,6 +563,13 @@ declare module '@tanstack/react-router' {
       path: '/fuel'
       fullPath: '/vehicles/$vehicleId/fuel'
       preLoaderRoute: typeof VehiclesVehicleIdFuelRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
+    '/vehicles/$vehicleId/history': {
+      id: '/vehicles/$vehicleId/history'
+      path: '/history'
+      fullPath: '/vehicles/$vehicleId/history'
+      preLoaderRoute: typeof VehiclesVehicleIdHistoryRouteImport
       parentRoute: typeof VehiclesVehicleIdRouteRoute
     }
     '/vehicles/$vehicleId/ifta': {
@@ -610,6 +650,7 @@ interface VehiclesVehicleIdRouteRouteChildren {
   VehiclesVehicleIdDocumentsRoute: typeof VehiclesVehicleIdDocumentsRoute
   VehiclesVehicleIdEditRoute: typeof VehiclesVehicleIdEditRoute
   VehiclesVehicleIdFuelRoute: typeof VehiclesVehicleIdFuelRoute
+  VehiclesVehicleIdHistoryRoute: typeof VehiclesVehicleIdHistoryRoute
   VehiclesVehicleIdIftaRoute: typeof VehiclesVehicleIdIftaRoute
   VehiclesVehicleIdImportRoute: typeof VehiclesVehicleIdImportRoute
   VehiclesVehicleIdInspectionsRoute: typeof VehiclesVehicleIdInspectionsRoute
@@ -629,6 +670,7 @@ const VehiclesVehicleIdRouteRouteChildren: VehiclesVehicleIdRouteRouteChildren =
     VehiclesVehicleIdDocumentsRoute: VehiclesVehicleIdDocumentsRoute,
     VehiclesVehicleIdEditRoute: VehiclesVehicleIdEditRoute,
     VehiclesVehicleIdFuelRoute: VehiclesVehicleIdFuelRoute,
+    VehiclesVehicleIdHistoryRoute: VehiclesVehicleIdHistoryRoute,
     VehiclesVehicleIdIftaRoute: VehiclesVehicleIdIftaRoute,
     VehiclesVehicleIdImportRoute: VehiclesVehicleIdImportRoute,
     VehiclesVehicleIdInspectionsRoute: VehiclesVehicleIdInspectionsRoute,
@@ -660,6 +702,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SetupRoute: SetupRoute,
   VehiclesVehicleIdRouteRoute: VehiclesVehicleIdRouteRouteWithChildren,
+  HTokenRoute: HTokenRoute,
   RecordsRecordIdRoute: RecordsRecordIdRoute,
   VehiclesNewRoute: VehiclesNewRoute,
 }

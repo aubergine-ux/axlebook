@@ -88,6 +88,7 @@ export const NOT_BACKED_UP = [
   'instance_settings', // saved separately as `settings`, admins only
   'notification_log',
   'vehicle_insights',
+  'history_links', // access grants: make new ones after a restore
   'notification_queue',
   'import_mappings', // point at vehicle ids; saved again by the next import
 ] as const;

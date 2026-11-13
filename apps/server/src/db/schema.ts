@@ -348,7 +348,24 @@ export interface NotificationQueueTable {
   created_at: string;
 }
 
+export interface HistoryLinksTable {
+  id: Generated<number>;
+  vehicle_id: number;
+  token: string;
+  label: string | null;
+  show_costs: Generated<number>;
+  show_vin: Generated<number>;
+  show_notes: Generated<number>;
+  expires_at: string | null;
+  revoked_at: string | null;
+  views: Generated<number>;
+  last_viewed_at: string | null;
+  created_by: number | null;
+  created_at: string;
+}
+
 export interface Database {
+  history_links: HistoryLinksTable;
   vehicle_mutes: VehicleMutesTable;
   notification_queue: NotificationQueueTable;
   trips: TripsTable;

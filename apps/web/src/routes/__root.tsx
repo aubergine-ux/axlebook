@@ -15,9 +15,11 @@ import { useTheme } from '../theme/theme';
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   // Redirect before any page renders, so signed-out visitors never trigger data requests.
   beforeLoad: async ({ context, location }) => {
+    const path = location.pathname;
+    // A shared history link is for people without an account: no sign-in, no redirect.
+    if (isShared(path)) return;
     const status = await context.queryClient.ensureQueryData(authStatusQuery).catch(() => null);
     if (!status) return;
-    const path = location.pathname;
     if (status.setupRequired) {
       if (path !== '/setup') throw redirect({ to: '/setup', replace: true });
     } else if (!status.user) {
@@ -30,6 +32,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 const AUTH_PAGES = new Set(['/login', '/setup']);
+const isShared = (path: string) => path.startsWith('/h/');
 
 /** Sends people to first-run setup or sign-in as needed; the app shell wraps everything else. */
 function Root() {
@@ -44,6 +47,7 @@ function Root() {
     if (user && !hasLocalChoice && user.theme !== theme) setTheme(user.theme, { persist: false });
   }, [user, hasLocalChoice, theme, setTheme]);
 
+  if (isShared(path)) return <Outlet />;
   if (status.isPending) {
     return (
       <p role="status" className="grid min-h-dvh place-items-center text-ink-muted">
