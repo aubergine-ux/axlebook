@@ -1,3 +1,4 @@
+import { strFromU8, unzipSync } from 'fflate';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   createTestApp,
@@ -194,6 +195,15 @@ describe('backup and restore', () => {
     const backup = await t.req({ method: 'GET', url: '/api/v1/backup' });
     expect(backup.statusCode).toBe(200);
     expect(backup.headers['content-type']).toBe('application/zip');
+    // Alongside the JSON, every vehicle's records come as a plain CSV anyone can open.
+    const inside = unzipSync(new Uint8Array(backup.rawPayload));
+    const csvName = Object.keys(inside).find((f) => f.startsWith('csv/'));
+    expect(csvName).toMatch(new RegExp(`^csv/${v.id}-[a-z0-9-]+\\.csv$`));
+    const csvText = strFromU8(inside[csvName as string] as Uint8Array);
+    expect(csvText.split('\r\n')[0]).toBe(
+      'date,odometer,kind,title,cost,notes,tags,expense_category,fuel_volume,price_per_unit,full_tank,missed_previous,fuel_grade,station',
+    );
+    expect(csvText.trim().split('\r\n').length).toBeGreaterThan(1);
 
     // Restoring onto a non-empty instance is refused.
     const zip = multipartFile('file', 'backup.zip', backup.rawPayload, 'application/zip');

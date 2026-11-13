@@ -1,4 +1,11 @@
-import { ApiError, fromMilli, ImportResult, RECORD_KINDS, RecordInput } from '@axlebook/shared';
+import {
+  ApiError,
+  fromMilli,
+  ImportResult,
+  RECORD_KINDS,
+  RecordInput,
+  type RecordKind,
+} from '@axlebook/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { strFromU8, strToU8, unzipSync, type Zippable, zipSync } from 'fflate';
 import { z } from 'zod';
@@ -99,6 +106,39 @@ export const importExportRoutes =
   async (app) => {
     const tags = ['import-export'];
 
+    /** A vehicle's records in Axlebook's own CSV columns, oldest first. */
+    async function vehicleCsv(user: User, vehicleId: number, kind: 'all' | RecordKind) {
+      const query = {
+        vehicleId,
+        kind: kind === 'all' ? [] : [kind],
+        sort: 'date_asc' as const,
+        limit: 500,
+      };
+      const page = await records.list(user, { ...query, offset: 0 });
+      let items = page.items;
+      for (let offset = 500; offset < page.total; offset += 500)
+        items = items.concat((await records.list(user, { ...query, offset })).items);
+      return stringifyCsv([
+        [...AXLEBOOK_HEADERS],
+        ...items.map((r) => [
+          r.date,
+          r.odometer,
+          r.kind,
+          r.title,
+          fromMilli(r.cost).toFixed(2),
+          r.notes,
+          r.tags.join('; '),
+          r.expenseCategory,
+          r.fuel ? fromMilli(r.fuel.volume) : null,
+          r.fuel?.pricePerUnit != null ? fromMilli(r.fuel.pricePerUnit) : null,
+          r.fuel ? r.fuel.isFull : null,
+          r.fuel ? r.fuel.missedPrevious : null,
+          r.fuel?.grade,
+          r.fuel?.station,
+        ]),
+      ]);
+    }
+
     // ── CSV export ─────────────────────────────────────────────────────────
     app.get(
       '/vehicles/:vehicleId/export.csv',
@@ -114,54 +154,16 @@ export const importExportRoutes =
         },
       },
       async (req, reply) => {
-        const v = await requireVehicle(db, currentUser(req), req.params.vehicleId, 'view');
-        const page = await records.list(currentUser(req), {
-          vehicleId: v.id,
-          kind: req.query.kind === 'all' ? [] : [req.query.kind],
-          sort: 'date_asc',
-          limit: 500,
-          offset: 0,
-        });
-        let items = page.items;
-        for (let offset = 500; offset < page.total; offset += 500) {
-          items = items.concat(
-            (
-              await records.list(currentUser(req), {
-                vehicleId: v.id,
-                kind: req.query.kind === 'all' ? [] : [req.query.kind],
-                sort: 'date_asc',
-                limit: 500,
-                offset,
-              })
-            ).items,
-          );
-        }
-        const rows: unknown[][] = [
-          [...AXLEBOOK_HEADERS],
-          ...items.map((r) => [
-            r.date,
-            r.odometer,
-            r.kind,
-            r.title,
-            fromMilli(r.cost).toFixed(2),
-            r.notes,
-            r.tags.join('; '),
-            r.expenseCategory,
-            r.fuel ? fromMilli(r.fuel.volume) : null,
-            r.fuel?.pricePerUnit != null ? fromMilli(r.fuel.pricePerUnit) : null,
-            r.fuel ? r.fuel.isFull : null,
-            r.fuel ? r.fuel.missedPrevious : null,
-            r.fuel?.grade,
-            r.fuel?.station,
-          ]),
-        ];
+        const user = currentUser(req);
+        const v = await requireVehicle(db, user, req.params.vehicleId, 'view');
+        const csv = await vehicleCsv(user, v.id, req.query.kind);
         const name = `${v.year}-${v.make}-${v.model}-${req.query.kind}`
           .toLowerCase()
           .replace(/[^a-z0-9-]+/g, '-');
         return reply
           .header('Content-Type', 'text/csv; charset=utf-8')
           .header('Content-Disposition', `attachment; filename="${name}.csv"`)
-          .send(stringifyCsv(rows));
+          .send(csv);
       },
     );
 
@@ -364,8 +366,9 @@ export const importExportRoutes =
       {
         schema: {
           tags,
-          summary: 'Download a full backup (zip: JSON + photos + attachments)',
-          description: 'Admins get the whole instance. Everyone else gets the vehicles they own.',
+          summary: 'Download a full backup (zip: JSON + CSV + photos + attachments)',
+          description:
+            'Admins get the whole instance. Everyone else gets the vehicles they own. `backup.json` is what restore reads; `csv/` holds the same records per vehicle in plain CSV.',
           response: { 200: z.unknown().describe('application/zip') },
         },
       },
@@ -402,6 +405,11 @@ export const importExportRoutes =
           tables: rows,
         };
         files['backup.json'] = strToU8(JSON.stringify(manifest));
+        // The same records as plain CSV, one file per vehicle, readable without Axlebook.
+        for (const v of rows.vehicles ?? []) {
+          const slug = `${v.year}-${v.make}-${v.model}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          files[`csv/${v.id}-${slug}.csv`] = strToU8(await vehicleCsv(user, v.id as number, 'all'));
+        }
         const zip = zipSync(files, { level: 6 });
         const date = new Date().toISOString().slice(0, 10);
         return reply
