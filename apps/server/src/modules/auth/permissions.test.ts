@@ -446,6 +446,10 @@ const ROUTES: Record<string, Route> = {
   },
   // Lookups are off here, so an allowed caller gets "switched off" rather than a network call.
   'POST /api/v1/lookups/vin': { rule: 'self' },
+  'GET /api/v1/vehicles/{vehicleId}/ownership': {
+    rule: 'read',
+    make: () => ({ method: 'GET', url: `${v()}/ownership` }),
+  },
   'GET /api/v1/vehicles/{vehicleId}/recalls': {
     rule: 'read',
     make: () => ({ method: 'GET', url: `${v()}/recalls` }),

@@ -10,6 +10,7 @@ import type {
   LogRecord,
   Me,
   OdometerReading,
+  Ownership,
   Part,
   PartInput,
   PlanItem,
@@ -278,6 +279,12 @@ export const reportQuery = (p: { vehicleId?: number; from?: string; to?: string 
     queryKey: ['reports', p],
     queryFn: () => api<Report>(`/reports${qs(p)}`),
     placeholderData: (prev) => prev,
+  });
+export const ownershipQuery = (vehicleId: number) =>
+  queryOptions({
+    // Under 'reports' so saving a record refreshes it along with the other figures.
+    queryKey: ['reports', 'ownership', vehicleId],
+    queryFn: () => api<Ownership>(`/vehicles/${vehicleId}/ownership`),
   });
 export const sharesQuery = (vehicleId: number) =>
   queryOptions({

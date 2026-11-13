@@ -50,3 +50,48 @@ export const Report = z
   })
   .meta({ id: 'Report' });
 export type Report = z.infer<typeof Report>;
+
+/** What a vehicle's money went on, as cost-of-ownership lines. */
+export const OWNERSHIP_PARTS = [
+  'fuel',
+  'maintenance',
+  'upgrades',
+  'insurance',
+  'registration',
+  'tax',
+  'loan',
+  'other',
+] as const;
+export type OwnershipPart = (typeof OWNERSHIP_PARTS)[number];
+
+const parts = z.object(
+  Object.fromEntries(OWNERSHIP_PARTS.map((k) => [k, z.number().int()])) as Record<
+    OwnershipPart,
+    z.ZodNumber
+  >,
+);
+
+export const Ownership = z
+  .object({
+    vehicleId: z.number().int(),
+    odometerUnit: z.enum(ODOMETER_UNITS),
+    /** Purchase date, or the first record when that isn't set. Null with neither. */
+    since: z.string().nullable(),
+    months: z.number().int(),
+    purchasePrice: z.number().int().nullable(),
+    currentValue: z.number().int().nullable(),
+    /** Purchase price minus what it's worth now; null until both are filled in. */
+    depreciation: z.number().int().nullable(),
+    running: parts,
+    runningTotal: z.number().int(),
+    /** Running costs plus depreciation (when known). */
+    total: z.number().int(),
+    /** Distance covered in the odometer log, in the vehicle's own unit. */
+    distance: z.number().int(),
+    /** milli-units of currency per odometer unit */
+    costPerDistance: z.number().nullable(),
+    costPerMonth: z.number().int().nullable(),
+    byYear: z.array(parts.extend({ year: z.string(), total: z.number().int() })),
+  })
+  .meta({ id: 'Ownership' });
+export type Ownership = z.infer<typeof Ownership>;

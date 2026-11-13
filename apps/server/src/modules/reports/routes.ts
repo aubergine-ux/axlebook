@@ -1,16 +1,23 @@
 import {
+  ApiError,
   computeFuelEconomy,
   convertDistance,
+  daysBetween,
   displayUnitsFor,
   isDistanceUnit,
   monthKey,
+  OWNERSHIP_PARTS,
+  Ownership,
+  type OwnershipPart,
   RECORD_KINDS,
   type RecordKind,
   Report,
   ReportQuery,
+  today,
   vehicleTitle,
 } from '@axlebook/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import type { Config } from '../../config';
 import type { DB } from '../../db/connection';
 import { currentUser } from '../../plugins/auth';
@@ -160,6 +167,89 @@ export const reportRoutes =
             })),
           byCategory: [...categories.values()].sort((a, b) => b.total - a.total),
           vehicles: vehicleStats,
+        };
+      },
+    );
+
+    app.get(
+      '/vehicles/:vehicleId/ownership',
+      {
+        schema: {
+          tags: ['reports'],
+          summary: 'Total cost of ownership for a vehicle',
+          description:
+            "Everything spent since purchase, by line (fuel, maintenance, upgrades, insurance, registration, tax, loan, other) and by year, plus depreciation when the vehicle has both a purchase price and a current value. Money is milli-units; distance is in the vehicle's odometer unit.",
+          params: z.object({ vehicleId: z.coerce.number().int().positive() }),
+          response: { 200: Ownership, 403: ApiError, 404: ApiError },
+        },
+      },
+      async (req) => {
+        const v = await requireVehicle(db, currentUser(req), req.params.vehicleId, 'view');
+        const records = await db
+          .selectFrom('records')
+          .select(['kind', 'date', 'cost', 'expense_category'])
+          .where('vehicle_id', '=', v.id)
+          .execute();
+        const zero = () =>
+          Object.fromEntries(OWNERSHIP_PARTS.map((k) => [k, 0])) as Record<OwnershipPart, number>;
+        const partOf = (r: (typeof records)[number]): OwnershipPart => {
+          if (r.kind === 'fuel') return 'fuel';
+          if (r.kind === 'upgrade') return 'upgrades';
+          if (r.kind !== 'expense') return 'maintenance';
+          const c = r.expense_category;
+          return c === 'insurance' || c === 'registration' || c === 'tax' || c === 'loan'
+            ? c
+            : 'other';
+        };
+        const running = zero();
+        const years = new Map<string, Record<OwnershipPart, number>>();
+        for (const r of records) {
+          const part = partOf(r);
+          running[part] += r.cost;
+          const year = r.date.slice(0, 4);
+          const bucket = years.get(year) ?? zero();
+          bucket[part] += r.cost;
+          years.set(year, bucket);
+        }
+        const sum = (p: Record<OwnershipPart, number>) =>
+          Object.values(p).reduce((a, b) => a + b, 0);
+        const runningTotal = sum(running);
+        const depreciation =
+          v.purchase_price != null && v.current_value != null
+            ? Number(v.purchase_price) - Number(v.current_value)
+            : null;
+        const total = runningTotal + (depreciation ?? 0);
+
+        const span = await db
+          .selectFrom('odometer_readings')
+          .select((eb) => [eb.fn.min('odometer').as('lo'), eb.fn.max('odometer').as('hi')])
+          .where('vehicle_id', '=', v.id)
+          .executeTakeFirst();
+        const distance = span?.hi != null ? Number(span.hi) - Number(span.lo) : 0;
+        const firstRecord = records.reduce<string | null>(
+          (min, r) => (min == null || r.date < min ? r.date : min),
+          null,
+        );
+        const since = v.purchase_date ?? firstRecord;
+        const days = since ? daysBetween(since, today(config.timeZone)) : 0;
+        const months = since ? Math.max(1, Math.round(days / 30.44)) : 0;
+        return {
+          vehicleId: v.id,
+          odometerUnit: v.odometer_unit,
+          since,
+          months,
+          purchasePrice: v.purchase_price == null ? null : Number(v.purchase_price),
+          currentValue: v.current_value == null ? null : Number(v.current_value),
+          depreciation,
+          running,
+          runningTotal,
+          total,
+          distance,
+          costPerDistance: distance > 0 ? total / distance : null,
+          costPerMonth: months > 0 ? Math.round(total / months) : null,
+          byYear: [...years.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([year, p]) => ({ year, ...p, total: sum(p) })),
         };
       },
     );

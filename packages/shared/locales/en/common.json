@@ -303,7 +303,8 @@
       "plan": "Planner",
       "sharing": "Sharing",
       "inspections": "Inspections",
-      "ifta": "IFTA"
+      "ifta": "IFTA",
+      "costs": "Costs"
     },
     "stats": {
       "odometer": "Odometer",
@@ -525,7 +526,8 @@
       "volume": "Fuel",
       "price": "Price",
       "cost": "Total",
-      "economy": "Economy"
+      "economy": "Economy",
+      "station": "Station"
     },
     "quickTitle": "Log fuel",
     "vehicle": "Vehicle",
@@ -534,7 +536,14 @@
     "pending": "{{count}} fill-ups waiting to sync",
     "syncNow": "Sync now",
     "lastReading": "Last reading {{value}}",
-    "noVehicles": "Add a vehicle first."
+    "noVehicles": "Add a vehicle first.",
+    "priceHistory": "Price paid per unit",
+    "stations": "Where you fill up",
+    "stationsHint": "Visits and the average price paid at each.",
+    "visits_one": "{{count}} visit",
+    "visits_other": "{{count}} visits",
+    "stationValue_one": "{{count}} visit · {{price}}",
+    "stationValue_other": "{{count}} visits · {{price}}"
   },
   "reminder": {
     "add": "Add reminder",
@@ -683,7 +692,8 @@
       "maintenance": "Maintenance",
       "fuel": "Fuel",
       "running": "Running costs"
-    }
+    },
+    "yearly": "Spending by year"
   },
   "search": {
     "title": "Search",
@@ -1107,6 +1117,39 @@
       "coolant": "Coolant",
       "transmissionFluid": "Transmission fluid",
       "brakeFluid": "Brake fluid"
+    }
+  },
+  "ownership": {
+    "intro_one": "Everything this vehicle has cost since {{date}} ({{count}} month).",
+    "intro_other": "Everything this vehicle has cost since {{date}} ({{count}} months).",
+    "introEmpty": "Everything this vehicle has cost you, once there's something logged.",
+    "total": "Cost of ownership",
+    "withoutDepreciation": "Without depreciation",
+    "perMonth": "Per month",
+    "perDistance": "Per {{unit}}",
+    "depreciation": "Depreciation",
+    "gained": "Worth more than you paid",
+    "needsPrices": "Add the purchase price and what it's worth today to include depreciation.",
+    "empty": "Nothing spent yet. Fuel, services and expenses you log show up here.",
+    "where": "Where it went",
+    "running": "Running costs",
+    "byYear": "By year",
+    "year": "Year",
+    "groups": {
+      "fuel": "Fuel",
+      "upkeep": "Maintenance and upgrades",
+      "fixed": "Insurance, registration, tax and loan",
+      "other": "Other"
+    },
+    "parts": {
+      "fuel": "Fuel",
+      "maintenance": "Service and repairs",
+      "upgrades": "Upgrades",
+      "insurance": "Insurance",
+      "registration": "Registration",
+      "tax": "Tax",
+      "loan": "Loan",
+      "other": "Parking, tolls and other"
     }
   }
 }

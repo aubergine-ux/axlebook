@@ -370,7 +370,8 @@ export function BarList({
   items,
   formatValue,
 }: {
-  items: { key: string; label: string; value: number }[];
+  /** `text` replaces the formatted value when the figure needs more than the number. */
+  items: { key: string; label: string; value: number; text?: string }[];
   formatValue: (n: number) => string;
 }) {
   const max = Math.max(1, ...items.map((i) => i.value));
@@ -385,7 +386,7 @@ export function BarList({
               style={{ width: `${(i.value / max) * 100}%`, background: 'var(--chart-2)' }}
             />
           </span>
-          <span className="font-mono text-data tabular-nums">{formatValue(i.value)}</span>
+          <span className="font-mono text-data tabular-nums">{i.text ?? formatValue(i.value)}</span>
         </li>
       ))}
     </ul>

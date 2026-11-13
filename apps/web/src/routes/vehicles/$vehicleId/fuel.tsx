@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { fuelQuery } from '../../../api/resources';
 import { vehicleQuery } from '../../../api/vehicles';
+import { BarList, LineChart } from '../../../components/charts';
 import { Icon } from '../../../components/Icon';
 import { StatTile } from '../../../components/StatTile';
 import { LinkButton } from '../../../components/ui/Button';
@@ -18,6 +19,32 @@ function FuelTab() {
   const fuel = useQuery(fuelQuery(id)).data;
   if (!v) return null;
   const unit = f.display.distance;
+  const fills = fuel?.fills ?? [];
+  // Price paid per unit over time, oldest first.
+  const prices = fills
+    .filter((x) => x.pricePerUnit != null)
+    .map((x) => ({ date: x.date, value: (x.pricePerUnit as number) / 1000 }))
+    .reverse();
+  // Where the fuel was bought: visits, and the average price there (weighted by volume).
+  const stations = [
+    ...fills
+      .reduce((map, x) => {
+        const name = x.station?.trim();
+        if (!name) return map;
+        const key = name.toLowerCase();
+        const s = map.get(key) ?? { key, name, visits: 0, cost: 0, volume: 0 };
+        s.visits++;
+        if (x.pricePerUnit != null) {
+          s.cost += (x.pricePerUnit * x.volume) / 1000;
+          s.volume += x.volume;
+        }
+        return map.set(key, s);
+      }, new Map<
+        string,
+        { key: string; name: string; visits: number; cost: number; volume: number }
+      >())
+      .values(),
+  ].sort((a, b) => b.visits - a.visits);
 
   return (
     <div className="flex flex-col gap-6">
@@ -45,7 +72,7 @@ function FuelTab() {
         {!fuel || fuel.fills.length === 0 ? (
           <p className="p-8 text-center text-ink-muted">{t('fuel.empty')}</p>
         ) : (
-          <table className="w-full min-w-[640px] text-left">
+          <table className="w-full min-w-[760px] text-left">
             <thead className="bg-surface-sunken text-label text-ink-muted">
               <tr>
                 <th scope="col" className="px-4 py-2 font-semibold">
@@ -65,6 +92,9 @@ function FuelTab() {
                 </th>
                 <th scope="col" className="px-4 py-2 text-right font-semibold">
                   {t('fuel.columns.economy')}
+                </th>
+                <th scope="col" className="px-4 py-2 font-semibold">
+                  {t('fuel.columns.station')}
                 </th>
               </tr>
             </thead>
@@ -99,12 +129,68 @@ function FuelTab() {
                       </span>
                     )}
                   </td>
+                  <td className="max-w-48 truncate px-4 py-2 font-sans text-body">
+                    {fill.station ?? ''}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </section>
+      {(prices.length > 1 || stations.length > 0) && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {prices.length > 1 && (
+            <section
+              aria-labelledby="price-h"
+              className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
+            >
+              <h2 id="price-h" className="mb-3 text-heading font-semibold">
+                {t('fuel.priceHistory')}
+              </h2>
+              <LineChart
+                lines={[
+                  {
+                    key: 'price',
+                    label: t('fuel.columns.price'),
+                    color: 'var(--chart-1)',
+                    points: prices,
+                  },
+                ]}
+                formatValue={(n) => f.money(Math.round(n * 1000), true)}
+                formatDate={(d) => f.date(d, 'short')}
+                ariaLabel={t('fuel.priceHistory')}
+              />
+            </section>
+          )}
+          {stations.length > 0 && (
+            <section
+              aria-labelledby="stations-h"
+              className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
+            >
+              <h2 id="stations-h" className="mb-1 text-heading font-semibold">
+                {t('fuel.stations')}
+              </h2>
+              <p className="mb-3 text-caption text-ink-muted">{t('fuel.stationsHint')}</p>
+              <BarList
+                items={stations.slice(0, 8).map((s) => ({
+                  key: s.key,
+                  label: s.name,
+                  value: s.visits,
+                  text:
+                    s.volume > 0
+                      ? t('fuel.stationValue', {
+                          count: s.visits,
+                          price: f.money(Math.round((s.cost / s.volume) * 1000), true),
+                        })
+                      : undefined,
+                }))}
+                formatValue={(n) => t('fuel.visits', { count: n })}
+              />
+            </section>
+          )}
+        </div>
+      )}
     </div>
   );
 }

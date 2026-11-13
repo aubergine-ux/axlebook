@@ -24,6 +24,7 @@ import { Route as RecordsRecordIdRouteImport } from './routes/records/$recordId'
 import { Route as VehiclesVehicleIdRouteRouteImport } from './routes/vehicles/$vehicleId/route'
 import { Route as VehiclesNewRouteImport } from './routes/vehicles/new'
 import { Route as VehiclesVehicleIdIndexRouteImport } from './routes/vehicles/$vehicleId/index'
+import { Route as VehiclesVehicleIdCostsRouteImport } from './routes/vehicles/$vehicleId/costs'
 import { Route as VehiclesVehicleIdEditRouteImport } from './routes/vehicles/$vehicleId/edit'
 import { Route as VehiclesVehicleIdFuelRouteImport } from './routes/vehicles/$vehicleId/fuel'
 import { Route as VehiclesVehicleIdIftaRouteImport } from './routes/vehicles/$vehicleId/ifta'
@@ -111,6 +112,11 @@ const VehiclesVehicleIdIndexRoute = VehiclesVehicleIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => VehiclesVehicleIdRouteRoute,
 } as any)
+const VehiclesVehicleIdCostsRoute = VehiclesVehicleIdCostsRouteImport.update({
+  id: '/costs',
+  path: '/costs',
+  getParentRoute: () => VehiclesVehicleIdRouteRoute,
+} as any)
 const VehiclesVehicleIdEditRoute = VehiclesVehicleIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -188,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRouteRouteWithChildren
   '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
+  '/vehicles/$vehicleId/costs': typeof VehiclesVehicleIdCostsRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
   '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
@@ -215,6 +222,7 @@ export interface FileRoutesByTo {
   '/setup': typeof SetupRoute
   '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
+  '/vehicles/$vehicleId/costs': typeof VehiclesVehicleIdCostsRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
   '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
@@ -244,6 +252,7 @@ export interface FileRoutesById {
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRouteRouteWithChildren
   '/records/$recordId': typeof RecordsRecordIdRoute
   '/vehicles/new': typeof VehiclesNewRoute
+  '/vehicles/$vehicleId/costs': typeof VehiclesVehicleIdCostsRoute
   '/vehicles/$vehicleId/edit': typeof VehiclesVehicleIdEditRoute
   '/vehicles/$vehicleId/fuel': typeof VehiclesVehicleIdFuelRoute
   '/vehicles/$vehicleId/ifta': typeof VehiclesVehicleIdIftaRoute
@@ -274,6 +283,7 @@ export interface FileRouteTypes {
     | '/vehicles/$vehicleId'
     | '/records/$recordId'
     | '/vehicles/new'
+    | '/vehicles/$vehicleId/costs'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
     | '/vehicles/$vehicleId/ifta'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/records/$recordId'
     | '/vehicles/new'
+    | '/vehicles/$vehicleId/costs'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
     | '/vehicles/$vehicleId/ifta'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/vehicles/$vehicleId'
     | '/records/$recordId'
     | '/vehicles/new'
+    | '/vehicles/$vehicleId/costs'
     | '/vehicles/$vehicleId/edit'
     | '/vehicles/$vehicleId/fuel'
     | '/vehicles/$vehicleId/ifta'
@@ -467,6 +479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VehiclesVehicleIdIndexRouteImport
       parentRoute: typeof VehiclesVehicleIdRouteRoute
     }
+    '/vehicles/$vehicleId/costs': {
+      id: '/vehicles/$vehicleId/costs'
+      path: '/costs'
+      fullPath: '/vehicles/$vehicleId/costs'
+      preLoaderRoute: typeof VehiclesVehicleIdCostsRouteImport
+      parentRoute: typeof VehiclesVehicleIdRouteRoute
+    }
     '/vehicles/$vehicleId/edit': {
       id: '/vehicles/$vehicleId/edit'
       path: '/edit'
@@ -548,6 +567,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface VehiclesVehicleIdRouteRouteChildren {
+  VehiclesVehicleIdCostsRoute: typeof VehiclesVehicleIdCostsRoute
   VehiclesVehicleIdEditRoute: typeof VehiclesVehicleIdEditRoute
   VehiclesVehicleIdFuelRoute: typeof VehiclesVehicleIdFuelRoute
   VehiclesVehicleIdIftaRoute: typeof VehiclesVehicleIdIftaRoute
@@ -564,6 +584,7 @@ interface VehiclesVehicleIdRouteRouteChildren {
 
 const VehiclesVehicleIdRouteRouteChildren: VehiclesVehicleIdRouteRouteChildren =
   {
+    VehiclesVehicleIdCostsRoute: VehiclesVehicleIdCostsRoute,
     VehiclesVehicleIdEditRoute: VehiclesVehicleIdEditRoute,
     VehiclesVehicleIdFuelRoute: VehiclesVehicleIdFuelRoute,
     VehiclesVehicleIdIftaRoute: VehiclesVehicleIdIftaRoute,

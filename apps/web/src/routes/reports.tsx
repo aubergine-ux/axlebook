@@ -117,6 +117,15 @@ function ReportsPage() {
         value: computeEconomy(p.economy, v.odometerUnit, 1, v.fuelUnit, f.display.economy) ?? 0,
       })),
     }));
+  // The same months rolled up by calendar year.
+  const yearly = [
+    ...(r?.monthly ?? [])
+      .reduce((map, m) => {
+        const year = m.month.slice(0, 4);
+        return map.set(year, (map.get(year) ?? 0) + m.total);
+      }, new Map<string, number>())
+      .entries(),
+  ].map(([year, total]) => ({ key: year, label: year, value: total }));
   const money = (n: number) => f.money(n);
   const moneyShort = (n: number) => f.moneyCompact(n);
   const economyUnit = t(`units.economy.${f.display.economy}`, { value: '' }).trim();
@@ -251,6 +260,18 @@ function ReportsPage() {
               />
             )}
           </section>
+
+          {yearly.length > 1 && (
+            <section
+              aria-labelledby="yearly-h"
+              className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"
+            >
+              <h2 id="yearly-h" className="mb-3 text-heading font-semibold">
+                {t('reports.yearly')}
+              </h2>
+              <BarList items={yearly} formatValue={money} />
+            </section>
+          )}
 
           <div className="grid gap-6 lg:grid-cols-2">
             <section
