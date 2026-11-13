@@ -16,12 +16,29 @@ import { nowIso } from '../lib/time';
 /** Headers a same-origin browser request would carry for app.inject (host: localhost:80). */
 export const sameOrigin = { origin: 'http://localhost:80' } as const;
 
+/** An empty database: SQLite in memory, or a schema of its own when TEST_DATABASE_URL is set. */
+export async function freshDb(config: ReturnType<typeof loadConfig>) {
+  const pgUrl = process.env.TEST_DATABASE_URL;
+  let pgSchema: string | undefined;
+  if (pgUrl) {
+    pgSchema = `test_${randomUUID().replaceAll('-', '')}`;
+    const client = new pg.Client({ connectionString: pgUrl });
+    await client.connect();
+    await client.query(`CREATE SCHEMA ${pgSchema}`);
+    await client.end();
+  }
+  return connect(config.database, { pgSchema });
+}
+
 /**
  * Builds an app on a fresh database (SQLite in memory, or an isolated Postgres schema
  * when TEST_DATABASE_URL is set) with a signed-in admin. `t.req()` sends requests as
  * that admin; `t.user()` creates more accounts with their own `req`.
  */
-export async function createTestApp(env: Record<string, string> = {}, opts: { ai?: Ai } = {}) {
+export async function createTestApp(
+  env: Record<string, string> = {},
+  opts: { ai?: Ai; db?: Awaited<ReturnType<typeof freshDb>> } = {},
+) {
   const pgUrl = process.env.TEST_DATABASE_URL;
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'axlebook-test-'));
   const config = loadConfig({
@@ -32,15 +49,7 @@ export async function createTestApp(env: Record<string, string> = {}, opts: { ai
     TZ: 'UTC',
     ...env,
   });
-  let pgSchema: string | undefined;
-  if (pgUrl) {
-    pgSchema = `test_${randomUUID().replaceAll('-', '')}`;
-    const client = new pg.Client({ connectionString: pgUrl });
-    await client.connect();
-    await client.query(`CREATE SCHEMA ${pgSchema}`);
-    await client.end();
-  }
-  const handle = connect(config.database, { pgSchema });
+  const handle = opts.db ?? (await freshDb(config));
   await migrateToLatest(handle.db);
   const app = await buildApp({ config, db: handle, ai: opts.ai });
   await app.ready();

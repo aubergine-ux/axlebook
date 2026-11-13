@@ -3,7 +3,8 @@ import { Migrator } from 'kysely/migration';
 import { type DB, isPostgres } from './connection';
 import { migrations } from './migrations';
 
-export async function migrateToLatest(db: DB): Promise<string[]> {
+/** Runs pending migrations; `target` stops at that migration (tests use it to stage an upgrade). */
+export async function migrateToLatest(db: DB, target?: string): Promise<string[]> {
   // Kysely checks for its migration table across *all* schemas. Pin it to the current
   // one so several Axlebook schemas can share a Postgres database.
   const schema = isPostgres(db)
@@ -16,7 +17,9 @@ export async function migrateToLatest(db: DB): Promise<string[]> {
     migrationLockTableName: 'axlebook_migrations_lock',
     ...(schema && { migrationTableSchema: schema }),
   });
-  const { error, results } = await migrator.migrateToLatest();
+  const { error, results } = target
+    ? await migrator.migrateTo(target)
+    : await migrator.migrateToLatest();
   const failed = results?.find((r) => r.status === 'Error');
   if (error || failed) {
     throw new Error(`Migration failed${failed ? ` at ${failed.migrationName}` : ''}`, {
