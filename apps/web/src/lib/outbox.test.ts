@@ -58,4 +58,42 @@ describe('offline outbox', () => {
     const [kept] = await listOutbox();
     expect(kept).toMatchObject({ clientId: 'd', error: 'validation_failed' });
   });
+
+  it('attaches a photo taken offline once its record is saved, and retries if the upload drops', async () => {
+    await enqueue({
+      ...entry('e'),
+      photo: {
+        data: new TextEncoder().encode('jpeg bytes').buffer as ArrayBuffer,
+        type: 'image/jpeg',
+        name: 'pump.jpg',
+      },
+    });
+    const calls: string[] = [];
+    let photoFails = true;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init: RequestInit) => {
+        calls.push(url);
+        if (url.endsWith('/attachments')) {
+          expect(init.body).toBeInstanceOf(FormData);
+          if (photoFails) throw new TypeError('Failed to fetch');
+          return Response.json({ id: 9 }, { status: 201 });
+        }
+        // The server answers with the same record however often the entry is sent.
+        return Response.json({ id: 42 }, { status: 201 });
+      }),
+    );
+    // Record saved, signal lost before the photo went up: the entry stays queued.
+    expect(await syncOutbox()).toEqual({ sent: 0, failed: 0 });
+    expect((await listOutbox()).map((e) => e.clientId)).toEqual(['e']);
+    photoFails = false;
+    expect(await syncOutbox()).toEqual({ sent: 1, failed: 0 });
+    expect(await listOutbox()).toEqual([]);
+    expect(calls).toEqual([
+      '/api/v1/vehicles/3/records',
+      '/api/v1/records/42/attachments',
+      '/api/v1/vehicles/3/records',
+      '/api/v1/records/42/attachments',
+    ]);
+  });
 });

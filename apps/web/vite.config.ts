@@ -38,7 +38,8 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        // The API and the calendar feed are the server's, never the app page.
+        navigateFallbackDenylist: [/^\/api\//, /^\/calendar\//],
         // Brand fonts are cached the first time they load.
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
         // Store/desktop icon sources in public/ aren't needed offline.

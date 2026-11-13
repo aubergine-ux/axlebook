@@ -546,7 +546,8 @@
     "export": "Export CSV",
     "import": "Import CSV",
     "loadMore": "Show more",
-    "fuelTitle": "Fuel fill-up"
+    "fuelTitle": "Fuel fill-up",
+    "takePhoto": "Take a photo"
   },
   "fuel": {
     "log": "Log fuel",
@@ -584,7 +585,11 @@
     "visits_one": "{{count}} visit",
     "visits_other": "{{count}} visits",
     "stationValue_one": "{{count}} visit · {{price}}",
-    "stationValue_other": "{{count}} visits · {{price}}"
+    "stationValue_other": "{{count}} visits · {{price}}",
+    "takePhoto": "Take a photo",
+    "retakePhoto": "Retake",
+    "removePhoto": "Remove",
+    "photoHint": "The receipt or the odometer, kept with the fill-up."
   },
   "reminder": {
     "add": "Add reminder",

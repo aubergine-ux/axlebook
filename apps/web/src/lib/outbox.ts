@@ -12,8 +12,17 @@ export interface OutboxEntry {
   vehicleName: string;
   data: RecordInput;
   createdAt: string;
+  /** A photo taken with the entry (the pump or the odometer), attached once the record is saved. */
+  photo?: StoredPhoto;
   /** Set when the server rejected the entry (it stays until fixed or discarded). */
   error?: string;
+}
+
+/** Kept as raw bytes: every browser stores an ArrayBuffer in IndexedDB, not all store a Blob. */
+export interface StoredPhoto {
+  data: ArrayBuffer;
+  type: string;
+  name: string;
 }
 
 const DB = 'axlebook';
@@ -66,6 +75,13 @@ export async function discard(clientId: string) {
   notify();
 }
 
+/** Attach a photo to a saved record. */
+export function attachPhoto(recordId: number, blob: Blob, name: string) {
+  const form = new FormData();
+  form.append('file', blob, name);
+  return api(`/records/${recordId}/attachments`, { method: 'POST', body: form });
+}
+
 let syncing: Promise<{ sent: number; failed: number }> | null = null;
 
 /** Send queued entries in order. Stops at the first network failure; keeps rejected ones with their error. */
@@ -80,10 +96,17 @@ export function syncOutbox(): Promise<{ sent: number; failed: number }> {
           continue;
         }
         try {
-          await api(`/vehicles/${entry.vehicleId}/records`, {
+          const saved = await api<{ id: number }>(`/vehicles/${entry.vehicleId}/records`, {
             method: 'POST',
             body: JSON.stringify(entry.data),
           });
+          // If the photo fails, the entry stays queued; sending it again finds the same record.
+          if (entry.photo)
+            await attachPhoto(
+              saved.id,
+              new Blob([entry.photo.data], { type: entry.photo.type }),
+              entry.photo.name,
+            );
           await tx('readwrite', (s) => s.delete(entry.clientId));
           sent++;
         } catch (err) {

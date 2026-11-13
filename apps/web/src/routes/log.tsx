@@ -10,19 +10,21 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { type FormEvent, useEffect, useState } from 'react';
-import { Form } from 'react-aria-components';
+import { FileTrigger, Form } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { ApiRequestError, api } from '../api/client';
 import { aiStatusQuery } from '../api/extras';
 import { vehiclesQuery } from '../api/vehicles';
+import { Icon } from '../components/Icon';
 import { PageHeader } from '../components/PageHeader';
 import { CheckboxField } from '../components/records/RecordForm';
 import { Button } from '../components/ui/Button';
 import { ErrorNote } from '../components/ui/ErrorNote';
 import { SelectField, TextField } from '../components/ui/fields';
 import { useFormat } from '../lib/format';
-import { enqueue } from '../lib/outbox';
+import { resizeImage } from '../lib/image';
+import { attachPhoto, enqueue } from '../lib/outbox';
 import { todayIso } from '../lib/today';
 import { useOutbox } from '../lib/useOutbox';
 import { parseReading } from '../lib/validation';
@@ -34,6 +36,7 @@ export const Route = createFileRoute('/log')({
 
 const LAST_VEHICLE = 'axlebook.lastFuelVehicle';
 const CACHE = 'axlebook.vehicleCache';
+const LAST_STATION = 'axlebook.lastStation';
 type Cached = Pick<
   VehicleSummary,
   | 'id'
@@ -125,7 +128,9 @@ function LogFuel() {
     total: '',
     isFull: true,
     missedPrevious: false,
+    station: read<string>(LAST_STATION, ''),
   });
+  const [photo, setPhoto] = useState<File | null>(null);
   const [order, setOrder] = useState<('volume' | 'price' | 'total')[]>(['volume', 'price']);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [result, setResult] = useState<'saved' | 'offline' | null>(null);
@@ -184,14 +189,29 @@ function LogFuel() {
         pricePerUnit: price,
         isFull: s.isFull,
         missedPrevious: s.missedPrevious,
+        station: s.station,
       },
       clientId,
     };
     write(LAST_VEHICLE, vehicle.id);
+    write(LAST_STATION, s.station.trim());
+    // Phone photos are large; shrink before sending or queueing. If that fails, send it as it is.
+    let named: { blob: Blob; name: string } | undefined;
+    if (photo) {
+      const small = await resizeImage(photo).catch(() => null);
+      const base = photo.name.replace(/\.[^.]+$/, '') || 'photo';
+      named = small
+        ? { blob: small, name: `${base}.${small.type === 'image/webp' ? 'webp' : 'jpg'}` }
+        : { blob: photo, name: photo.name };
+    }
     setBusy(true);
     setError(null);
     try {
-      await api(`/vehicles/${vehicle.id}/records`, { method: 'POST', body: JSON.stringify(data) });
+      const saved = await api<{ id: number }>(`/vehicles/${vehicle.id}/records`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      if (named) await attachPhoto(saved.id, named.blob, named.name);
       await qc.invalidateQueries();
       setResult('saved');
     } catch (err) {
@@ -202,6 +222,11 @@ function LogFuel() {
           vehicleName: vehicle.nickname ?? vehicleTitle(vehicle),
           data,
           createdAt: new Date().toISOString(),
+          photo: named && {
+            data: await named.blob.arrayBuffer(),
+            type: named.blob.type,
+            name: named.name,
+          },
         });
         setResult('offline');
       } else {
@@ -211,6 +236,7 @@ function LogFuel() {
       }
     }
     setBusy(false);
+    setPhoto(null);
     setS((x) => ({
       ...x,
       odometer: '',
@@ -335,6 +361,35 @@ function LogFuel() {
           isSelected={s.missedPrevious}
           onChange={(v) => setS((x) => ({ ...x, missedPrevious: v }))}
         />
+        <TextField
+          label={t('record.fields.station')}
+          value={s.station}
+          onChange={(v) => setS((x) => ({ ...x, station: v }))}
+          maxLength={120}
+          autoComplete="off"
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          <FileTrigger
+            acceptedFileTypes={['image/jpeg', 'image/png', 'image/webp', 'image/heic']}
+            defaultCamera="environment"
+            onSelect={(files) => setPhoto(files?.[0] ?? null)}
+          >
+            <Button className="min-h-11">
+              <Icon name="attachment" size={16} />
+              {photo ? t('fuel.retakePhoto') : t('fuel.takePhoto')}
+            </Button>
+          </FileTrigger>
+          {photo ? (
+            <span className="flex min-w-0 items-center gap-2 text-caption text-ink-muted">
+              <span className="truncate">{photo.name}</span>
+              <Button variant="ghost" className="min-h-9" onPress={() => setPhoto(null)}>
+                {t('fuel.removePhoto')}
+              </Button>
+            </span>
+          ) : (
+            <span className="text-caption text-ink-muted">{t('fuel.photoHint')}</span>
+          )}
+        </div>
         <TextField
           label={t('record.fields.date')}
           type="date"

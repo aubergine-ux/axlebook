@@ -578,6 +578,14 @@ export function RecordForm({
             <Icon name="attachment" size={16} />
             {t('record.attach')}
           </Button>
+        </FileTrigger>{' '}
+        {/* On a phone this opens the camera straight away, for a receipt or the odometer. */}
+        <FileTrigger
+          acceptedFileTypes={['image/jpeg', 'image/png', 'image/webp', 'image/heic']}
+          defaultCamera="environment"
+          onSelect={(files) => files && setPendingFiles((l) => [...l, ...Array.from(files)])}
+        >
+          <Button>{t('record.takePhoto')}</Button>
         </FileTrigger>
         <p className="mt-2 text-caption text-ink-muted">{t('record.attachHint')}</p>
         <ErrorNote error={upload.error} className="mt-2" />
