@@ -11,6 +11,7 @@ import { migrateToLatest } from '../db/migrate';
 import type { User } from '../db/schema';
 import type { Ai, AiPrompt } from '../lib/ai';
 import { hashPassword, randomToken, sha256 } from '../lib/crypto';
+import type { Lookups } from '../lib/nhtsa';
 import { nowIso } from '../lib/time';
 
 /** Headers a same-origin browser request would carry for app.inject (host: localhost:80). */
@@ -37,7 +38,7 @@ export async function freshDb(config: ReturnType<typeof loadConfig>) {
  */
 export async function createTestApp(
   env: Record<string, string> = {},
-  opts: { ai?: Ai; db?: Awaited<ReturnType<typeof freshDb>> } = {},
+  opts: { ai?: Ai; lookups?: Lookups; db?: Awaited<ReturnType<typeof freshDb>> } = {},
 ) {
   const pgUrl = process.env.TEST_DATABASE_URL;
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'axlebook-test-'));
@@ -51,7 +52,7 @@ export async function createTestApp(
   });
   const handle = opts.db ?? (await freshDb(config));
   await migrateToLatest(handle.db);
-  const app = await buildApp({ config, db: handle, ai: opts.ai });
+  const app = await buildApp({ config, db: handle, ai: opts.ai, lookups: opts.lookups });
   await app.ready();
   const db = handle.db;
 

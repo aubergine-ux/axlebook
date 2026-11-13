@@ -26,6 +26,8 @@ export const PublicConfig = z
     defaultLocale: z.string(),
     /** AI features (spreadsheet import help, MPG estimate, maintenance schedule) are configured. */
     ai: z.boolean(),
+    /** An admin allowed looking up VINs and recalls online (NHTSA). Off by default. */
+    onlineLookups: z.boolean(),
   })
   .meta({ id: 'PublicConfig' });
 export type PublicConfig = z.infer<typeof PublicConfig>;

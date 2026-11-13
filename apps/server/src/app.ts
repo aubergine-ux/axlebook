@@ -15,6 +15,7 @@ import type { Config } from './config';
 import type { DbHandle } from './db/connection';
 import { type Ai, disabledAi, OllamaAi } from './lib/ai';
 import { FileStore } from './lib/files';
+import { type Lookups, NhtsaLookups } from './lib/nhtsa';
 import { getSetting } from './lib/settings';
 import { VERSION } from './lib/version';
 import { assistantRoutes, MODEL_SETTING } from './modules/assistant/routes';
@@ -25,6 +26,7 @@ import { importExportRoutes } from './modules/import-export/routes';
 import { insightRoutes } from './modules/insights/routes';
 import { InsightService } from './modules/insights/service';
 import { inventoryRoutes } from './modules/inventory/routes';
+import { lookupRoutes } from './modules/lookups/routes';
 import { notificationRoutes } from './modules/notifications/routes';
 import { NotificationService } from './modules/notifications/service';
 import { currentOdometers, odometerRoutes } from './modules/odometer/routes';
@@ -51,9 +53,16 @@ export interface AppDeps {
   db: DbHandle;
   /** Override the local AI client (tests use a fake). */
   ai?: Ai;
+  /** Override the online lookups (tests use a fake; nothing real is contacted). */
+  lookups?: Lookups;
 }
 
-export async function buildApp({ config, db: handle, ai: aiOverride }: AppDeps) {
+export async function buildApp({
+  config,
+  db: handle,
+  ai: aiOverride,
+  lookups = new NhtsaLookups(),
+}: AppDeps) {
   const db = handle.db;
   const app = Fastify({
     logger:
@@ -202,6 +211,7 @@ export async function buildApp({ config, db: handle, ai: aiOverride }: AppDeps) 
   await app.register(calendarRoutes({ db, config }), api);
   await app.register(spreadsheetRoutes(importer), api);
   await app.register(assistantRoutes({ db, config, ai }), api);
+  await app.register(lookupRoutes({ db, config, lookups }), api);
   // The calendar feed lives outside /api so calendar apps can subscribe with a plain URL.
   registerCalendarFeed(app, { db, config });
 

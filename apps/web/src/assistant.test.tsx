@@ -1,4 +1,5 @@
 import type { AiStatus, RecordDraft, Vehicle } from '@axlebook/shared';
+import { emptySpecs } from '@axlebook/shared';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -22,6 +23,10 @@ const civic: Vehicle = {
   fuelType: 'gasoline',
   purchaseDate: null,
   purchasePrice: null,
+  currentValue: null,
+  engine: null,
+  usage: 'personal',
+  specs: emptySpecs(),
   notes: null,
   photoUrl: null,
   archivedAt: null,

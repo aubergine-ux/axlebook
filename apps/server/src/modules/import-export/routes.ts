@@ -70,6 +70,7 @@ const BACKUP_TABLES: {
     optional: ['converted_record_id'],
   },
   { name: 'notification_channels', fks: { user_id: 'users' } },
+  { name: 'recalls', fks: { vehicle_id: 'vehicles' } },
   {
     name: 'inspections',
     fks: { vehicle_id: 'vehicles', created_by: 'users' },
@@ -342,6 +343,9 @@ export const importExportRoutes =
           ? db.selectFrom('inspections').selectAll().where('vehicle_id', 'in', vIds).execute()
           : none(),
       ]);
+      const recalls = vIds.length
+        ? await db.selectFrom('recalls').selectAll().where('vehicle_id', 'in', vIds).execute()
+        : [];
       return {
         users,
         vehicles,
@@ -358,6 +362,7 @@ export const importExportRoutes =
         plan_items: plan,
         notification_channels: channels,
         inspections,
+        recalls,
       } as unknown as Rows;
     }
 

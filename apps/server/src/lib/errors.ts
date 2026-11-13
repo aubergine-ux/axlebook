@@ -21,6 +21,8 @@ const STATUS: Record<ErrorCode, number> = {
   ai_disabled: 503,
   ai_failed: 502,
   upload_expired: 410,
+  lookups_disabled: 503,
+  lookup_failed: 502,
 };
 
 /** Throw from anywhere in a request; the error handler turns it into `{ error: { code, params } }`. */

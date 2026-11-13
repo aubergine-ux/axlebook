@@ -95,7 +95,9 @@
     "restore_not_empty": "Restore only works on an empty instance. Remove existing vehicles first.",
     "ai_disabled": "The local assistant (Ollama) isn't set up on this server. An admin can turn it on; see the docs.",
     "ai_failed": "The local assistant couldn't answer just now. Try again in a moment.",
-    "upload_expired": "That upload has expired. Choose the file again."
+    "upload_expired": "That upload has expired. Choose the file again.",
+    "lookups_disabled": "Online lookups are switched off on this server. An admin can turn them on in Settings.",
+    "lookup_failed": "Couldn't reach the lookup service. Try again in a moment."
   },
   "settings": {
     "profile": "Profile",
@@ -217,7 +219,12 @@
     "aiVision": "reads photos",
     "aiTest": "Test",
     "aiTesting": "Testing…",
-    "aiTestOk": "{{model}} answered in {{seconds}} s."
+    "aiTestOk": "{{model}} answered in {{seconds}} s.",
+    "lookups": {
+      "title": "Online lookups",
+      "body": "Off by default: Axlebook contacts nothing outside your server. Turn this on to decode VINs and check for safety recalls with NHTSA, a US government service. Only the VIN, or the make, model and year, is sent.",
+      "toggle": "Allow VIN and recall lookups"
+    }
   },
   "vehicle": {
     "newTitle": "Add a vehicle",
@@ -250,13 +257,18 @@
       "purchasePrice": "Purchase price",
       "notes": "Notes",
       "category": "Type",
-      "unitNumber": "Unit number"
+      "unitNumber": "Unit number",
+      "engine": "Engine",
+      "usage": "Used for",
+      "currentValue": "Worth today"
     },
     "hints": {
       "nickname": "Optional. Shown instead of the model name on cards.",
       "units": "Units the vehicle's own gauges use. You can still view everything in your preferred units.",
       "purchasePrice": "Optional. Counts toward cost of ownership in reports.",
-      "hours": "Most dirt bikes, ATVs and snowmobiles track engine hours instead of miles."
+      "hours": "Most dirt bikes, ATVs and snowmobiles track engine hours instead of miles.",
+      "usage": "Business vehicles get a trip log and a yearly mileage report.",
+      "currentValue": "Your own estimate. Purchase price minus this is the depreciation in the cost of ownership."
     },
     "sections": {
       "identity": "Vehicle",
@@ -335,6 +347,17 @@
       },
       "localNote": "Estimated by the local assistant on this server ({{model}}).",
       "off": "Turn on the local assistant to get an estimate based on this vehicle's make, model, age and mileage."
+    },
+    "usages": {
+      "personal": "Personal",
+      "business": "Business"
+    },
+    "vinLookup": {
+      "action": "Look up VIN",
+      "working": "Looking up…",
+      "hint": "Looking it up fills in year, make, model, trim and engine.",
+      "invalid": "A VIN has 17 letters and digits, and never I, O or Q.",
+      "done": "Filled in from the VIN. Check it before saving."
     }
   },
   "units": {
@@ -1033,5 +1056,57 @@
     "notFound": "That isn't in your records.",
     "sources": "From these records:",
     "answeredBy": "Answered by {{model}} on this server. Check the linked records before relying on it."
+  },
+  "recalls": {
+    "title": "Safety recalls",
+    "check": "Check now",
+    "checking": "Checking…",
+    "never": "Not checked yet.",
+    "checked_one": "Checked {{date}}: {{count}} open recall.",
+    "checked_other": "Checked {{date}}: {{count}} open recalls.",
+    "details": "What it's about",
+    "fields": {
+      "summary": "Summary",
+      "consequence": "Risk",
+      "remedy": "Remedy"
+    },
+    "states": {
+      "open": "Open",
+      "completed": "Done",
+      "dismissed": "Dismissed"
+    },
+    "markDone": "Mark done",
+    "dismiss": "Doesn't apply",
+    "reopen": "Reopen",
+    "source": "From NHTSA, by make, model and year. A recall may cover only some vehicles; your dealer can confirm by VIN."
+  },
+  "specs": {
+    "title": "Parts and fluids",
+    "edit": "Edit",
+    "empty": "Write down the oil, filters, tires and wipers this vehicle takes, so it's here when you're at the parts counter.",
+    "hint": "Free text: a grade, a size or a part number. Leave blank what you don't know.",
+    "other": "Anything else",
+    "otherLabel": "What",
+    "otherValue": "Which",
+    "add": "Add a line",
+    "remove": "Remove",
+    "fields": {
+      "oilType": "Engine oil",
+      "oilCapacity": "Oil capacity",
+      "oilFilter": "Oil filter",
+      "airFilter": "Air filter",
+      "cabinFilter": "Cabin filter",
+      "fuelFilter": "Fuel filter",
+      "tireSize": "Tire size",
+      "tirePressure": "Tire pressure",
+      "wiperDriver": "Wiper, driver",
+      "wiperPassenger": "Wiper, passenger",
+      "wiperRear": "Wiper, rear",
+      "battery": "Battery",
+      "sparkPlugs": "Spark plugs",
+      "coolant": "Coolant",
+      "transmissionFluid": "Transmission fluid",
+      "brakeFluid": "Brake fluid"
+    }
   }
 }

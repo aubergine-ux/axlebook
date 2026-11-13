@@ -14,6 +14,7 @@ export * from './schemas/auth';
 export * from './schemas/commercial';
 export * from './schemas/common';
 export * from './schemas/inventory';
+export * from './schemas/lookups';
 export * from './schemas/records';
 export * from './schemas/reminders';
 export * from './schemas/reports';

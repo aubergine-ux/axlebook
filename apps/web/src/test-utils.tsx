@@ -10,6 +10,8 @@ export const testConfig = {
   currency: 'USD',
   defaultUnitSystem: 'imperial',
   defaultLocale: 'en',
+  ai: false,
+  onlineLookups: false,
 };
 export const testMe = {
   id: 1,

@@ -54,6 +54,12 @@ export interface VehiclesTable {
   fuel_type: string;
   purchase_date: string | null;
   purchase_price: number | null;
+  engine: Generated<string | null>;
+  /** JSON VehicleSpecs */
+  specs: Generated<string | null>;
+  usage: Generated<'personal' | 'business'>;
+  current_value: Generated<number | null>;
+  recalls_checked_at: Generated<string | null>;
   notes: string | null;
   photo_key: string | null;
   archived_at: string | null;
@@ -272,7 +278,23 @@ export interface ImportMappingsTable {
   updated_at: string;
 }
 
+export interface RecallsTable {
+  id: Generated<number>;
+  vehicle_id: number;
+  campaign: string;
+  component: string | null;
+  summary: string | null;
+  consequence: string | null;
+  remedy: string | null;
+  report_date: string | null;
+  state: Generated<'open' | 'completed' | 'dismissed'>;
+  state_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Database {
+  recalls: RecallsTable;
   import_mappings: ImportMappingsTable;
   inspections: InspectionsTable;
   vehicle_insights: VehicleInsightsTable;

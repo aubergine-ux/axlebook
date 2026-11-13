@@ -23,6 +23,8 @@ export const ERROR_CODES = [
   'ai_disabled',
   'ai_failed',
   'upload_expired',
+  'lookups_disabled',
+  'lookup_failed',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

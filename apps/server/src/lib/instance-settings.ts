@@ -15,6 +15,7 @@ export async function getInstanceSettings(db: DB, config: Config): Promise<Insta
     soonDays: stored.soonDays ?? 30,
     soonDistanceMi: stored.soonDistanceMi ?? 500,
     soonDistanceKm: stored.soonDistanceKm ?? 800,
+    onlineLookups: stored.onlineLookups ?? false,
   };
 }
 

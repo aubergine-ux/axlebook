@@ -11,19 +11,26 @@ import {
   toMilli,
   type UnitSystem,
   VEHICLE_CATEGORIES,
+  VEHICLE_USAGES,
   type Vehicle,
   type VehicleCategory,
   VehicleInput,
+  type VehicleUsage,
+  Vin,
 } from '@axlebook/shared';
+import { useQuery } from '@tanstack/react-query';
 import { type FormEvent, useEffect, useId, useState } from 'react';
 import { FileTrigger, Form } from 'react-aria-components';
 import { useTranslation } from 'react-i18next';
 import { ApiRequestError } from '../../api/client';
+import { useDecodeVin } from '../../api/lookups';
+import { configQuery } from '../../api/system';
 import type { PhotoChange } from '../../api/vehicles';
 import { resizeImage } from '../../lib/image';
 import { fieldErrors } from '../../lib/validation';
 import { Icon } from '../Icon';
 import { Button } from '../ui/Button';
+import { ErrorNote } from '../ui/ErrorNote';
 import { FieldGroup, SelectField, TextAreaField, TextField } from '../ui/fields';
 
 type FormState = {
@@ -42,6 +49,9 @@ type FormState = {
   fuelType: FuelType;
   purchaseDate: string;
   purchasePrice: string;
+  currentValue: string;
+  engine: string;
+  usage: VehicleUsage;
   notes: string;
 };
 
@@ -62,6 +72,9 @@ function initialState(v: Vehicle | undefined, units: UnitSystem): FormState {
     fuelType: v?.fuelType ?? 'gasoline',
     purchaseDate: v?.purchaseDate ?? '',
     purchasePrice: v?.purchasePrice != null ? String(fromMilli(v.purchasePrice)) : '',
+    currentValue: v?.currentValue != null ? String(fromMilli(v.currentValue)) : '',
+    engine: v?.engine ?? '',
+    usage: v?.usage ?? 'personal',
     notes: v?.notes ?? '',
   };
 }
@@ -94,6 +107,45 @@ export function VehicleForm({
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const formErrorId = useId();
+  const lookupsOn = useQuery(configQuery).data?.onlineLookups ?? false;
+  const decode = useDecodeVin();
+  const [decoded, setDecoded] = useState(false);
+
+  /** Fill in what the VIN says. Fields it doesn't know are left as typed. */
+  function lookUpVin() {
+    const vin = Vin.safeParse(state.vin);
+    setDecoded(false);
+    if (!vin.success) {
+      setErrors((e) => ({ ...e, vin: t('vehicle.vinLookup.invalid') }));
+      return;
+    }
+    decode.mutate(vin.data, {
+      onSuccess: (d) => {
+        setState((s) => ({
+          ...s,
+          vin: d.vin,
+          year: d.year != null ? String(d.year) : s.year,
+          make: d.make ?? s.make,
+          model: d.model ?? s.model,
+          trim: d.trim ?? s.trim,
+          engine: d.engine ?? s.engine,
+          fuelType: d.fuelType ?? s.fuelType,
+          fuelUnit:
+            d.fuelType === 'electric'
+              ? 'kwh'
+              : d.fuelType && s.fuelUnit === 'kwh'
+                ? defaultUnits === 'metric'
+                  ? 'l'
+                  : 'gal_us'
+                : s.fuelUnit,
+          // Only a new vehicle takes its type from the VIN; an existing one was chosen by hand.
+          category: !vehicle && d.category ? d.category : s.category,
+        }));
+        setErrors({});
+        setDecoded(true);
+      },
+    });
+  }
 
   const set =
     <K extends keyof FormState>(key: K) =>
@@ -145,6 +197,7 @@ export function VehicleForm({
   function submit(e: FormEvent) {
     e.preventDefault();
     const price = state.purchasePrice.trim() === '' ? null : toMilli(state.purchasePrice);
+    const value = state.currentValue.trim() === '' ? null : toMilli(state.currentValue);
     const candidate = {
       category: state.category,
       unitNumber: isCommercial(state.category) ? state.unitNumber : '',
@@ -161,12 +214,17 @@ export function VehicleForm({
       fuelType: state.fuelType,
       purchaseDate: state.purchaseDate || null,
       purchasePrice: price,
+      currentValue: value,
+      engine: state.engine,
+      usage: state.usage,
       notes: state.notes,
     };
     const parsed = VehicleInput.safeParse(candidate);
     const errs = parsed.success ? {} : fieldErrors(parsed.error.issues, t);
     if (state.purchasePrice.trim() !== '' && price === null)
       errs.purchasePrice = t('validation.money');
+    if (state.currentValue.trim() !== '' && value === null)
+      errs.currentValue = t('validation.money');
     if (Object.keys(errs).length) {
       setErrors(errs);
       document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
@@ -278,14 +336,38 @@ export function VehicleForm({
           onChange={set('color')}
           error={errors.color}
         />
-        <TextField
-          label={t('vehicle.fields.vin')}
-          value={state.vin}
-          onChange={set('vin')}
-          error={errors.vin}
-          inputClassName="font-mono uppercase"
-          autoComplete="off"
-        />
+        <div className="flex flex-col gap-2">
+          <TextField
+            label={t('vehicle.fields.vin')}
+            description={lookupsOn ? t('vehicle.vinLookup.hint') : undefined}
+            value={state.vin}
+            onChange={(v) => {
+              set('vin')(v);
+              setDecoded(false);
+            }}
+            error={errors.vin}
+            inputClassName="font-mono uppercase"
+            autoComplete="off"
+            maxLength={32}
+          />
+          {lookupsOn && (
+            <>
+              <Button
+                className="self-start"
+                isDisabled={decode.isPending || state.vin.trim() === ''}
+                onPress={lookUpVin}
+              >
+                {decode.isPending ? t('vehicle.vinLookup.working') : t('vehicle.vinLookup.action')}
+              </Button>
+              <ErrorNote error={decode.error} />
+              {decoded && (
+                <p role="status" className="text-caption text-ink-muted">
+                  {t('vehicle.vinLookup.done')}
+                </p>
+              )}
+            </>
+          )}
+        </div>
         <TextField
           label={t('vehicle.fields.licensePlate')}
           value={state.licensePlate}
@@ -293,6 +375,20 @@ export function VehicleForm({
           error={errors.licensePlate}
           inputClassName="font-mono uppercase"
           autoComplete="off"
+        />
+        <TextField
+          label={t('vehicle.fields.engine')}
+          value={state.engine}
+          onChange={set('engine')}
+          error={errors.engine}
+          maxLength={80}
+        />
+        <SelectField
+          label={t('vehicle.fields.usage')}
+          description={t('vehicle.hints.usage')}
+          value={state.usage}
+          onChange={set('usage')}
+          options={VEHICLE_USAGES.map((u) => ({ value: u, label: t(`vehicle.usages.${u}`) }))}
         />
       </FieldGroup>
 
@@ -344,6 +440,15 @@ export function VehicleForm({
           onChange={set('purchasePrice')}
           inputMode="decimal"
           error={errors.purchasePrice}
+          inputClassName="font-mono tabular-nums"
+        />
+        <TextField
+          label={t('vehicle.fields.currentValue')}
+          description={t('vehicle.hints.currentValue')}
+          value={state.currentValue}
+          onChange={set('currentValue')}
+          inputMode="decimal"
+          error={errors.currentValue}
           inputClassName="font-mono tabular-nums"
         />
       </FieldGroup>

@@ -38,6 +38,33 @@ export const sectionOf = (c: VehicleCategory): VehicleSection =>
 /** Commercial vehicles get DVIR inspections and the IFTA worksheet. */
 export const isCommercial = (c: VehicleCategory) => sectionOf(c) === 'commercial';
 
+export const VEHICLE_USAGES = ['personal', 'business'] as const;
+export type VehicleUsage = (typeof VEHICLE_USAGES)[number];
+
+/**
+ * The parts-and-fluids sheet: what to ask for at the parts counter. Free text, because a tire
+ * size, an oil grade and a part number have nothing in common but being looked up in a hurry.
+ */
+export const SPEC_FIELDS = [
+  'oilType',
+  'oilCapacity',
+  'oilFilter',
+  'airFilter',
+  'cabinFilter',
+  'fuelFilter',
+  'tireSize',
+  'tirePressure',
+  'wiperDriver',
+  'wiperPassenger',
+  'wiperRear',
+  'battery',
+  'sparkPlugs',
+  'coolant',
+  'transmissionFluid',
+  'brakeFluid',
+] as const;
+export type SpecField = (typeof SPEC_FIELDS)[number];
+
 const MAX_YEAR = new Date().getFullYear() + 2;
 const optionalText = (max: number) =>
   z
@@ -53,6 +80,61 @@ const optionalText = (max: number) =>
  * No `.meta({ id })`: schemas with transforms have different input/output shapes,
  * which collide as named OpenAPI components. Leave them inline.
  */
+const specText = z
+  .string()
+  .trim()
+  .max(80)
+  .transform((v) => (v === '' ? null : v))
+  .nullable()
+  .optional();
+/** No `.meta({ id })`: it trims, so its input and output shapes differ. */
+export const VehicleSpecsInput = z.object({
+  ...(Object.fromEntries(SPEC_FIELDS.map((f) => [f, specText])) as Record<
+    SpecField,
+    typeof specText
+  >),
+  /** Anything else worth writing down, as label and value. */
+  other: z
+    .array(
+      z.object({
+        label: z.string().trim().min(1).max(40),
+        value: z.string().trim().min(1).max(80),
+      }),
+    )
+    .max(20)
+    .optional(),
+});
+export type VehicleSpecsInput = z.input<typeof VehicleSpecsInput>;
+
+export const VehicleSpecs = z.object({
+  ...(Object.fromEntries(SPEC_FIELDS.map((f) => [f, z.string().nullable()])) as Record<
+    SpecField,
+    z.ZodNullable<z.ZodString>
+  >),
+  other: z.array(z.object({ label: z.string(), value: z.string() })),
+});
+export type VehicleSpecs = z.infer<typeof VehicleSpecs>;
+
+export const emptySpecs = (): VehicleSpecs => ({
+  ...(Object.fromEntries(SPEC_FIELDS.map((f) => [f, null])) as Record<SpecField, null>),
+  other: [],
+});
+
+/** Reads stored specs, tolerating missing fields and broken JSON. */
+export function parseSpecs(raw: string | null | undefined): VehicleSpecs {
+  const out = emptySpecs();
+  if (!raw) return out;
+  try {
+    const parsed = VehicleSpecsInput.safeParse(JSON.parse(raw));
+    if (!parsed.success) return out;
+    for (const f of SPEC_FIELDS) out[f] = parsed.data[f] ?? null;
+    out.other = parsed.data.other ?? [];
+  } catch {
+    // Broken JSON: an empty sheet.
+  }
+  return out;
+}
+
 export const VehicleInput = z.object({
   /** Defaults to car. Not a Zod default: `.partial()` for PATCH would re-apply it. */
   category: z.enum(VEHICLE_CATEGORIES).optional(),
@@ -71,6 +153,12 @@ export const VehicleInput = z.object({
   fuelType: z.enum(FUEL_TYPES),
   purchaseDate: z.iso.date().nullable().optional(),
   purchasePrice: z.number().int().min(0).nullable().optional(),
+  /** What it's worth today (milli-units); the difference from the purchase price is depreciation. */
+  currentValue: z.number().int().min(0).nullable().optional(),
+  engine: optionalText(80),
+  /** Defaults to personal. Business vehicles get a trip log and a mileage report. */
+  usage: z.enum(VEHICLE_USAGES).optional(),
+  specs: VehicleSpecsInput.optional(),
   notes: optionalText(4000),
 });
 export type VehicleInput = z.input<typeof VehicleInput>;
@@ -97,6 +185,10 @@ export const Vehicle = z
     fuelType: z.enum(FUEL_TYPES),
     purchaseDate: z.string().nullable(),
     purchasePrice: z.number().int().nullable(),
+    currentValue: z.number().int().nullable(),
+    engine: z.string().nullable(),
+    usage: z.enum(VEHICLE_USAGES),
+    specs: VehicleSpecs,
     notes: z.string().nullable(),
     /** Relative URL of the photo, or null. Changes whenever the photo changes. */
     photoUrl: z.string().nullable(),

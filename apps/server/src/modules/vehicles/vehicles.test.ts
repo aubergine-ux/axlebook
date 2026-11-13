@@ -81,6 +81,60 @@ describe('vehicles API', () => {
     expect(res.json()).toMatchObject({ nickname: 'Taco', purchasePrice: null, make: 'Toyota' });
   });
 
+  it('keeps the parts-and-fluids sheet, engine, use and value', async () => {
+    const created = (await create()).json();
+    // A vehicle from before these fields existed reads back with safe defaults.
+    expect(created).toMatchObject({ usage: 'personal', engine: null, currentValue: null });
+    expect(created.specs).toMatchObject({ oilType: null, tireSize: null, other: [] });
+
+    const url = `/api/v1/vehicles/${created.id}`;
+    const saved = (
+      await t.req({
+        method: 'PATCH',
+        url,
+        payload: {
+          engine: ' 4.0L V6 ',
+          usage: 'business',
+          currentValue: 14_000_000,
+          specs: {
+            oilType: ' 0W-20 full synthetic ',
+            oilCapacity: '6.2 qt',
+            oilFilter: 'Toyota 04152-YZZA5',
+            tireSize: '265/70R16',
+            wiperDriver: '',
+            other: [{ label: 'Lug nut torque', value: '83 lb-ft' }],
+          },
+        },
+      })
+    ).json();
+    expect(saved).toMatchObject({
+      engine: '4.0L V6',
+      usage: 'business',
+      currentValue: 14_000_000,
+      specs: {
+        oilType: '0W-20 full synthetic',
+        oilCapacity: '6.2 qt',
+        oilFilter: 'Toyota 04152-YZZA5',
+        tireSize: '265/70R16',
+        wiperDriver: null,
+        other: [{ label: 'Lug nut torque', value: '83 lb-ft' }],
+      },
+    });
+    // Changing something else leaves the sheet alone; sending the sheet replaces it whole.
+    expect(
+      (await t.req({ method: 'PATCH', url, payload: { color: 'Red' } })).json().specs.oilType,
+    ).toBe('0W-20 full synthetic');
+    const replaced = (
+      await t.req({ method: 'PATCH', url, payload: { specs: { battery: 'Group 24F' } } })
+    ).json();
+    expect(replaced.specs).toMatchObject({ battery: 'Group 24F', oilType: null, other: [] });
+    for (const specs of [{ oilType: 'x'.repeat(81) }, { other: [{ label: '', value: 'x' }] }])
+      expect((await t.req({ method: 'PATCH', url, payload: { specs } })).statusCode).toBe(400);
+    expect((await t.req({ method: 'PATCH', url, payload: { usage: 'rental' } })).statusCode).toBe(
+      400,
+    );
+  });
+
   it('archives and unarchives, filtering the list', async () => {
     const id = (await create({ ...tacoma, model: 'Archived One' })).json().id;
     const archived = await t.req({

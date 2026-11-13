@@ -54,7 +54,8 @@ const ids = {} as Record<
   | 'inspection'
   | 'token'
   | 'channel'
-  | 'mapping',
+  | 'mapping'
+  | 'recall',
   number
 >;
 let uploadId = '';
@@ -443,6 +444,24 @@ const ROUTES: Record<string, Route> = {
       payload: { plan: { sheets: [], vehicles: [] } },
     }),
   },
+  // Lookups are off here, so an allowed caller gets "switched off" rather than a network call.
+  'POST /api/v1/lookups/vin': { rule: 'self' },
+  'GET /api/v1/vehicles/{vehicleId}/recalls': {
+    rule: 'read',
+    make: () => ({ method: 'GET', url: `${v()}/recalls` }),
+  },
+  'POST /api/v1/vehicles/{vehicleId}/recalls/check': {
+    rule: 'write',
+    make: () => ({ method: 'POST', url: `${v()}/recalls/check` }),
+  },
+  'PATCH /api/v1/recalls/{id}': {
+    rule: 'write',
+    make: () => ({
+      method: 'PATCH',
+      url: `/api/v1/recalls/${ids.recall}`,
+      payload: { state: 'dismissed' },
+    }),
+  },
   'DELETE /api/v1/import/mappings/{id}': {
     rule: 'mine',
     make: () => ({ method: 'DELETE', url: `/api/v1/import/mappings/${ids.mapping}` }),
@@ -581,6 +600,13 @@ beforeAll(async () => {
       .returning('id')
       .executeTakeFirstOrThrow()
   ).id;
+  ids.recall = (
+    await t.db
+      .insertInto('recalls')
+      .values({ vehicle_id: ids.vehicle, campaign: '16V340000', created_at: now, updated_at: now })
+      .returning('id')
+      .executeTakeFirstOrThrow()
+  ).id;
 });
 afterAll(() => t.close());
 
@@ -636,7 +662,9 @@ describe('permission matrix', () => {
     writes.sort(([a], [b]) => order(a) - order(b));
     for (const [key, route] of writes) {
       const res = await users.helper.req(route.make?.() as InjectOptions);
-      const aiOff = res.statusCode === 503 && res.json().error.code === 'ai_disabled';
+      const aiOff =
+        res.statusCode === 503 &&
+        ['ai_disabled', 'lookups_disabled'].includes(res.json().error.code);
       if (denied.includes(res.statusCode) || (res.statusCode >= 500 && !aiOff))
         failures.push(`helper ${key} → ${res.statusCode} ${res.body.slice(0, 120)}`);
     }

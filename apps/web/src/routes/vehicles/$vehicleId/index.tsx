@@ -18,6 +18,8 @@ import { ReminderItem } from '../../../components/reminders/ReminderItem';
 import { StatTile } from '../../../components/StatTile';
 import { Button, LinkButton } from '../../../components/ui/Button';
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog';
+import { RecallsCard } from '../../../components/vehicles/RecallsCard';
+import { SpecsCard } from '../../../components/vehicles/SpecsCard';
 import { useFormat } from '../../../lib/format';
 import { useViewPrefs } from '../../../lib/useViewPrefs';
 
@@ -44,6 +46,7 @@ function Overview() {
   const canEdit = v.access !== 'view';
   const facts: [string, string | null, boolean?][] = [
     [t('vehicle.fields.category'), t(`vehicle.categories.${v.category}`)],
+    [t('vehicle.fields.usage'), t(`vehicle.usages.${v.usage}`)],
     ...(v.unitNumber
       ? [[t('vehicle.fields.unitNumber'), v.unitNumber, true] as [string, string, boolean]]
       : []),
@@ -57,6 +60,11 @@ function Overview() {
     [
       t('vehicle.fields.purchasePrice'),
       v.purchasePrice != null ? f.money(v.purchasePrice) : null,
+      true,
+    ],
+    [
+      t('vehicle.fields.currentValue'),
+      v.currentValue != null ? f.money(v.currentValue) : null,
       true,
     ],
   ];
@@ -123,6 +131,7 @@ function Overview() {
               </ul>
             )}
           </section>
+          <RecallsCard vehicle={v} />
           {view.showTips && <TipsCard vehicle={v} />}
           <section
             aria-labelledby="recent-h"
@@ -154,6 +163,7 @@ function Overview() {
 
         <div className="flex flex-col gap-6">
           <MpgCard vehicle={v} />
+          <SpecsCard vehicle={v} />
           <section
             aria-labelledby="details-h"
             className="rounded-lg border border-line bg-surface-raised p-4 shadow-card md:p-6"

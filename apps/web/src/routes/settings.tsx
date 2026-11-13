@@ -592,6 +592,15 @@ function Instance() {
           <Saved show={save.isSuccess} />
         </div>
       </Form>
+      <div className="mt-6 border-t border-line pt-4">
+        <h3 className="mb-1 text-label">{t('settings.lookups.title')}</h3>
+        <p className="mb-3 max-w-2xl text-caption text-ink-muted">{t('settings.lookups.body')}</p>
+        <ToggleSwitch
+          label={t('settings.lookups.toggle')}
+          isSelected={settings.onlineLookups}
+          onChange={(onlineLookups) => save.mutate({ onlineLookups })}
+        />
+      </div>
     </Section>
   );
 }

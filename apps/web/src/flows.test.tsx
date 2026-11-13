@@ -1,3 +1,4 @@
+import { emptySpecs } from '@axlebook/shared';
 import 'fake-indexeddb/auto';
 import type { Reminder, Vehicle } from '@axlebook/shared';
 import { screen, waitFor, within } from '@testing-library/react';
@@ -24,6 +25,10 @@ const tacoma: Vehicle = {
   fuelType: 'gasoline',
   purchaseDate: null,
   purchasePrice: null,
+  currentValue: null,
+  engine: null,
+  usage: 'personal',
+  specs: emptySpecs(),
   notes: null,
   photoUrl: null,
   archivedAt: null,

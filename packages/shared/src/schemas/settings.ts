@@ -6,6 +6,11 @@ export const InstanceSettings = z
     soonDays: z.number().int().min(0).max(365),
     soonDistanceMi: z.number().int().min(0).max(100_000),
     soonDistanceKm: z.number().int().min(0).max(100_000),
+    /**
+     * Allow this server to ask NHTSA (a US government service) to decode VINs and list safety
+     * recalls. Off by default: nothing leaves the server unless an admin turns this on.
+     */
+    onlineLookups: z.boolean(),
   })
   .meta({ id: 'InstanceSettings' });
 export type InstanceSettings = z.infer<typeof InstanceSettings>;

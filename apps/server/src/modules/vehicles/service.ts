@@ -6,6 +6,7 @@ import type {
   VehicleUpdate,
 } from '@axlebook/shared';
 import {
+  parseSpecs,
   VEHICLE_SECTIONS,
   VehicleInput as VehicleInputSchema,
   VehicleUpdate as VehicleUpdateSchema,
@@ -36,6 +37,10 @@ export function toVehicle(row: VehicleRow, access: VehicleAccess): Vehicle {
     fuelType: row.fuel_type as Vehicle['fuelType'],
     purchaseDate: row.purchase_date,
     purchasePrice: row.purchase_price,
+    currentValue: row.current_value,
+    engine: row.engine,
+    usage: row.usage,
+    specs: parseSpecs(row.specs),
     notes: row.notes,
     // The key segment busts caches when the photo is replaced.
     photoUrl: row.photo_key
@@ -49,7 +54,16 @@ export function toVehicle(row: VehicleRow, access: VehicleAccess): Vehicle {
 }
 
 type Columns = Partial<
-  Omit<VehicleRow, 'id' | 'owner_id' | 'photo_key' | 'archived_at' | 'created_at' | 'updated_at'>
+  Omit<
+    VehicleRow,
+    | 'id'
+    | 'owner_id'
+    | 'photo_key'
+    | 'archived_at'
+    | 'created_at'
+    | 'updated_at'
+    | 'recalls_checked_at'
+  >
 >;
 
 function toColumns(input: VehicleUpdate): Columns {
@@ -70,6 +84,9 @@ function toColumns(input: VehicleUpdate): Columns {
     fuelType: 'fuel_type',
     purchaseDate: 'purchase_date',
     purchasePrice: 'purchase_price',
+    currentValue: 'current_value',
+    engine: 'engine',
+    usage: 'usage',
     notes: 'notes',
   };
   const cols: Record<string, unknown> = {};
@@ -77,6 +94,11 @@ function toColumns(input: VehicleUpdate): Columns {
     const value = (parsed as Record<string, unknown>)[key];
     if (value !== undefined)
       cols[col] = key === 'vin' && typeof value === 'string' ? value.toUpperCase() : value;
+  }
+  // The sheet is stored whole; sending it replaces it.
+  if (parsed.specs !== undefined) {
+    const filled = Object.values(parsed.specs).some((v) => (Array.isArray(v) ? v.length : v));
+    cols.specs = filled ? JSON.stringify(parsed.specs) : null;
   }
   return cols as Columns;
 }

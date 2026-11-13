@@ -2,6 +2,7 @@ import { Health, PublicConfig } from '@axlebook/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import type { Config } from '../../config';
 import type { DB } from '../../db/connection';
+import { getInstanceSettings } from '../../lib/instance-settings';
 import { getSetting } from '../../lib/settings';
 import { VERSION } from '../../lib/version';
 
@@ -32,6 +33,7 @@ export const systemRoutes =
         defaultUnitSystem: deps.config.defaults.unitSystem,
         defaultLocale: deps.config.defaults.locale,
         ai: Boolean(deps.config.ai),
+        onlineLookups: (await getInstanceSettings(deps.db, deps.config)).onlineLookups,
       }),
     );
   };
