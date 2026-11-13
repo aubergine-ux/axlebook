@@ -240,6 +240,7 @@ describe('spreadsheet import', () => {
       ],
       plan,
       planSource: 'matcher',
+      savedMapping: null,
       aiError: null,
     };
     const calls = mockApi({

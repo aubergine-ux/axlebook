@@ -89,7 +89,9 @@ export const SpreadsheetAnalysis = z.object({
     }),
   ),
   plan: SpreadsheetPlan,
-  planSource: z.enum(['ai', 'matcher']),
+  planSource: z.enum(['ai', 'matcher', 'saved']),
+  /** Set when the plan is the mapping saved by an earlier import of the same layout. */
+  savedMapping: z.object({ id: z.number().int(), savedAt: z.string() }).nullable(),
   /** Why the AI wasn't used, when it was requested but failed. */
   aiError: z.string().nullable(),
 });

@@ -22,6 +22,7 @@ import {
   aiStatusQuery,
   useAnalyzeSpreadsheet,
   useCommitSpreadsheet,
+  useForgetMapping,
   usePreviewSpreadsheet,
 } from '../api/extras';
 import { vehiclesQuery } from '../api/vehicles';
@@ -44,6 +45,9 @@ function ImportPage() {
   const analyze = useAnalyzeSpreadsheet();
   const preview = usePreviewSpreadsheet();
   const commit = useCommitSpreadsheet();
+  const forget = useForgetMapping();
+  const fmt = useFormat();
+  const [source, setSource] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<SpreadsheetAnalysis | null>(null);
   const [plan, setPlan] = useState<SpreadsheetPlan | null>(null);
   const [checked, setChecked] = useState<SpreadsheetPreview | null>(null);
@@ -51,6 +55,7 @@ function ImportPage() {
 
   const start = (file: File | undefined) => {
     if (!file) return;
+    setSource(file);
     setResult(null);
     setChecked(null);
     analyze.mutate(
@@ -161,11 +166,32 @@ function ImportPage() {
 
         {analysis && plan && (
           <>
-            <p role="status" className="rounded-md bg-surface-sunken px-3 py-2">
-              {analysis.aiError && analysis.aiError !== 'disabled'
-                ? t('import.aiFallback')
-                : t(`import.planBy.${analysis.planSource}`)}
-            </p>
+            <div
+              role="status"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-surface-sunken px-3 py-2"
+            >
+              <p>
+                {analysis.aiError && analysis.aiError !== 'disabled'
+                  ? t('import.aiFallback')
+                  : t(`import.planBy.${analysis.planSource}`, {
+                      date: analysis.savedMapping
+                        ? fmt.date(analysis.savedMapping.savedAt.slice(0, 10))
+                        : '',
+                    })}
+              </p>
+              {analysis.savedMapping && source && (
+                <Button
+                  isDisabled={forget.isPending || analyze.isPending}
+                  onPress={() =>
+                    forget.mutate(analysis.savedMapping?.id ?? 0, {
+                      onSuccess: () => start(source),
+                    })
+                  }
+                >
+                  {t('import.forgetMapping')}
+                </Button>
+              )}
+            </div>
             {plan.sheets.map((sp, i) => {
               const info = analysis.sheets.find((s) => s.name === sp.sheet);
               if (!info) return null;

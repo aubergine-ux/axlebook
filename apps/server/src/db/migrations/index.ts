@@ -4,6 +4,7 @@ import * as m0002 from './0002_vehicles';
 import * as m0003 from './0003_logbook';
 import * as m0004 from './0004_types_and_tools';
 import * as m0005 from './0005_view_prefs';
+import * as m0006 from './0006_import_mappings';
 
 /**
  * Ordered list of migrations. Statically imported so the server can be bundled.
@@ -16,4 +17,5 @@ export const migrations: Record<string, Migration> = {
   '0003_logbook': m0003,
   '0004_types_and_tools': m0004,
   '0005_view_prefs': m0005,
+  '0006_import_mappings': m0006,
 };

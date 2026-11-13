@@ -78,4 +78,22 @@ export const spreadsheetRoutes =
       },
       async (req) => importer.commit(currentUser(req), req.params.uploadId, req.body.plan),
     );
+
+    app.delete(
+      '/import/mappings/:id',
+      {
+        schema: {
+          tags,
+          summary: 'Forget a saved column mapping',
+          description:
+            'Every import saves how its columns were mapped, keyed by the layout of the file, and the next upload with the same headers starts from it. This removes one.',
+          params: z.object({ id: z.coerce.number().int().positive() }),
+          response: { 204: z.null(), ...errors },
+        },
+      },
+      async (req, reply) => {
+        await importer.forget(currentUser(req), req.params.id);
+        return reply.code(204).send(null);
+      },
+    );
   };

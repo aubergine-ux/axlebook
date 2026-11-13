@@ -188,6 +188,12 @@ export function usePreviewSpreadsheet() {
   });
 }
 
+export function useForgetMapping() {
+  return useMutation({
+    mutationFn: (id: number) => api<void>(`/import/mappings/${id}`, { method: 'DELETE' }),
+  });
+}
+
 export function useCommitSpreadsheet() {
   const qc = useQueryClient();
   return useMutation({

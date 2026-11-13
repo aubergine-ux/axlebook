@@ -77,6 +77,7 @@ export const NOT_BACKED_UP = [
   'instance_settings', // saved separately as `settings`, admins only
   'notification_log',
   'vehicle_insights',
+  'import_mappings', // point at vehicle ids; saved again by the next import
 ] as const;
 export const BACKED_UP = BACKUP_TABLES.map((t) => t.name);
 

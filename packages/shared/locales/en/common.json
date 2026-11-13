@@ -719,8 +719,10 @@
     "aiOff": "Columns were matched automatically. Turn on the local assistant for messier spreadsheets.",
     "planBy": {
       "ai": "Layout read by the local assistant. Check it below.",
-      "matcher": "Columns matched automatically. Check them below."
+      "matcher": "Columns matched automatically. Check them below.",
+      "saved": "Using the mapping you saved for this layout on {{date}}."
     },
+    "forgetMapping": "Forget it and match again",
     "aiFallback": "The local assistant couldn't read this one, so columns were matched automatically.",
     "analyzing": "Reading your spreadsheet…",
     "sheet_one": "Sheet: {{name}} ({{count}} row)",

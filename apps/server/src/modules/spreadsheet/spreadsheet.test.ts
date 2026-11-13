@@ -161,6 +161,97 @@ describe('spreadsheet import', () => {
     expect(second).toMatchObject({ imported: 0, skipped: 6 });
   });
 
+  it('remembers the mapping for a layout and starts the next upload from it', async () => {
+    const head = 'When,Reading,Paid,Job,Internal ref\n';
+    const first: SpreadsheetAnalysis = (
+      await upload(Buffer.from(`${head}2024-05-01,90000,45.00,Tire rotation,A-1\n`), 'may.csv')
+    ).json();
+    expect(first).toMatchObject({ planSource: 'matcher', savedMapping: null });
+    const sheet = first.plan.sheets[0] as SpreadsheetPlan['sheets'][number];
+    // The person fixes what the matcher couldn't know: "Reading" is the odometer, and the
+    // reference column should be kept in the notes.
+    const plan: SpreadsheetPlan = {
+      sheets: [
+        {
+          ...sheet,
+          columns: { ...sheet.columns, odometer: 'Reading', cost: 'Paid', title: 'Job' },
+          extraNoteColumns: ['Internal ref'],
+        },
+      ],
+      vehicles: first.plan.vehicles.map((v) => ({
+        ...v,
+        year: 2008,
+        make: 'Saab',
+        model: '9-5',
+      })),
+    };
+    const done = (
+      await t.req({
+        method: 'POST',
+        url: `/api/v1/import/spreadsheet/${first.uploadId}/commit`,
+        payload: { plan },
+      })
+    ).json();
+    expect(done).toMatchObject({ imported: 1 });
+    const saab = done.vehicles[0].vehicleId;
+
+    // Next month: another file name, more rows, same headers.
+    const next: SpreadsheetAnalysis = (
+      await upload(
+        Buffer.from(
+          `${head}2024-05-01,90000,45.00,Tire rotation,A-1\n2024-06-03,91200,80.00,Oil change,A-2\n`,
+        ),
+        'june.csv',
+      )
+    ).json();
+    expect(next.planSource).toBe('saved');
+    expect(next.savedMapping?.id).toEqual(expect.any(Number));
+    expect(next.plan.sheets[0]).toMatchObject({
+      columns: { odometer: 'Reading', cost: 'Paid', title: 'Job' },
+      extraNoteColumns: ['Internal ref'],
+    });
+    // It goes into the vehicle the first import created, without being told.
+    expect(next.plan.vehicles.map((v) => v.existingVehicleId)).toEqual([saab]);
+    const second = (
+      await t.req({
+        method: 'POST',
+        url: `/api/v1/import/spreadsheet/${next.uploadId}/commit`,
+        payload: { plan: next.plan },
+      })
+    ).json();
+    expect(second).toMatchObject({ imported: 1, skipped: 1 });
+    const records = (await t.req({ method: 'GET', url: `/api/v1/vehicles/${saab}/records` })).json()
+      .items;
+    expect(records.find((r: { title: string }) => r.title === 'Oil change')).toMatchObject({
+      odometer: 91_200,
+      notes: 'Internal ref: A-2',
+    });
+
+    // Someone else uploading the same layout doesn't get this person's mapping.
+    const other = await t.user('mapper', 'editor');
+    const theirs = (
+      await other.req({
+        method: 'POST',
+        url: '/api/v1/import/spreadsheet?ai=false',
+        ...multipartFile('file', 'x.csv', Buffer.from(`${head}2024-05-01,1,1,Job,r\n`), 'text/csv'),
+      })
+    ).json();
+    expect(theirs.planSource).toBe('matcher');
+    const id = next.savedMapping?.id;
+    expect(
+      (await other.req({ method: 'DELETE', url: `/api/v1/import/mappings/${id}` })).statusCode,
+    ).toBe(404);
+
+    // Forgetting it goes back to matching from scratch.
+    expect(
+      (await t.req({ method: 'DELETE', url: `/api/v1/import/mappings/${id}` })).statusCode,
+    ).toBe(204);
+    const fresh: SpreadsheetAnalysis = (
+      await upload(Buffer.from(`${head}2024-07-01,92000,10,Wash,A-3\n`), 'july.csv')
+    ).json();
+    expect(fresh).toMatchObject({ planSource: 'matcher', savedMapping: null });
+  });
+
   it('imports a CSV with a vehicle column', async () => {
     const csv = [
       'date,car,odometer,litres,cost,notes',

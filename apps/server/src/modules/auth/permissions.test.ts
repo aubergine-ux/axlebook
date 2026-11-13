@@ -53,7 +53,8 @@ const ids = {} as Record<
   | 'plan'
   | 'inspection'
   | 'token'
-  | 'channel',
+  | 'channel'
+  | 'mapping',
   number
 >;
 let uploadId = '';
@@ -442,6 +443,10 @@ const ROUTES: Record<string, Route> = {
       payload: { plan: { sheets: [], vehicles: [] } },
     }),
   },
+  'DELETE /api/v1/import/mappings/{id}': {
+    rule: 'mine',
+    make: () => ({ method: 'DELETE', url: `/api/v1/import/mappings/${ids.mapping}` }),
+  },
   'POST /api/v1/import/spreadsheet/{uploadId}/commit': {
     rule: 'mine',
     deniedAs: [410],
@@ -561,6 +566,21 @@ beforeAll(async () => {
       }),
     )
   ).uploadId;
+  const now = new Date().toISOString();
+  ids.mapping = (
+    await t.db
+      .insertInto('import_mappings')
+      .values({
+        user_id: owner.user.id,
+        signature: 'x',
+        file_name: 'log.csv',
+        plan: '{"sheets":[],"vehicles":[]}',
+        created_at: now,
+        updated_at: now,
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow()
+  ).id;
 });
 afterAll(() => t.close());
 

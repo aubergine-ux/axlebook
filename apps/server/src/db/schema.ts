@@ -260,7 +260,20 @@ export interface VehicleInsightsTable {
   created_at: string;
 }
 
+export interface ImportMappingsTable {
+  id: Generated<number>;
+  user_id: number;
+  /** Hash of the sheet headers this mapping was made for. */
+  signature: string;
+  file_name: string;
+  /** JSON SpreadsheetPlan */
+  plan: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Database {
+  import_mappings: ImportMappingsTable;
   inspections: InspectionsTable;
   vehicle_insights: VehicleInsightsTable;
   users: UsersTable;

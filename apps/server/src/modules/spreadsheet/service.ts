@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import {
   type FuelUnit,
   type OdometerUnit,
@@ -16,6 +16,7 @@ import type { DB } from '../../db/connection';
 import type { User } from '../../db/schema';
 import type { Ai } from '../../lib/ai';
 import { AppError } from '../../lib/errors';
+import { nowIso } from '../../lib/time';
 import type { RecordService } from '../records/service';
 import { garageVehicleIds, requireVehicle } from '../vehicles/access';
 import type { VehicleService } from '../vehicles/service';
@@ -33,7 +34,21 @@ interface Upload {
   userId: number;
   fileName: string;
   sheets: Sheet[];
+  signature: string;
   expires: number;
+}
+
+/**
+ * Identifies a spreadsheet layout: the headers of every sheet, in order. The same file exported
+ * again next month has the same signature, whatever it's called and however many rows it has.
+ */
+export function layoutSignature(sheets: Sheet[], plan: SpreadsheetPlan): string {
+  const shape = sheets.map((s, i) =>
+    headersOf(s.rows, plan.sheets.find((p) => p.sheet === s.name)?.headerRow ?? 0).map(
+      (h) => `${i}:${squash(h)}`,
+    ),
+  );
+  return createHash('sha256').update(JSON.stringify(shape)).digest('hex');
 }
 
 const TTL_MS = 60 * 60 * 1000;
@@ -135,7 +150,13 @@ export class SpreadsheetImporter {
     let plan = matchPlan(sheets, opts);
     let planSource: SpreadsheetAnalysis['planSource'] = 'matcher';
     let aiError: string | null = null;
-    if (useAi && this.ai.enabled) {
+    const signature = layoutSignature(sheets, plan);
+    const saved = await this.savedPlan(user, signature, sheets);
+    if (saved) {
+      // What this person chose last time beats any fresh guess.
+      plan = this.sanitize(sheets, saved.plan, null, opts);
+      planSource = 'saved';
+    } else if (useAi && this.ai.enabled) {
       try {
         plan = await this.aiPlan(sheets, plan, opts);
         planSource = 'ai';
@@ -147,7 +168,13 @@ export class SpreadsheetImporter {
     }
     this.prune();
     const uploadId = randomUUID();
-    this.uploads.set(uploadId, { userId: user.id, fileName, sheets, expires: Date.now() + TTL_MS });
+    this.uploads.set(uploadId, {
+      userId: user.id,
+      fileName,
+      sheets,
+      signature,
+      expires: Date.now() + TTL_MS,
+    });
     return {
       uploadId,
       fileName,
@@ -165,8 +192,82 @@ export class SpreadsheetImporter {
       }),
       plan,
       planSource,
+      savedMapping: saved ? { id: saved.id, savedAt: saved.savedAt } : null,
       aiError,
     };
+  }
+
+  /** The mapping saved for this layout, with its sheets renamed to this file's (matched by position). */
+  private async savedPlan(user: User, signature: string, sheets: Sheet[]) {
+    const row = await this.db
+      .selectFrom('import_mappings')
+      .selectAll()
+      .where('user_id', '=', user.id)
+      .where('signature', '=', signature)
+      .executeTakeFirst();
+    if (!row) return null;
+    let parsed: ReturnType<typeof SpreadsheetPlan.safeParse>;
+    try {
+      parsed = SpreadsheetPlan.safeParse(JSON.parse(row.plan));
+    } catch {
+      return null;
+    }
+    if (!parsed.success || parsed.data.sheets.length !== sheets.length) return null;
+    const renamed = new Map<string, string>();
+    const plans = parsed.data.sheets.map((p, i) => {
+      const name = sheets[i]?.name ?? p.sheet;
+      if (name !== p.sheet) renamed.set(squash(p.sheet), name);
+      // A sheet's own name can be its vehicle key (a CSV is named after its file).
+      const key = p.vehicleKey && squash(p.vehicleKey) === squash(p.sheet) ? name : p.vehicleKey;
+      return { ...p, sheet: name, vehicleKey: key };
+    });
+    const vehicles = parsed.data.vehicles.map((v) => ({
+      ...v,
+      key: renamed.get(squash(v.key)) ?? v.key,
+    }));
+    return { id: row.id, savedAt: row.updated_at, plan: { sheets: plans, vehicles } };
+  }
+
+  /** Remember how this layout was read, pointing at the vehicles the rows went into. */
+  private async remember(
+    user: User,
+    up: Upload,
+    plan: SpreadsheetPlan,
+    ids: Map<string, { vehicleId: number }>,
+  ) {
+    const now = nowIso();
+    const json = JSON.stringify({
+      sheets: plan.sheets,
+      vehicles: plan.vehicles.map((v) => ({
+        ...v,
+        existingVehicleId: ids.get(squash(v.key))?.vehicleId ?? v.existingVehicleId,
+      })),
+    } satisfies SpreadsheetPlan);
+    await this.db
+      .insertInto('import_mappings')
+      .values({
+        user_id: user.id,
+        signature: up.signature,
+        file_name: up.fileName.slice(0, 200),
+        plan: json,
+        created_at: now,
+        updated_at: now,
+      })
+      .onConflict((oc) =>
+        oc
+          .columns(['user_id', 'signature'])
+          .doUpdateSet({ plan: json, file_name: up.fileName.slice(0, 200), updated_at: now }),
+      )
+      .execute();
+  }
+
+  async forget(user: User, id: number) {
+    const res = await this.db
+      .deleteFrom('import_mappings')
+      .where('id', '=', id)
+      .where('user_id', '=', user.id)
+      .executeTakeFirst();
+    if (!res.numDeletedRows) throw new AppError('not_found');
   }
 
   /**
@@ -442,7 +543,7 @@ export class SpreadsheetImporter {
     plan: SpreadsheetPlan,
   ): Promise<SpreadsheetCommitResult> {
     if (user.role === 'viewer') throw new AppError('forbidden');
-    const { clean, rows, duplicates } = await this.resolve(user, uploadId, plan);
+    const { up, clean, rows, duplicates } = await this.resolve(user, uploadId, plan);
     // Only vehicles that have something to import get created.
     const used = new Set(
       rows.filter((r) => r.input && !duplicates.has(r)).map((r) => squash(r.key)),
@@ -506,6 +607,7 @@ export class SpreadsheetImporter {
         });
       }
     }
+    await this.remember(user, up, clean, ids);
     this.uploads.delete(uploadId);
     return {
       vehicles: targets.map((v) => ({
