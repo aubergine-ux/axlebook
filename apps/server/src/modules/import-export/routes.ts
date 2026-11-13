@@ -12,6 +12,7 @@ import { VERSION } from '../../lib/version';
 import { currentUser, requireAdmin } from '../../plugins/auth';
 import type { RecordService } from '../records/service';
 import { requireVehicle } from '../vehicles/access';
+import { readForeign } from './foreign';
 import { AXLEBOOK_HEADERS, rowsToRecords } from './parse';
 
 const VehicleParam = z.object({ vehicleId: z.coerce.number().int().positive() });
@@ -171,13 +172,15 @@ export const importExportRoutes =
           tags,
           summary: 'Import records from CSV',
           description:
-            'Accepts Axlebook exports and (experimentally) LubeLogger exports; columns are matched by name. `kind` applies when the file has no kind column. Rows identical to an existing record are skipped. Use `dryRun` to preview.',
+            'Accepts Axlebook exports and exports from LubeLogger, Fuelly, Drivvo and Simply Auto (Fuel_Log.csv); other files have their columns matched by name. `kind` applies when the file has no kind column. Rows identical to an existing record are skipped. Use `dryRun` to preview.',
           params: VehicleParam,
           body: z.object({
             csv: z.string().max(3_500_000),
             kind: z.enum(RECORD_KINDS).default('service'),
             dateOrder: z.enum(['mdy', 'dmy']).default('mdy'),
             dryRun: z.boolean().default(true),
+            /** For a file that covers several vehicles: import only this one's rows. */
+            onlyVehicle: z.string().max(200).optional(),
           }),
           response: { 200: ImportResult, ...errors },
         },
@@ -185,13 +188,24 @@ export const importExportRoutes =
       async (req) => {
         const user = currentUser(req);
         const v = await requireVehicle(db, user, req.params.vehicleId, 'edit');
-        const rows = parseCsv(req.body.csv);
+        const foreign = readForeign(req.body.csv);
+        const rows = foreign?.rows ?? parseCsv(req.body.csv);
         if (rows.length < 2)
           throw new AppError('validation_failed', { field: 'csv', reason: 'empty' });
-        const { format, parsed } = rowsToRecords(rows, {
+        const all = rowsToRecords(rows, {
           kind: req.body.kind,
           dateOrder: req.body.dateOrder,
+          format: foreign?.format,
+          lines: foreign?.lines,
         });
+        const format = all.format;
+        // Fuelly and Simply Auto put every car in one file; this import fills a single vehicle.
+        const vehiclesInFile = [...new Set(foreign?.vehicles.filter(Boolean) ?? [])].sort();
+        const only = req.body.onlyVehicle;
+        if (vehiclesInFile.length > 1 && !only && !req.body.dryRun)
+          throw new AppError('validation_failed', { field: 'onlyVehicle', reason: 'required' });
+        const parsed =
+          only && foreign ? all.parsed.filter((_, i) => foreign.vehicles[i] === only) : all.parsed;
 
         const existing = await db
           .selectFrom('records')
@@ -248,6 +262,7 @@ export const importExportRoutes =
           errors: errorsOut.slice(0, 200),
           preview: valid.slice(0, 20) as Record<string, unknown>[],
           detectedFormat: format,
+          vehiclesInFile,
         };
       },
     );

@@ -304,8 +304,13 @@ export function useShare(vehicleId: number) {
 export function useImportCsv(vehicleId: number) {
   const invalidate = useInvalidateLogbook();
   return useMutation({
-    mutationFn: (body: { csv: string; kind: string; dateOrder: 'mdy' | 'dmy'; dryRun: boolean }) =>
-      api<ImportResult>(`/vehicles/${vehicleId}/import/csv`, json('POST', body)),
+    mutationFn: (body: {
+      csv: string;
+      kind: string;
+      dateOrder: 'mdy' | 'dmy';
+      dryRun: boolean;
+      onlyVehicle?: string;
+    }) => api<ImportResult>(`/vehicles/${vehicleId}/import/csv`, json('POST', body)),
     onSuccess: (r) => (r.dryRun ? undefined : invalidate()),
   });
 }

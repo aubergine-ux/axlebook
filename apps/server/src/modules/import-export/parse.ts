@@ -6,7 +6,7 @@ import {
   toMilli,
 } from '@axlebook/shared';
 
-export type CsvFormat = 'axlebook' | 'lubelogger' | 'custom';
+export type CsvFormat = 'axlebook' | 'lubelogger' | 'fuelly' | 'drivvo' | 'simplyauto' | 'custom';
 export type DateOrder = 'mdy' | 'dmy';
 
 /** Canonical field → accepted header spellings (compared lowercased, letters and digits only). */
@@ -123,10 +123,10 @@ export interface ParsedRow {
 /** Turn CSV rows (header first) into record inputs. `kind` applies when there's no kind column. */
 export function rowsToRecords(
   rows: string[][],
-  opts: { kind: RecordKind; dateOrder: DateOrder },
+  opts: { kind: RecordKind; dateOrder: DateOrder; format?: CsvFormat; lines?: number[] },
 ): { format: CsvFormat; parsed: ParsedRow[] } {
   const [header = [], ...body] = rows;
-  const format = detectFormat(header);
+  const format = opts.format ?? detectFormat(header);
   const cols = mapHeaders(header);
   const get = (r: string[], f: string) => {
     const i = cols.get(f);
@@ -135,7 +135,7 @@ export function rowsToRecords(
   const tagSplit = format === 'lubelogger' ? /[\s,;]+/ : /[;,]/;
 
   const parsed = body.map((r, idx): ParsedRow => {
-    const row = idx + 2; // 1-based, after the header
+    const row = opts.lines?.[idx] ?? idx + 2; // 1-based, after the header
     const kindRaw = get(r, 'kind')?.toLowerCase();
     const kind = (
       kindRaw && (RECORD_KINDS as readonly string[]).includes(kindRaw) ? kindRaw : opts.kind
@@ -163,9 +163,8 @@ export function rowsToRecords(
     };
     if (kind === 'expense') {
       const cat = get(r, 'expenseCategory')?.toLowerCase();
-      input.expenseCategory = (EXPENSE_CATEGORIES as readonly string[]).includes(cat ?? '')
-        ? (cat as RecordInput['expenseCategory'])
-        : 'other';
+      // "Car insurance" and "Road tax" count as their category too.
+      input.expenseCategory = EXPENSE_CATEGORIES.find((c) => cat?.includes(c)) ?? 'other';
     }
     if (kind === 'fuel') {
       const volume = parseAmount(get(r, 'fuelVolume'));

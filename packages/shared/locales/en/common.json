@@ -686,7 +686,7 @@
   },
   "import": {
     "title": "Import records",
-    "intro": "Import a CSV exported from Axlebook or LubeLogger (experimental). Columns are matched by name.",
+    "intro": "Import a CSV exported from Axlebook, LubeLogger, Fuelly, Drivvo or Simply Auto. Any other CSV has its columns matched by name.",
     "file": "CSV file",
     "kind": "Record type",
     "kindHint": "Used when the file has no type column.",
@@ -703,8 +703,13 @@
     "formats": {
       "axlebook": "Axlebook",
       "lubelogger": "LubeLogger",
+      "fuelly": "Fuelly",
+      "drivvo": "Drivvo",
+      "simplyauto": "Simply Auto",
       "custom": "custom columns"
     },
+    "whichVehicle": "Vehicle in the file",
+    "whichVehicleHint": "This file covers more than one vehicle. Pick the one that belongs here.",
     "rowError": "Row {{row}}: {{message}}",
     "sheetTitle": "Import a spreadsheet",
     "sheetIntro": "Bring in the spreadsheet you already keep, even if it covers several vehicles. Nothing is saved until you check the preview.",

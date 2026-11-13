@@ -50,6 +50,8 @@ export const ImportResult = z.object({
   skipped: z.number().int(),
   errors: z.array(z.object({ row: z.number().int(), message: z.string() })),
   preview: z.array(z.record(z.string(), z.unknown())),
-  detectedFormat: z.enum(['axlebook', 'lubelogger', 'custom']),
+  detectedFormat: z.enum(['axlebook', 'lubelogger', 'fuelly', 'drivvo', 'simplyauto', 'custom']),
+  /** Vehicle names found in the file, when it covers more than this one. */
+  vehiclesInFile: z.array(z.string()),
 });
 export type ImportResult = z.infer<typeof ImportResult>;

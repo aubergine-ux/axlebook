@@ -13,6 +13,40 @@ let t: TestApp;
 afterEach(() => t?.close());
 
 describe('CSV import and export', () => {
+  it('imports one vehicle out of a Fuelly file that covers several', async () => {
+    t = await createTestApp();
+    const v = (
+      await t.req({ method: 'POST', url: '/api/v1/vehicles', payload: vehicleBody() })
+    ).json().id;
+    const csv =
+      'car_name,odometer,gallons,price,fuelup_date,partial_fuelup,missed_fuelup\n' +
+      'Tacoma,61402,10.82,3.499,2024-01-15,0,0\n' +
+      'Tacoma,61612,5.1,3.50,2024-01-29,1,0\n' +
+      'Civic,20100,8.8,3.20,2024-02-01,0,0\n';
+    const url = `/api/v1/vehicles/${v}/import/csv`;
+    const dry = (await t.req({ method: 'POST', url, payload: { csv, dryRun: true } })).json();
+    expect(dry).toMatchObject({
+      detectedFormat: 'fuelly',
+      total: 3,
+      vehiclesInFile: ['Civic', 'Tacoma'],
+    });
+    // Saving without saying which vehicle would mix two cars into one logbook.
+    const refused = await t.req({ method: 'POST', url, payload: { csv, dryRun: false } });
+    expect(refused.statusCode).toBe(400);
+    expect(refused.json().error.params).toMatchObject({ field: 'onlyVehicle' });
+    const real = (
+      await t.req({
+        method: 'POST',
+        url,
+        payload: { csv, dryRun: false, onlyVehicle: 'Tacoma' },
+      })
+    ).json();
+    expect(real).toMatchObject({ total: 2, imported: 2 });
+    const list = (await t.req({ method: 'GET', url: `/api/v1/vehicles/${v}/records` })).json();
+    expect(list.total).toBe(2);
+    expect(list.items.every((r: { kind: string }) => r.kind === 'fuel')).toBe(true);
+  });
+
   it('previews, imports, skips duplicates, and round-trips its own export', async () => {
     t = await createTestApp();
     const v = (

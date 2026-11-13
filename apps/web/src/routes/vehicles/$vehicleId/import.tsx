@@ -21,8 +21,16 @@ function ImportPage() {
   const [notText, setNotText] = useState(false);
   const [kind, setKind] = useState<RecordKind>('service');
   const [dateOrder, setDateOrder] = useState<'mdy' | 'dmy'>('mdy');
+  const [onlyVehicle, setOnlyVehicle] = useState<string | null>(null);
   const result = run.data;
-  const body = (dryRun: boolean) => ({ csv: file?.text ?? '', kind, dateOrder, dryRun });
+  const several = (result?.vehiclesInFile.length ?? 0) > 1;
+  const body = (dryRun: boolean, only = onlyVehicle) => ({
+    csv: file?.text ?? '',
+    kind,
+    dateOrder,
+    dryRun,
+    ...(only ? { onlyVehicle: only } : {}),
+  });
   const preview = () => file && run.mutate(body(true));
 
   return (
@@ -37,6 +45,7 @@ function ImportPage() {
             onSelect={async (files) => {
               const f = files?.[0];
               run.reset();
+              setOnlyVehicle(null);
               if (!f) return;
               const text = decodeTextFile(new Uint8Array(await f.arrayBuffer()));
               setNotText(text == null);
@@ -68,7 +77,7 @@ function ImportPage() {
         <Button isDisabled={!file || run.isPending} onPress={preview}>
           {t('import.preview')}
         </Button>
-        {result?.dryRun && result.preview.length > 0 && (
+        {result?.dryRun && result.preview.length > 0 && (!several || onlyVehicle) && (
           <Button
             variant="primary"
             isDisabled={run.isPending}
@@ -93,6 +102,23 @@ function ImportPage() {
               errors: result.errors.length,
             })}
           </p>
+          {several && (
+            <div className="mt-3 max-w-sm">
+              <SelectField
+                label={t('import.whichVehicle')}
+                description={t('import.whichVehicleHint')}
+                value={onlyVehicle ?? ''}
+                onChange={(v) => {
+                  setOnlyVehicle(v || null);
+                  if (v) run.mutate(body(true, v));
+                }}
+                options={[
+                  { value: '', label: t('import.none') },
+                  ...result.vehiclesInFile.map((v) => ({ value: v, label: v })),
+                ]}
+              />
+            </div>
+          )}
           {result.errors.length > 0 && (
             <ul className="mt-2 list-inside list-disc text-caption text-red">
               {result.errors.slice(0, 20).map((e) => (
