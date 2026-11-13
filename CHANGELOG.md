@@ -16,7 +16,8 @@ everything you have. Nothing that goes online is switched on by the upgrade.
 - **Saved column mappings.** The spreadsheet import remembers how you mapped a layout and starts
   the next file with the same headers from it, going into the same vehicles.
 - **VIN decoding and recall checks** through NHTSA. Off until an admin allows online lookups in
-  Settings. Recalls are listed on the vehicle and can be marked done or dismissed.
+  Settings. Recalls are listed on the vehicle and can be marked done or dismissed. Once allowed,
+  each vehicle is rechecked about once a week and you're notified of new ones.
 - **Parts and fluids** on each vehicle: oil, filters, tire size and pressure, wipers, battery and
   anything else worth having at the parts counter. Vehicles also get an engine field.
 - **Predicted due dates.** A reminder due by distance shows the date it's expected, from how much
@@ -45,7 +46,8 @@ everything you have. Nothing that goes online is switched on by the upgrade.
 ### Changed
 
 - The web app is built with relative URLs, so the same image serves the root or a subpath.
-- Webhook payloads carry `event` values `reminder.status`, `document.status`, `digest` and `test`.
+- Webhook payloads carry `event` values `reminder.status`, `document.status`, `recall.new`, `digest`
+  and `test`.
   `reminder.status` and `test` are unchanged from 1.0.
 - The demo data includes a work truck with trips, documents and a parts sheet.
 

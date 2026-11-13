@@ -132,8 +132,8 @@ and served with a sandboxing Content-Security-Policy.
 Two timers, both started in `server.ts`:
 
 - `NotificationService.scan()` every `REMINDER_SCAN_INTERVAL_MIN`: sends what quiet hours held
-  back, announces reminders and documents that got worse (each step once), and sends weekly
-  digests that are due.
+  back, announces reminders and documents that got worse (each step once), rechecks recalls
+  weekly when lookups are allowed, and sends weekly digests that are due.
 - `BackupService.tick()` every 15 minutes: writes a scheduled backup when one is due and prunes
   old ones.
 

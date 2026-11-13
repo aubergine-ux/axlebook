@@ -12,6 +12,8 @@
     "docSoon": "Expires soon: {{title}} for the {{vehicle}}",
     "docExpiredOn": "Expired on {{date}}.",
     "docExpiresOn": "Expires on {{date}}.",
+    "recallTitle": "Safety recall: {{count}} new for the {{vehicle}}",
+    "recallBody": "Open the vehicle in Axlebook for the details. Your dealer can confirm by VIN whether it applies.",
     "digestTitle": "Axlebook this week: {{count}} to look at",
     "testTitle": "Axlebook test notification",
     "testBody": "If you can read this, notifications from Axlebook are working."

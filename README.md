@@ -171,7 +171,7 @@ phone home, and your records never leave your network unless you send them somew
     <td width="50%" valign="top">
       <img src="logo-assets/icons/png/orange/repair-96.png" width="28" alt=""><br>
       <b>Recalls, checked</b><br>
-      Open safety recalls for each vehicle from NHTSA, marked done or dismissed as you deal with them. Like VIN lookup, it stays off until an admin allows it.
+      Open safety recalls for each vehicle from NHTSA, rechecked weekly, with a nudge when a new one appears. Like VIN lookup, it stays off until an admin allows it.
     </td>
   </tr>
 </table>
@@ -476,8 +476,8 @@ rounded on the way in.
 ## What's next
 
 Things I'd like to add, roughly in order: more languages (if you'd like to translate, see
-[CONTRIBUTING.md](CONTRIBUTING.md)), recurring costs that log themselves, recall checks that run
-on their own, and a VIN decoder that works offline. Ideas and requests are welcome in
+[CONTRIBUTING.md](CONTRIBUTING.md)), recurring costs that log themselves, and a VIN decoder that
+works offline. Ideas and requests are welcome in
 [Discussions](https://github.com/aubergine-ux/axlebook/discussions).
 
 ## Built with

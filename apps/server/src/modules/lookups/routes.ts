@@ -38,9 +38,13 @@ const toRecall = (r: Selectable<RecallsTable>): Recall => ({
 });
 
 /** Fetch a vehicle's recalls and store them. A recall someone already dealt with keeps its state. */
-export async function refreshRecalls(db: DB, lookups: Lookups, v: VehicleRow): Promise<number> {
+export async function refreshRecalls(
+  db: DB,
+  lookups: Lookups,
+  v: VehicleRow,
+  ts = nowIso(),
+): Promise<number> {
   const found = await lookups.recalls(v.make, v.model, v.year);
-  const ts = nowIso();
   const known = new Set(
     (
       await db.selectFrom('recalls').select('campaign').where('vehicle_id', '=', v.id).execute()

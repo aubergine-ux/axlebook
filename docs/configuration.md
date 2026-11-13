@@ -103,6 +103,9 @@ turns it on:
 | Single sign-on  | You, with the `OIDC_*` variables    | The sign-in exchange with your identity provider                                   |
 | Local assistant | You, with `OLLAMA_URL`              | Requests to your own Ollama server only                                            |
 
+With the switch on, each vehicle is also rechecked for recalls about once a week (a few vehicles
+per pass), and the people who can see it are notified when a new one appears.
+
 NHTSA covers vehicles sold in the United States. A recall is matched by make, model and year, so
 it may not apply to your exact vehicle; a dealer can confirm by VIN.
 
@@ -123,7 +126,7 @@ and signed webhooks. Each has a Test button.
 - **Documents**: registration, insurance, inspection certificates and permits with an expiry date
   notify when they enter the "due soon" window and again when they expire.
 
-Webhooks receive `event`: `reminder.status`, `document.status`, `digest` or `test`.
+Webhooks receive `event`: `reminder.status`, `document.status`, `recall.new`, `digest` or `test`.
 
 ## Backups
 

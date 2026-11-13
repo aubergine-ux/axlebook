@@ -12,6 +12,8 @@
     "docSoon": "Skadon së shpejti: {{title}} për {{vehicle}}",
     "docExpiredOn": "Ka skaduar më {{date}}.",
     "docExpiresOn": "Skadon më {{date}}.",
+    "recallTitle": "Tërheqje për arsye sigurie: {{count}} të reja për {{vehicle}}",
+    "recallBody": "Hap automjetin në Axlebook për hollësitë. Koncesionari mund ta konfirmojë me VIN nëse vlen për ty.",
     "digestTitle": "Axlebook këtë javë: {{count}} për t'u parë",
     "testTitle": "Njoftim prove nga Axlebook",
     "testBody": "Nëse po e lexon këtë, njoftimet nga Axlebook funksionojnë."

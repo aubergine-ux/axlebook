@@ -317,4 +317,88 @@ describe('VIN and recall lookups', () => {
       (await t.req({ method: 'GET', url: `/api/v1/vehicles/${v}/recalls` })).json().checkedAt,
     ).toBeNull();
   });
+
+  it('rechecks weekly on its own, and tells people about recalls that are new', async () => {
+    const calls: string[] = [];
+    let found = [{ campaign: '16V340000', component: 'AIR BAGS' }];
+    const lookups: Lookups = {
+      decodeVin: client().decodeVin.bind(client()),
+      recalls: async (make) => {
+        calls.push(make);
+        if (make === 'Flaky') throw new Error('down');
+        return found.map((r) => ({
+          ...r,
+          summary: null,
+          consequence: null,
+          remedy: null,
+          reportDate: null,
+        }));
+      },
+    };
+    t = await createTestApp({}, { lookups });
+    const hooks: Record<string, unknown>[] = [];
+    const hook = http.createServer((req, res) => {
+      let body = '';
+      req.on('data', (c) => (body += c));
+      req.on('end', () => {
+        hooks.push(JSON.parse(body));
+        res.writeHead(204).end();
+      });
+    });
+    await new Promise<void>((r) => hook.listen(0, '127.0.0.1', r));
+    await t.req({
+      method: 'POST',
+      url: '/api/v1/me/channels',
+      payload: {
+        name: 'Hook',
+        config: {
+          type: 'webhook',
+          url: `http://127.0.0.1:${(hook.address() as AddressInfo).port}/`,
+        },
+      },
+    });
+    const v = (
+      await t.req({
+        method: 'POST',
+        url: '/api/v1/vehicles',
+        payload: vehicleBody({ nickname: 'Taco' }),
+      })
+    ).json().id;
+    await t.req({
+      method: 'POST',
+      url: '/api/v1/vehicles',
+      payload: vehicleBody({ make: 'Flaky' }),
+    });
+    const scan = (iso: string) => t.app.services.notifications.scan(new Date(iso));
+    const recalls = async () =>
+      (await t.req({ method: 'GET', url: `/api/v1/vehicles/${v}/recalls` })).json();
+
+    // Lookups are off: a scan contacts nothing.
+    await scan('2030-01-01T12:00:00Z');
+    expect(calls).toEqual([]);
+
+    await on();
+    await scan('2030-01-01T13:00:00Z');
+    expect(calls.sort()).toEqual(['Flaky', 'Toyota']);
+    expect((await recalls()).recalls).toHaveLength(1);
+    expect(hooks).toMatchObject([
+      { event: 'recall.new', title: 'Safety recall: 1 new for the Taco' },
+    ]);
+
+    // An hour later nothing is due except the lookup that failed, and nobody is told twice.
+    calls.length = 0;
+    await scan('2030-01-01T14:00:00Z');
+    expect(calls).toEqual(['Flaky']);
+    expect(hooks).toHaveLength(1);
+
+    // A week on, a second campaign has been published: only that one is announced.
+    found = [...found, { campaign: '30V001000', component: 'BRAKES' }];
+    calls.length = 0;
+    await scan('2030-01-08T13:00:01Z');
+    expect(calls.sort()).toEqual(['Flaky', 'Toyota']);
+    expect((await recalls()).recalls).toHaveLength(2);
+    expect(hooks).toHaveLength(2);
+    expect(hooks[1]).toMatchObject({ title: 'Safety recall: 1 new for the Taco' });
+    await new Promise((r) => hook.close(r));
+  });
 });

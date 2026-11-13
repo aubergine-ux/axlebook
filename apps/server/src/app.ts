@@ -135,7 +135,7 @@ export async function buildApp({
   const vehicles = new VehicleService(db, photos);
   const records = new RecordService(db, attachments);
   const reminders = new ReminderService(db, config);
-  const notifications = new NotificationService(db, config, reminders, app.log);
+  const notifications = new NotificationService(db, config, reminders, app.log, lookups);
   const ai: Ai = aiOverride ?? (config.ai ? new OllamaAi(config.ai, app.log) : disabledAi);
   // The model an admin picked in Settings wins over OLLAMA_MODEL.
   if (ai.enabled) {

@@ -9,6 +9,7 @@ import {
   parseNotifyPrefs,
   type Reminder,
   type VehicleDocument,
+  vehicleTitle,
 } from '@axlebook/shared';
 import type { FastifyBaseLogger } from 'fastify';
 import nodemailer, { type Transporter } from 'nodemailer';
@@ -18,15 +19,17 @@ import type { ChannelRow, User, VehicleRow } from '../../db/schema';
 import { AppError } from '../../lib/errors';
 import { translator } from '../../lib/i18n';
 import { getInstanceSettings } from '../../lib/instance-settings';
+import type { Lookups } from '../../lib/nhtsa';
 import { nowIso } from '../../lib/time';
 import { appUrl } from '../../lib/urls';
 import { presentDocuments } from '../documents/routes';
+import { refreshRecalls } from '../lookups/routes';
 import type { ReminderService } from '../reminders/service';
 import { garageVehicleIds } from '../vehicles/access';
 
 export interface Message {
   /** What this is about; webhooks receive it as `event`. */
-  event: 'reminder.status' | 'document.status' | 'digest' | 'test';
+  event: 'reminder.status' | 'document.status' | 'recall.new' | 'digest' | 'test';
   /** Overdue or expired: channels that have a priority raise it. */
   urgent?: boolean;
   title: string;
@@ -37,6 +40,10 @@ export interface Message {
     'id' | 'title' | 'status' | 'vehicleId' | 'vehicleTitle' | 'dueDate' | 'dueOdometer'
   >;
 }
+
+/** How often a vehicle's recalls are rechecked, and how many vehicles one scan looks up. */
+const RECALL_RECHECK_DAYS = 7;
+const RECALLS_PER_SCAN = 5;
 
 const RANK = { inactive: 0, upcoming: 1, due_soon: 2, overdue: 3 } as const;
 const SECRET_KEYS = ['token', 'secret'];
@@ -56,6 +63,7 @@ export class NotificationService {
     private readonly config: Config,
     private readonly reminders: ReminderService,
     private readonly log: FastifyBaseLogger,
+    private readonly lookups?: Lookups,
   ) {}
 
   // ── Channels ─────────────────────────────────────────────────────────────
@@ -420,6 +428,7 @@ export class NotificationService {
     let notified = await this.flushQueue(at.clock);
     notified += await this.scanReminders(at.clock);
     notified += await this.scanDocuments(at);
+    notified += await this.scanRecalls(now, at.clock);
     notified += await this.sendDigests(at);
     return { notified };
   }
@@ -514,6 +523,57 @@ export class NotificationService {
         .set({ last_notified_status: d.status })
         .where('id', '=', d.id)
         .execute();
+    }
+    return notified;
+  }
+
+  /**
+   * When an admin has allowed online lookups, recheck each vehicle for recalls about once a week
+   * and tell its people about new ones. A few vehicles per pass, so a big garage doesn't turn
+   * into a burst of requests; a lookup that fails is simply tried again on a later pass.
+   */
+  private async scanRecalls(now: Date, clock: string): Promise<number> {
+    if (!this.lookups) return 0;
+    if (!(await getInstanceSettings(this.db, this.config)).onlineLookups) return 0;
+    const cutoff = new Date(now.getTime() - RECALL_RECHECK_DAYS * 86_400_000).toISOString();
+    const due = await this.db
+      .selectFrom('vehicles')
+      .selectAll()
+      .where('archived_at', 'is', null)
+      .where((eb) =>
+        eb.or([eb('recalls_checked_at', 'is', null), eb('recalls_checked_at', '<', cutoff)]),
+      )
+      .orderBy('recalls_checked_at')
+      .limit(RECALLS_PER_SCAN)
+      .execute();
+    let notified = 0;
+    for (const vehicle of due) {
+      let added = 0;
+      try {
+        added = await refreshRecalls(this.db, this.lookups, vehicle, now.toISOString());
+      } catch (err) {
+        this.log.warn({ err, vehicle: vehicle.id }, 'recall check failed');
+        continue;
+      }
+      if (added === 0) continue;
+      for (const user of await this.audience(vehicle)) {
+        const t = translator(user.locale);
+        notified += await this.sendTo(
+          user,
+          {
+            event: 'recall.new',
+            urgent: true,
+            title: t('notify.recallTitle', {
+              count: added,
+              vehicle: vehicle.nickname ?? vehicleTitle(vehicle),
+            }),
+            body: t('notify.recallBody'),
+            url: appUrl(this.config, `/vehicles/${vehicle.id}`),
+          },
+          null,
+          clock,
+        );
+      }
     }
     return notified;
   }
