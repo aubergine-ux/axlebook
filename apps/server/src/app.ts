@@ -29,6 +29,7 @@ import { BackupService } from './modules/import-export/backup';
 import { importExportRoutes } from './modules/import-export/routes';
 import { insightRoutes } from './modules/insights/routes';
 import { InsightService } from './modules/insights/service';
+import { integrationRoutes } from './modules/integrations/routes';
 import { inventoryRoutes } from './modules/inventory/routes';
 import { lookupRoutes } from './modules/lookups/routes';
 import { notificationRoutes } from './modules/notifications/routes';
@@ -227,6 +228,7 @@ export async function buildApp({
   await app.register(assistantRoutes({ db, config, ai }), api);
   await app.register(lookupRoutes({ db, config, lookups }), api);
   await app.register(tripRoutes({ db }), api);
+  await app.register(integrationRoutes({ db, config, vehicles, reminders }), api);
   await app.register(documentRoutes({ db, config, files: attachments }), api);
   // The calendar feed lives outside /api so calendar apps can subscribe with a plain URL.
   registerCalendarFeed(app, { db, config });

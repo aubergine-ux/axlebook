@@ -102,6 +102,20 @@ jobs:
           curl -sf -X POST localhost:11434/api/pull -d '{"model":"qwen2.5:0.5b","stream":false}'
       - run: npx vitest run --project server src/modules/assistant/real-ollama.test.ts
 
+  home-assistant:
+    name: Home Assistant integration
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/home-assistant
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements-test.txt
+      - run: python -m pytest
+
   e2e:
     name: Browser smoke tests
     runs-on: ubuntu-latest

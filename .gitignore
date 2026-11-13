@@ -15,3 +15,6 @@ apps/web/public/
 dev-dist
 playwright-report
 test-results
+__pycache__
+.venv
+.pytest_cache

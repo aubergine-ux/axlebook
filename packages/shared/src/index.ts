@@ -15,6 +15,7 @@ export * from './schemas/auth';
 export * from './schemas/commercial';
 export * from './schemas/common';
 export * from './schemas/history';
+export * from './schemas/integrations';
 export * from './schemas/inventory';
 export * from './schemas/lookups';
 export * from './schemas/records';

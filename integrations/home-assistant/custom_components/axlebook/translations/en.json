@@ -1,0 +1,37 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Axlebook",
+        "description": "Create an API token in Axlebook under Settings, then enter your server's address and the token.",
+        "data": {
+          "url": "Address",
+          "token": "API token"
+        },
+        "data_description": {
+          "url": "For example http://192.168.1.20:8080 or https://cars.example.com/axlebook",
+          "token": "Starts with axb_"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Couldn't reach Axlebook at that address.",
+      "invalid_auth": "That token was refused."
+    },
+    "abort": {
+      "already_configured": "This Axlebook server is already set up."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "odometer": { "name": "Odometer" },
+      "next_service": { "name": "Next service" },
+      "next_service_due": { "name": "Next service due" },
+      "items_due": { "name": "Items due" }
+    },
+    "binary_sensor": {
+      "needs_attention": { "name": "Needs attention" },
+      "service_overdue": { "name": "Service overdue" }
+    }
+  }
+}

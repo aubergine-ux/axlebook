@@ -482,6 +482,7 @@ const ROUTES: Record<string, Route> = {
     make: () => ({ method: 'GET', url: `${v()}/mileage.csv` }),
   },
   'GET /api/v1/documents': { rule: 'self' },
+  'GET /api/v1/status': { rule: 'self' },
   'GET /api/v1/vehicles/{vehicleId}/documents': {
     rule: 'read',
     make: () => ({ method: 'GET', url: `${v()}/documents` }),
