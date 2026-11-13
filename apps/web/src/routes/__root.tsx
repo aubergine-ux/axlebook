@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authStatusQuery } from '../api/auth';
 import { AppShell } from '../components/AppShell';
+import { SUPPORTED_LANGUAGES, setLanguage } from '../i18n';
 import { useTheme } from '../theme/theme';
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
@@ -36,7 +37,7 @@ const isShared = (path: string) => path.startsWith('/h/');
 
 /** Sends people to first-run setup or sign-in as needed; the app shell wraps everything else. */
 function Root() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const status = useQuery(authStatusQuery);
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { theme, setTheme, hasLocalChoice } = useTheme();
@@ -46,6 +47,13 @@ function Root() {
   useEffect(() => {
     if (user && !hasLocalChoice && user.theme !== theme) setTheme(user.theme, { persist: false });
   }, [user, hasLocalChoice, theme, setTheme]);
+
+  // The language saved on the account follows the person to every device.
+  const locale = user?.locale;
+  useEffect(() => {
+    if (locale && SUPPORTED_LANGUAGES.includes(locale) && locale !== i18n.language)
+      void setLanguage(locale);
+  }, [locale, i18n.language]);
 
   if (isShared(path)) return <Outlet />;
   if (status.isPending) {

@@ -150,7 +150,7 @@ describe('logging fuel', () => {
       vehicleName: 'Taco',
       data: { odometer: 84_500, fuel: { volume: 9_500 } },
     });
-    expect(await screen.findByText('1 fill-ups waiting to sync')).toBeInTheDocument();
+    expect(await screen.findByText('1 fill-up waiting to sync')).toBeInTheDocument();
   });
 });
 

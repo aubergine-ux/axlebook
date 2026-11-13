@@ -76,4 +76,25 @@ describe('translations', () => {
       expect({ lang, extra: keys.filter((k) => !enKeys.includes(k)) }).toEqual({ lang, extra: [] });
     }
   });
+
+  it('every other locale keeps the placeholders of each string and leaves none empty', async () => {
+    const { checkLocale, locales } = await import('../../../../tools/check-locales.mjs');
+    expect(locales()).toContain('sq');
+    expect(locales().flatMap(checkLocale)).toEqual([]);
+  });
+
+  it('loads another language on demand and switches the interface to it', async () => {
+    const { default: i18n, setLanguage, SUPPORTED_LANGUAGES } = await import('./index');
+    expect(SUPPORTED_LANGUAGES).toEqual(['en', 'sq']);
+    expect(i18n.hasResourceBundle('sq', 'common')).toBe(false);
+    await setLanguage('sq');
+    expect(i18n.language).toBe('sq');
+    expect(i18n.t('nav.garage')).toBe('Garazh');
+    expect(i18n.t('fuel.pending', { count: 1 })).toBe('1 furnizim pret të sinkronizohet');
+    expect(document.documentElement.lang).toBe('sq');
+    // A language that doesn't exist falls back to English rather than showing keys.
+    await setLanguage('xx');
+    expect(i18n.language).toBe('en');
+    expect(i18n.t('fuel.pending', { count: 1 })).toBe('1 fill-up waiting to sync');
+  });
 });

@@ -1,0 +1,27 @@
+{
+  "notify": {
+    "overdue": "Me afat të kaluar: {{title}} për {{vehicle}}",
+    "due_soon": "Afrohet afati: {{title}} për {{vehicle}}",
+    "dueDate": "Afati: {{date}}.",
+    "daysOver": "{{count}} ditë vonesë.",
+    "daysLeft": "Edhe {{count}} ditë.",
+    "dueAt": "Afati në {{odometer}} {{unit}}.",
+    "distanceOver": "{{distance}} {{unit}} mbi afat.",
+    "distanceLeft": "Edhe {{distance}} {{unit}}.",
+    "docExpired": "Ka skaduar: {{title}} për {{vehicle}}",
+    "docSoon": "Skadon së shpejti: {{title}} për {{vehicle}}",
+    "docExpiredOn": "Ka skaduar më {{date}}.",
+    "docExpiresOn": "Skadon më {{date}}.",
+    "digestTitle": "Axlebook këtë javë: {{count}} për t'u parë",
+    "testTitle": "Njoftim prove nga Axlebook",
+    "testBody": "Nëse po e lexon këtë, njoftimet nga Axlebook funksionojnë."
+  },
+  "calendar": {
+    "name": "Kujtesat e Axlebook",
+    "event": "{{title}} ({{vehicle}})",
+    "overdue": "Me afat të kaluar: {{title}} ({{vehicle}})",
+    "dueAt": "Afati edhe në {{odometer}} {{unit}}.",
+    "document": "{{title}} skadon ({{vehicle}})",
+    "estimated": "Data e vlerësuar nga rreth {{pace}} {{unit}} në ditë."
+  }
+}

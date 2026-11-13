@@ -1,0 +1,1354 @@
+{
+  "appName": "Axlebook",
+  "nav": {
+    "garage": "Garazh",
+    "reminders": "Kujtesa",
+    "parts": "Pjesë",
+    "reports": "Raporte",
+    "settings": "Cilësimet",
+    "search": "Kërko",
+    "logFuel": "Regjistro furnizim",
+    "main": "Navigimi kryesor",
+    "skipToContent": "Kalo te përmbajtja",
+    "signOut": "Dil",
+    "account": "Llogaria"
+  },
+  "theme": {
+    "label": "Pamja",
+    "system": "Sipas sistemit",
+    "light": "E çelët",
+    "dark": "E errët"
+  },
+  "garage": {
+    "title": "Garazh",
+    "empty": "Ende asnjë automjet. Shto të parin për të nisur ditarin.",
+    "add": "Shto automjet",
+    "showArchived": "Shfaq të arkivuarat",
+    "archivedBadge": "Arkivuar",
+    "odometer": "Kilometrazh",
+    "nextReminder": "Afati i radhës",
+    "costToDate": "Shpenzuar",
+    "noReading": "Ende asnjë lexim",
+    "noReminder": "Asgjë e planifikuar",
+    "photoAlt": "Foto e {{name}}",
+    "parts": "Pjesë dhe materiale",
+    "shared": "Ndarë me ty",
+    "sections": {
+      "all": "Të gjitha",
+      "car": "Makina dhe kamionçina",
+      "powersports": "Motorë dhe ATV",
+      "commercial": "Kamionë të rëndë"
+    },
+    "sectionEmpty": {
+      "car": "Ende asnjë makinë ose kamionçinë.",
+      "powersports": "Ende asnjë motoçikletë, motor kros, ATV ose motosajë.",
+      "commercial": "Ende asnjë kamion i rëndë ose rimorkio."
+    },
+    "importSheet": "Importo një fletëllogaritëse",
+    "view": {
+      "sortLabel": "Rendit",
+      "sorts": {
+        "custom": "Renditja ime",
+        "name": "Emri",
+        "year": "Viti më i ri i modelit",
+        "odometer": "Kilometrazhi më i lartë",
+        "due": "Kujtesa më urgjente",
+        "cost": "Më shumë shpenzime",
+        "added": "Shtuar së fundi"
+      },
+      "layoutLabel": "Paraqitja",
+      "layouts": {
+        "cards": "Karta",
+        "compact": "Kompakte",
+        "list": "Listë"
+      },
+      "customize": "Përshtat",
+      "customizeTitle": "Përshtate garazhin tënd",
+      "fieldsLabel": "Shfaq te çdo automjet",
+      "orderLabel": "Renditja jote",
+      "orderHint": "Tërhiqe një automjet nga doreza, ose përdor Lart dhe Poshtë. Kur ruan një renditje të re, renditja kalon te “Renditja ime”.",
+      "drag": "Tërhiq {{name}}",
+      "up": "Lart",
+      "down": "Poshtë",
+      "moveUp": "Lëviz {{name}} lart",
+      "moveDown": "Lëviz {{name}} poshtë"
+    }
+  },
+  "errors": {
+    "validation_failed": "Disa fusha duhen parë.",
+    "not_found": "Ky element nuk u gjet.",
+    "unauthorized": "Të lutem hyr në llogari.",
+    "forbidden": "Nuk ke qasje në këtë.",
+    "csrf_origin_mismatch": "Kërkesa u bllokua: nuk erdhi nga kjo faqe.",
+    "conflict": "Kjo bie ndesh me të dhënat ekzistuese.",
+    "payload_too_large": "Ky skedar është shumë i madh.",
+    "internal": "Diçka shkoi keq në server.",
+    "network": "Nuk arrihet serveri.",
+    "invalid_credentials": "Emri i përdoruesit dhe fjalëkalimi nuk përputhen.",
+    "rate_limited": "Shumë përpjekje. Prit disa minuta dhe provo përsëri.",
+    "setup_required": "Krijo llogarinë e parë për të filluar.",
+    "already_set_up": "Kjo instancë ka tashmë një llogari administratori.",
+    "oidc_failed": "Hyrja e njëhershme (SSO) nuk u përfundua. Provo përsëri ose përdor fjalëkalimin.",
+    "local_login_disabled": "Hyrja me fjalëkalim është çaktivizuar në këtë instancë.",
+    "insufficient_stock": "Nuk ka mjaftueshëm nga kjo pjesë në gjendje.",
+    "unsupported_file": "Ky lloj skedari nuk mbështetet.",
+    "restore_not_empty": "Rikthimi funksionon vetëm në një instancë të zbrazët. Hiq më parë automjetet ekzistuese.",
+    "ai_disabled": "Asistenti lokal (Ollama) nuk është konfiguruar në këtë server. Një administrator mund ta aktivizojë; shih dokumentimin.",
+    "ai_failed": "Asistenti lokal nuk u përgjigj dot tani. Provo përsëri pas pak.",
+    "upload_expired": "Ky ngarkim ka skaduar. Zgjidhe skedarin përsëri.",
+    "lookups_disabled": "Kërkimet online janë çaktivizuar në këtë server. Një administrator mund t'i aktivizojë te Cilësimet.",
+    "lookup_failed": "Shërbimi i kërkimit nuk u arrit. Provo përsëri pas pak."
+  },
+  "settings": {
+    "profile": "Profili",
+    "password": "Fjalëkalimi",
+    "tokens": "Tokenë API",
+    "notifications": "Njoftimet",
+    "data": "Të dhënat e tua",
+    "instance": "Instanca",
+    "users": "Persona",
+    "about": "Rreth",
+    "displayName": "Emri",
+    "email": "Email",
+    "save": "Ruaj",
+    "saved": "U ruajt.",
+    "units": "Njësitë",
+    "unitSystems": {
+      "imperial": "Imperial (mi, gal, mpg)",
+      "metric": "Metrik (km, L, L/100 km)"
+    },
+    "language": "Gjuha",
+    "languages": {
+      "en": "English",
+      "sq": "Shqip"
+    },
+    "currentPassword": "Fjalëkalimi aktual",
+    "newPassword": "Fjalëkalimi i ri",
+    "changePassword": "Ndrysho fjalëkalimin",
+    "passwordChanged": "Fjalëkalimi u ndryshua. Pajisjet e tjera u nxorën nga llogaria.",
+    "tokensIntro": "Tokenët u lejojnë skripteve dhe aplikacioneve të tjera të përdorin API-n. Dërgoje një të tillë si “Authorization: Bearer …”.",
+    "tokenName": "Emri i tokenit",
+    "createToken": "Krijo token",
+    "tokenCreated": "Kopjoje këtë token tani. Nuk do ta shohësh më.",
+    "copy": "Kopjo",
+    "copied": "U kopjua",
+    "revoke": "Revoko",
+    "lastUsed": "Përdorur së fundi më {{date}}",
+    "neverUsed": "Nuk është përdorur kurrë",
+    "noTokens": "Ende asnjë token.",
+    "apiDocs": "Dokumentimi i API-t",
+    "channelsIntro": "Merr një mesazh kur një kujtese i afrohet afati ose i kalon afati.",
+    "addChannel": "Shto kanal",
+    "showTips": "Shfaq këshilla në faqet e automjeteve",
+    "showTipsHint": "Këshilla të nxjerra nga regjistrimet e vetë automjetit. Fshehja e tyre kursen vend; mund t'i rikthesh këtu.",
+    "editChannel": "Ndrysho kanalin",
+    "scanHint": "Kujtesat kontrollohen periodikisht. Kontrolloji tani për të dërguar menjëherë mesazhet për ato që u afrohet ose u ka kaluar afati. Çdo kujtesë njofton vetëm një herë për çdo ndryshim.",
+    "scanNow": "Kontrollo kujtesat tani",
+    "scanning": "Po kontrollohet…",
+    "scanResult_one": "U dërgua {{count}} njoftim.",
+    "scanResult_other": "U dërguan {{count}} njoftime.",
+    "channelName": "Emri",
+    "channelType": "Dërgo me",
+    "channelTypes": {
+      "email": "Email",
+      "ntfy": "ntfy",
+      "gotify": "Gotify",
+      "discord": "Discord",
+      "webhook": "Webhook",
+      "apprise": "Apprise"
+    },
+    "channelUrl": "URL",
+    "channelTo": "Adresa e emailit",
+    "channelToken": "Token",
+    "channelSecret": "Sekreti i nënshkrimit",
+    "channelEnabled": "Aktiv",
+    "test": "Dërgo provë",
+    "testSent": "Prova u dërgua.",
+    "testFailed": "Prova dështoi: {{error}}",
+    "noChannels": "Ende asnjë kanal.",
+    "deleteChannel": "Hiq",
+    "backup": "Shkarko kopjen rezervë",
+    "backupHint": "Një zip me gjithçka: regjistrime, kujtesa, pjesë, foto dhe fatura.",
+    "restore": "Rikthe një kopje rezervë",
+    "restoreHint": "Vetëm në një instancë të zbrazët (ende pa automjete).",
+    "restoreDone": "Kopja rezervë u rikthye.",
+    "currency": "Monedha",
+    "soonDays": "Paralajmërimi i parazgjedhur (ditë)",
+    "soonDistanceMi": "Paralajmërimi i parazgjedhur (mi)",
+    "soonDistanceKm": "Paralajmërimi i parazgjedhur (km)",
+    "addUser": "Shto person",
+    "username": "Emri i përdoruesit",
+    "role": "Roli",
+    "roles": {
+      "admin": "Administrator",
+      "editor": "Redaktues",
+      "viewer": "Shikues"
+    },
+    "roleHints": {
+      "admin": "Gjithçka, përfshirë personat dhe cilësimet e instancës.",
+      "editor": "Automjetet e veta dhe ato që janë ndarë me të.",
+      "viewer": "Vetëm lexim."
+    },
+    "disabled": "Çaktivizuar",
+    "disable": "Çaktivizo",
+    "enable": "Aktivizo",
+    "resetPassword": "Vendos fjalëkalim",
+    "deleteUser": "Fshi",
+    "deleteUserTitle": "Të fshihet {{name}}?",
+    "deleteUserBody": "Fshihen edhe automjetet dhe regjistrimet e këtij personi.",
+    "you": "ti",
+    "version": "Axlebook {{version}}",
+    "source": "Kodi burimor",
+    "license": "Licencuar me AGPL-3.0",
+    "ai": "Asistenti lokal (Ollama)",
+    "aiStatus": {
+      "off": "Joaktiv. Cakto OLLAMA_URL dhe nis Ollama për ta aktivizuar (shih dokumentimin).",
+      "unreachable": "Ollama nuk arrihet në adresën e konfiguruar.",
+      "downloading": "Po shkarkohet modeli ({{pct}}%). Kjo ndodh vetëm një herë.",
+      "missing": "Modeli {{model}} nuk është instaluar ende në Ollama.",
+      "ready": "Gati: {{model}}, po punon në këtë server."
+    },
+    "calendar": "Kalendari i kujtesave",
+    "calendarIntro": "Abonohu nga kalendari i telefonit ose kompjuterit për të parë kujtesat që kanë datë afati.",
+    "calendarCreate": "Krijo lidhje kalendari",
+    "calendarReset": "Rivendos lidhjen",
+    "calendarLink": "Lidhja e kalendarit",
+    "calendarOff": "Çaktivizo",
+    "aiIntro": "Skanimi i faturave, hyrja e shpejtë, pyetjet për ditarin tënd, importi i fletëllogaritëseve, planet e mirëmbajtjes dhe këshillat mund të përdorin një model që punon në serverin tënd përmes Ollama. Kërkesat shkojnë vetëm te ai server.",
+    "aiModel": "Modeli",
+    "aiModelHint": "Modelet e instaluara në Ollama. Skanimi i faturave kërkon një model që lexon foto.",
+    "aiSize": "{{size}} GB",
+    "aiVision": "lexon foto",
+    "aiTest": "Provo",
+    "aiTesting": "Po provohet…",
+    "aiTestOk": "{{model}} u përgjigj për {{seconds}} s.",
+    "lookups": {
+      "title": "Kërkime online",
+      "body": "Joaktive si parazgjedhje: Axlebook nuk kontakton asgjë jashtë serverit tënd. Aktivizoje për të deshifruar VIN-e dhe për të kontrolluar tërheqjet për arsye sigurie te NHTSA, një shërbim i qeverisë së SHBA-së. Dërgohet vetëm VIN-i, ose marka, modeli dhe viti.",
+      "toggle": "Lejo kërkimet e VIN-it dhe të tërheqjeve"
+    },
+    "appriseHint": "Adresa e pikës notify të serverit tënd Apprise API: …/notify/your-key për një konfigurim të ruajtur, ose …/notify me URL-të e Apprise më poshtë.",
+    "appriseUrls": "URL-të e Apprise",
+    "appriseUrlsHint": "Të ndara me presje. Duhen vetëm kur nuk ka konfigurim të ruajtur.",
+    "appriseTag": "Etiketa",
+    "dateFormat": "Datat",
+    "dateFormats": {
+      "auto": "Siç i shkruan gjuha ime",
+      "mdy": "Muaj/Ditë/Vit",
+      "dmy": "Ditë/Muaj/Vit",
+      "ymd": "Vit-Muaj-Ditë"
+    },
+    "ownCurrency": "Monedha ime",
+    "ownCurrencyHint": "Tri shkronja, p.sh. EUR. Bosh përdor atë të serverit ({{currency}}). Shumat nuk konvertohen.",
+    "currencyInvalid": "Tri shkronja, p.sh. USD ose EUR",
+    "quiet": {
+      "toggle": "Orë qetësie",
+      "hint": "Gjatë këtyre orëve nuk dërgohet asgjë; njoftimet vijnë kur ato mbarojnë. Orët janë sipas orës së serverit.",
+      "from": "Nga",
+      "until": "Deri"
+    },
+    "digest": {
+      "toggle": "Përmbledhje javore",
+      "hint": "Një mesazh në javë me gjithçka që ka afat të kaluar, afat që afrohet ose që është gati të skadojë.",
+      "day": "Dita",
+      "hour": "Ora",
+      "days": {
+        "0": "E diel",
+        "1": "E hënë",
+        "2": "E martë",
+        "3": "E mërkurë",
+        "4": "E enjte",
+        "5": "E premte",
+        "6": "E shtunë"
+      }
+    },
+    "stored": {
+      "title": "Kopjet rezervë në server",
+      "hint": "Axlebook mund të shkruajë sipas një orari një kopje rezervë të plotë në dosjen backups të volumit të të dhënave dhe të fshijë më të vjetrat. Kopjoje atë dosje edhe diku tjetër: një kopje rezervë në të njëjtin disk humbet bashkë me diskun.",
+      "toggle": "Bëj kopje rezervë sipas orarit",
+      "every": "Sa shpesh",
+      "hours_one": "Çdo orë",
+      "hours_other": "Çdo {{count}} orë",
+      "keep": "Mbaj",
+      "copies_one": "Vetëm të fundit",
+      "copies_other": "{{count}} të fundit",
+      "now": "Bëj kopje rezervë tani",
+      "none": "Ende asnjë kopje rezervë e ruajtur.",
+      "download": "Shkarko",
+      "restore": "Rikthe",
+      "mb": "{{value}} MB",
+      "kb": "{{value}} KB",
+      "restoreTitle": "Të rikthehet kjo kopje rezervë?",
+      "restoreBody": "Çdo automjet dhe regjistrim zëvendësohet me ato që ndodhen në {{name}}. Ajo që është këtu tani ruhet më parë si kopje rezervë, që të mund t'i kthehesh. Llogaritë mbahen.",
+      "restoreConfirm": "Zëvendëso gjithçka"
+    }
+  },
+  "vehicle": {
+    "newTitle": "Shto një automjet",
+    "editTitle": "Ndrysho {{name}}",
+    "backToGarage": "Garazh",
+    "details": "Detaje",
+    "notes": "Shënime",
+    "edit": "Ndrysho",
+    "editVehicle": "Ndrysho automjetin",
+    "archive": "Arkivo",
+    "unarchive": "Rikthe",
+    "delete": "Fshi",
+    "archivedNotice": "Arkivuar më {{date}}. Nuk shfaqet në garazh, por asgjë nuk është fshirë.",
+    "deleteTitle": "Të fshihet ky automjet?",
+    "deleteBody": "Kjo heq përgjithmonë {{name}} dhe gjithçka të regjistruar për të. Nëse do vetëm të fshehësh një automjet që e ke shitur, më mirë arkivoje.",
+    "deleteConfirm": "Fshi përgjithmonë",
+    "fields": {
+      "year": "Viti",
+      "make": "Marka",
+      "model": "Modeli",
+      "trim": "Versioni",
+      "nickname": "Nofka",
+      "vin": "VIN",
+      "licensePlate": "Targa",
+      "color": "Ngjyra",
+      "odometerUnit": "Odometri mat në",
+      "fuelUnit": "Karburanti matet në",
+      "fuelType": "Lloji i karburantit",
+      "purchaseDate": "Data e blerjes",
+      "purchasePrice": "Çmimi i blerjes",
+      "notes": "Shënime",
+      "category": "Lloji",
+      "unitNumber": "Numri i njësisë",
+      "engine": "Motori",
+      "usage": "Përdoret për",
+      "currentValue": "Vlera sot"
+    },
+    "hints": {
+      "nickname": "Opsionale. Shfaqet në karta në vend të emrit të modelit.",
+      "units": "Njësitë që përdorin vetë treguesit e automjetit. Gjithçka mund ta shohësh sërish në njësitë që parapëlqen.",
+      "purchasePrice": "Opsionale. Llogaritet te kostoja e zotërimit në raporte.",
+      "hours": "Shumica e motorëve kros, ATV-ve dhe motosajave matin orët e motorit në vend të miljeve.",
+      "usage": "Automjetet e biznesit kanë një ditar udhëtimesh dhe një raport vjetor kilometrazhi.",
+      "currentValue": "Vlerësimi yt. Çmimi i blerjes minus këtë vlerë është zhvlerësimi te kostoja e zotërimit."
+    },
+    "sections": {
+      "identity": "Automjeti",
+      "units": "Njësitë",
+      "purchase": "Blerja",
+      "photo": "Foto"
+    },
+    "photo": {
+      "choose": "Zgjidh foto",
+      "replace": "Zëvendëso foton",
+      "remove": "Hiq foton",
+      "none": "Pa foto",
+      "processing": "Po përgatitet fotoja…"
+    },
+    "fuelType": {
+      "gasoline": "Benzinë",
+      "diesel": "Naftë",
+      "hybrid": "Hibrid",
+      "plugin_hybrid": "Hibrid plug-in",
+      "electric": "Elektrik",
+      "flex": "Flex fuel",
+      "lpg": "LPG (gaz)",
+      "cng": "CNG (metan)",
+      "other": "Tjetër"
+    },
+    "tabs": {
+      "overview": "Përmbledhje",
+      "records": "Regjistrime",
+      "fuel": "Karburant",
+      "reminders": "Kujtesa",
+      "odometer": "Kilometrazh",
+      "plan": "Planifikues",
+      "sharing": "Ndarja",
+      "inspections": "Inspektime",
+      "ifta": "IFTA",
+      "costs": "Kosto",
+      "trips": "Udhëtime",
+      "documents": "Dokumente",
+      "history": "Historiku"
+    },
+    "stats": {
+      "odometer": "Kilometrazh",
+      "economy": "Konsumi mesatar",
+      "costPerDistance": "Kosto për {{unit}}",
+      "spent": "Shpenzuar deri tani"
+    },
+    "upcoming": "Në vijim",
+    "recent": "Regjistrimet e fundit",
+    "viewAll": "Shih të gjitha",
+    "sharedBy": "Ndarë me ty ({{access}})",
+    "access": {
+      "view": "vetëm shikim",
+      "edit": "mund të ndryshojë",
+      "owner": "pronar"
+    },
+    "categories": {
+      "car": "Makinë ose kamionçinë",
+      "motorcycle": "Motoçikletë",
+      "dirtbike": "Motor kros",
+      "atv": "ATV / UTV",
+      "snowmobile": "Motosajë",
+      "semi": "Kamion i rëndë",
+      "trailer": "Rimorkio"
+    },
+    "insights": {
+      "title": "Vlerësim i konsumit të karburantit",
+      "estimate": "Vlerëso konsumin",
+      "refresh": "Vlerëso përsëri",
+      "running": "Po mendon…",
+      "expected": "Pritet {{value}}",
+      "range": "Intervali {{low}}–{{high}}",
+      "yours": "Mesatarja jote është {{value}}",
+      "better": "{{pct}}% më mirë se pritej",
+      "worse": "{{pct}}% më keq se pritej",
+      "same": "Pikërisht aty ku duhet",
+      "confidence": {
+        "low": "Besueshmëri e ulët",
+        "medium": "Besueshmëri mesatare",
+        "high": "Besueshmëri e lartë"
+      },
+      "localNote": "Vlerësuar nga asistenti lokal në këtë server ({{model}}).",
+      "off": "Aktivizo asistentin lokal për të marrë një vlerësim bazuar në markën, modelin, moshën dhe kilometrazhin e këtij automjeti."
+    },
+    "usages": {
+      "personal": "Personal",
+      "business": "Biznes"
+    },
+    "vinLookup": {
+      "action": "Kërko VIN-in",
+      "working": "Po kërkohet…",
+      "hint": "Kërkimi plotëson vitin, markën, modelin, versionin dhe motorin.",
+      "invalid": "Një VIN ka 17 shkronja dhe shifra, dhe asnjëherë I, O ose Q.",
+      "done": "U plotësua nga VIN-i. Kontrolloje para se ta ruash."
+    },
+    "notify": "Më njofto për këtë automjet",
+    "notifyHint": "Kur është joaktive, kujtesat dhe dokumentet e tij heshtin për ty dhe ai nuk përfshihet në përmbledhjen tënde javore. Personat e tjerë me të cilët është ndarë nuk preken."
+  },
+  "units": {
+    "odometer": {
+      "mi": "Milje",
+      "km": "Kilometra",
+      "hr": "Orë motori"
+    },
+    "fuel": {
+      "gal_us": "Gallonë amerikanë",
+      "gal_uk": "Gallonë imperialë",
+      "l": "Litra",
+      "kwh": "Kilovat-orë (elektrik)"
+    },
+    "distance": {
+      "mi": "{{value}} mi",
+      "km": "{{value}} km",
+      "hr": "{{value}} h"
+    },
+    "economy": {
+      "mpg_us": "{{value}} mpg",
+      "mpg_uk": "{{value}} mpg (UK)",
+      "l_per_100km": "{{value}} L/100 km",
+      "km_per_l": "{{value}} km/L"
+    },
+    "fuelShort": {
+      "gal_us": "gal",
+      "gal_uk": "gal",
+      "l": "L",
+      "kwh": "kWh"
+    },
+    "kb": "{{value}} KB",
+    "perHour": "{{value}} {{unit}}/h",
+    "perKwh": "{{value}} {{unit}}/kWh"
+  },
+  "actions": {
+    "save": "Ruaj",
+    "saving": "Po ruhet…",
+    "cancel": "Anulo",
+    "create": "Shto automjet",
+    "edit": "Ndrysho",
+    "delete": "Fshi"
+  },
+  "validation": {
+    "required": "E detyrueshme",
+    "min": "Duhet të jetë të paktën {{min}}",
+    "max": "Duhet të jetë më së shumti {{max}}",
+    "tooLong": "Shumë e gjatë (maks. {{max}} shenja)",
+    "invalid": "Vlerë e pavlefshme",
+    "number": "Shkruaj një numër",
+    "money": "Shkruaj një shumë si 1234.56",
+    "image": "Ky skedar nuk është imazh JPEG, PNG ose WebP.",
+    "passwordLength": "Përdor të paktën 10 shenja.",
+    "username": "Vetëm shkronja, numra, pika, viza dhe nënviza."
+  },
+  "common": {
+    "loading": "Po ngarkohet…",
+    "retry": "Provo përsëri",
+    "notSet": "—",
+    "offline": "Je jashtë linje. Ndryshimet nuk mund të ruhen tani."
+  },
+  "auth": {
+    "signInTitle": "Hyr",
+    "signIn": "Hyr",
+    "signingIn": "Po hyhet…",
+    "username": "Emri i përdoruesit",
+    "password": "Fjalëkalimi",
+    "sso": "Vazhdo me {{label}}",
+    "or": "ose",
+    "setupTitle": "Konfiguro Axlebook",
+    "setupIntro": "Krijo llogarinë e administratorit. Persona të tjerë mund të shtosh më vonë te Cilësimet.",
+    "displayName": "Emri yt",
+    "confirmPassword": "Konfirmo fjalëkalimin",
+    "passwordHint": "Të paktën 10 shenja.",
+    "passwordsDiffer": "Fjalëkalimet nuk përputhen.",
+    "createAccount": "Krijo llogari",
+    "tagline": "Çdo kilometër, i shënuar."
+  },
+  "record": {
+    "add": "Shto regjistrim",
+    "newTitle": "Regjistrim i ri",
+    "editTitle": "Ndrysho regjistrimin",
+    "save": "Ruaj regjistrimin",
+    "delete": "Fshi regjistrimin",
+    "deleteTitle": "Të fshihet ky regjistrim?",
+    "deleteBody": "Pjesët që ka përdorur kthehen në gjendje, dhe kujtesat që ka përmbyllur rikthehen.",
+    "kinds": {
+      "service": "Servis",
+      "repair": "Riparim",
+      "upgrade": "Përmirësim",
+      "fuel": "Karburant",
+      "expense": "Shpenzim"
+    },
+    "kindLabel": "Lloji",
+    "categories": {
+      "tax": "Taksë",
+      "registration": "Regjistrimi i automjetit",
+      "insurance": "Sigurim",
+      "parking": "Parkim",
+      "toll": "Tarifë rrugore",
+      "loan": "Këst kredie",
+      "other": "Tjetër"
+    },
+    "fields": {
+      "date": "Data",
+      "odometer": "Odometri ({{unit}})",
+      "title": "Çfarë u bë",
+      "cost": "Kosto",
+      "notes": "Shënime",
+      "tags": "Etiketa",
+      "category": "Kategoria",
+      "volume": "Karburant ({{unit}})",
+      "pricePerUnit": "Çmimi për {{unit}}",
+      "total": "Totali",
+      "isFull": "E mbusha serbatorin plot",
+      "missedPrevious": "Nuk e kam regjistruar furnizimin e mëparshëm",
+      "grade": "Klasa",
+      "station": "Pika e karburantit",
+      "jurisdiction": "Juridiksioni"
+    },
+    "hints": {
+      "tags": "Ndaji me presje.",
+      "twoOfThree": "Shkruaj cilatdo dy nga karburanti, çmimi dhe totali; e treta llogaritet vetë.",
+      "missed": "E mban mesataren të saktë duke e anashkaluar boshllëkun."
+    },
+    "parts": "Pjesë të përdorura",
+    "addPart": "Shto një pjesë",
+    "partQuantity": "Sasia",
+    "removePart": "Hiq",
+    "noParts": "Ende asgjë në listën e pjesëve.",
+    "completes": "Kjo përmbyll",
+    "attachments": "Fatura dhe foto",
+    "attach": "Bashkëngjit skedarë",
+    "attachHint": "JPEG, PNG, WebP, HEIC ose PDF.",
+    "removeAttachment": "Hiq {{name}}",
+    "empty": "Ende asnjë regjistrim.",
+    "emptyFiltered": "Asnjë regjistrim nuk përputhet me këta filtra.",
+    "filterAll": "Të gjitha",
+    "searchPlaceholder": "Kërko në regjistrime",
+    "clearFilters": "Pastro filtrat",
+    "count_one": "{{count}} regjistrim",
+    "count_other": "{{count}} regjistrime",
+    "totalCost": "Totali {{amount}}",
+    "export": "Eksporto CSV",
+    "import": "Importo CSV",
+    "loadMore": "Shfaq më shumë",
+    "fuelTitle": "Furnizim me karburant",
+    "takePhoto": "Bëj një foto"
+  },
+  "fuel": {
+    "log": "Regjistro furnizim",
+    "average": "Mesatarja",
+    "last": "Furnizimi i fundit",
+    "costPerDistance": "Kosto e karburantit për {{unit}}",
+    "total": "Shpenzuar për karburant",
+    "empty": "Ende asnjë furnizim. Regjistro një te pompa për të nisur ndjekjen e konsumit.",
+    "status": {
+      "baseline": "Furnizimi i parë",
+      "partial": "I pjesshëm",
+      "missed": "Furnizim i paregjistruar",
+      "invalid": "Kontrollo kilometrazhin"
+    },
+    "columns": {
+      "date": "Data",
+      "odometer": "Kilometrazh",
+      "volume": "Karburant",
+      "price": "Çmimi",
+      "cost": "Totali",
+      "economy": "Konsumi",
+      "station": "Pika e karburantit"
+    },
+    "quickTitle": "Regjistro furnizim",
+    "vehicle": "Automjeti",
+    "saved": "Furnizimi u regjistrua.",
+    "savedOffline": "Nuk ka lidhje. U ruajt në këtë pajisje dhe do të sinkronizohet kur të jesh sërish në linjë.",
+    "pending_one": "{{count}} furnizim pret të sinkronizohet",
+    "pending_other": "{{count}} furnizime presin të sinkronizohen",
+    "syncNow": "Sinkronizo tani",
+    "lastReading": "Leximi i fundit {{value}}",
+    "noVehicles": "Shto më parë një automjet.",
+    "priceHistory": "Çmimi i paguar për njësi",
+    "stations": "Ku furnizohesh",
+    "stationsHint": "Vizitat dhe çmimi mesatar i paguar në secilën.",
+    "visits_one": "{{count}} vizitë",
+    "visits_other": "{{count}} vizita",
+    "stationValue_one": "{{count}} vizitë · {{price}}",
+    "stationValue_other": "{{count}} vizita · {{price}}",
+    "takePhoto": "Bëj një foto",
+    "retakePhoto": "Bëje përsëri",
+    "removePhoto": "Hiq",
+    "photoHint": "Fatura ose odometri, ruhet bashkë me furnizimin."
+  },
+  "reminder": {
+    "add": "Shto kujtesë",
+    "newTitle": "Kujtesë e re",
+    "editTitle": "Ndrysho kujtesën",
+    "save": "Ruaj kujtesën",
+    "delete": "Fshi",
+    "archive": "Arkivo",
+    "unarchive": "Rikthe",
+    "markDone": "Shëno si të kryer",
+    "empty": "Asnjë kujtesë. Shto një për ndërrimin e ardhshëm të vajit, regjistrimin e automjetit ose kontrollin teknik.",
+    "emptyAll": "Asgjë me afat. Bukur.",
+    "showArchived": "Shfaq të arkivuarat",
+    "status": {
+      "overdue": "Me afat të kaluar",
+      "due_soon": "Afrohet afati",
+      "upcoming": "Në vijim",
+      "inactive": "Arkivuar"
+    },
+    "fields": {
+      "title": "Kujtesa",
+      "dueMode": "Afati sipas",
+      "dueDate": "Data e afatit",
+      "dueOdometer": "Afati në ({{unit}})",
+      "intervalMonths": "Përsërit çdo (muaj)",
+      "intervalDistance": "Përsërit çdo ({{unit}})",
+      "notes": "Shënime",
+      "soonDays": "Paralajmëro kaq ditë përpara",
+      "soonDistance": "Paralajmëro kaq {{unit}} përpara"
+    },
+    "modes": {
+      "date": "Datës",
+      "distance": "Distancës",
+      "either": "Cilado vjen e para"
+    },
+    "repeatHint": "Lëre bosh për një kujtesë të njëhershme.",
+    "daysLeft_one": "pas {{count}} dite",
+    "daysLeft_other": "pas {{count}} ditësh",
+    "daysOver_one": "{{count}} ditë vonesë",
+    "daysOver_other": "{{count}} ditë vonesë",
+    "dueToday": "afati është sot",
+    "distanceLeft": "edhe {{distance}}",
+    "distanceOver": "{{distance}} mbi afat",
+    "dueOn": "Afati: {{date}}",
+    "expected": "rreth {{date}}, me {{pace}} në ditë",
+    "dueAt": "Afati në {{odometer}}",
+    "repeats": "Përsëritet",
+    "doneTitle": "Shëno “{{title}}” si të kryer",
+    "doneBody": "Kujtesat që përsëriten e caktojnë afatin tjetër duke u nisur nga kjo datë dhe ky lexim.",
+    "doneConfirm": "Shëno si të kryer"
+  },
+  "odometer": {
+    "title": "Regjistri i kilometrazhit",
+    "add": "Shto lexim",
+    "reading": "Leximi ({{unit}})",
+    "date": "Data",
+    "notes": "Shënime",
+    "manual": "Lexim manual",
+    "empty": "Ende asnjë lexim. Çdo regjistrim që ka vlerë kilometrazhi shton një të tillë.",
+    "delete": "Fshi leximin",
+    "edit": "Ndrysho leximin",
+    "save": "Ruaj leximin",
+    "lowerWarning": "Është më i ulët se një lexim i mëparshëm. U ruajt gjithsesi; shih mos ka gabim shtypi.",
+    "jurisdiction": "Juridiksioni ku u hy"
+  },
+  "plan": {
+    "add": "Planifiko një punë",
+    "save": "Ruaj punën",
+    "empty": "Asgjë e planifikuar. Shëno punët që ke ndër mend të bësh.",
+    "fields": {
+      "title": "Puna",
+      "description": "Detaje",
+      "kind": "Lloji",
+      "priority": "Prioriteti",
+      "status": "Gjendja",
+      "estimatedCost": "Kosto e parashikuar",
+      "targetDate": "Data e synuar"
+    },
+    "priority": {
+      "low": "I ulët",
+      "normal": "Normal",
+      "high": "I lartë"
+    },
+    "status": {
+      "backlog": "Dikur",
+      "planned": "E planifikuar",
+      "in_progress": "Në punë e sipër",
+      "done": "E kryer"
+    },
+    "convert": "Regjistro si të kryer",
+    "convertTitle": "Regjistro “{{title}}” si regjistrim",
+    "convertConfirm": "Krijo regjistrim",
+    "converted": "U regjistrua",
+    "delete": "Fshi punën",
+    "deleteTitle": "Të fshihet kjo punë?",
+    "edit": "Ndrysho"
+  },
+  "parts": {
+    "title": "Pjesë dhe materiale",
+    "add": "Shto pjesë",
+    "save": "Ruaj pjesën",
+    "empty": "Ende asnjë pjesë. Mbaj këtu vajin, filtrat dhe pjesët rezervë; ato zbriten nga gjendja kur i përdor.",
+    "fields": {
+      "name": "Emri",
+      "partNumber": "Numri i pjesës",
+      "manufacturer": "Marka",
+      "vehicle": "Për automjetin",
+      "quantity": "Në gjendje",
+      "unitCost": "Kosto për copë",
+      "location": "Ku mbahet",
+      "notes": "Shënime"
+    },
+    "anyVehicle": "Çdo automjet",
+    "increase": "Shto një {{name}}",
+    "decrease": "Hiq një {{name}}",
+    "low": "Nuk ka në gjendje",
+    "delete": "Fshi pjesën",
+    "deleteTitle": "Të fshihet kjo pjesë?",
+    "edit": "Ndrysho"
+  },
+  "reports": {
+    "title": "Raporte",
+    "vehicle": "Automjeti",
+    "allVehicles": "Të gjitha automjetet",
+    "period": "Periudha",
+    "periods": {
+      "12m": "12 muajt e fundit",
+      "ytd": "Këtë vit",
+      "last_year": "Vitin e kaluar",
+      "all": "Gjithë kohën"
+    },
+    "totalSpent": "Totali i shpenzuar",
+    "distance": "Distanca e përshkuar",
+    "costPerDistance": "Kosto për {{unit}}",
+    "records": "Regjistrime",
+    "monthly": "Shpenzimet sipas muajit",
+    "byCategory": "Ku shkuan paratë",
+    "fuelTrend": "Konsumi i karburantit",
+    "noData": "Asgjë e regjistruar në këtë periudhë.",
+    "print": "Printo",
+    "downloadCsv": "Shkarko CSV",
+    "month": "Muaji",
+    "total": "Totali",
+    "table": "Shfaq si tabelë",
+    "series": {
+      "maintenance": "Mirëmbajtje",
+      "fuel": "Karburant",
+      "running": "Kosto të përdorimit"
+    },
+    "yearly": "Shpenzimet sipas vitit"
+  },
+  "search": {
+    "title": "Kërko",
+    "placeholder": "Kërko në tituj, shënime, etiketa dhe pika karburanti",
+    "hint": "Shkruaj për të kërkuar në çdo regjistrim të garazhit tënd, ose zgjidh një lloj për t'i listuar.",
+    "results_one": "{{count}} rezultat",
+    "results_other": "{{count}} rezultate",
+    "none": "Asnjë regjistrim nuk përputhet me “{{q}}”.",
+    "noneOfKind": "Ende asnjë regjistrim i këtij lloji."
+  },
+  "sharing": {
+    "title": "Ndarja",
+    "intro": "Ndaje këtë automjet me persona të tjerë në këtë Axlebook.",
+    "person": "Personi",
+    "permission": "Qasja",
+    "permissions": {
+      "view": "Mund të shohë",
+      "edit": "Mund të ndryshojë"
+    },
+    "add": "Ndaj",
+    "remove": "Ndalo ndarjen",
+    "empty": "Nuk është ndarë me askënd.",
+    "nobody": "Ende nuk ka askënd tjetër me të cilin ta ndash. Një administrator mund të shtojë persona te Cilësimet."
+  },
+  "import": {
+    "title": "Importo regjistrime",
+    "intro": "Importo një CSV të eksportuar nga Axlebook, LubeLogger, Fuelly, Drivvo ose Simply Auto. Për çdo CSV tjetër, kolonat përputhen sipas emrit.",
+    "file": "Skedari CSV",
+    "kind": "Lloji i regjistrimit",
+    "kindHint": "Përdoret kur skedari nuk ka kolonë për llojin.",
+    "dateOrder": "Datat duken si",
+    "dateOrders": {
+      "mdy": "Muaj/Ditë/Vit",
+      "dmy": "Ditë/Muaj/Vit"
+    },
+    "preview": "Parashiko",
+    "run_one": "Importo {{count}} regjistrim",
+    "run_other": "Importo {{count}} regjistrime",
+    "result": "{{imported}} të importuara, {{skipped}} ekzistonin tashmë, {{errors}} me probleme.",
+    "format": "Formati i dalluar: {{format}}",
+    "formats": {
+      "axlebook": "Axlebook",
+      "lubelogger": "LubeLogger",
+      "fuelly": "Fuelly",
+      "drivvo": "Drivvo",
+      "simplyauto": "Simply Auto",
+      "custom": "kolona të personalizuara"
+    },
+    "whichVehicle": "Automjeti në skedar",
+    "whichVehicleHint": "Ky skedar përmban më shumë se një automjet. Zgjidh atë që i përket kësaj faqeje.",
+    "rowError": "Rreshti {{row}}: {{message}}",
+    "sheetTitle": "Importo një fletëllogaritëse",
+    "sheetIntro": "Sill fletëllogaritësen që mban tashmë, edhe nëse përfshin disa automjete. Asgjë nuk ruhet derisa të kontrollosh parashikimin.",
+    "sheetFile": "Fletëllogaritëse (.xlsx, .csv ose .tsv)",
+    "useAi": "Lëre asistentin lokal të lexojë strukturën",
+    "aiNote": "Punon në këtë server ({{model}}). Fletëllogaritësja jote nuk del kurrë prej tij.",
+    "aiOff": "Kolonat u përputhën automatikisht. Aktivizo asistentin lokal për fletëllogaritëse më të çrregullta.",
+    "planBy": {
+      "ai": "Struktura u lexua nga asistenti lokal. Kontrolloje më poshtë.",
+      "matcher": "Kolonat u përputhën automatikisht. Kontrolloji më poshtë.",
+      "saved": "Po përdoret përputhja që ruajte për këtë strukturë më {{date}}."
+    },
+    "forgetMapping": "Harroje dhe përputh përsëri",
+    "aiFallback": "Asistenti lokal nuk e lexoi dot këtë, prandaj kolonat u përputhën automatikisht.",
+    "analyzing": "Po lexohet fletëllogaritësja jote…",
+    "sheet_one": "Fleta: {{name}} ({{count}} rresht)",
+    "sheet_other": "Fleta: {{name}} ({{count}} rreshta)",
+    "includeSheet": "Importo këtë fletë",
+    "vehicleColumn": "Kolona që emërton automjetin",
+    "sheetVehicle": "Automjeti për këtë fletë",
+    "kindColumn": "Kolona me llojin e regjistrimit",
+    "defaultKind": "Lloji i regjistrimit kur nuk është shënuar",
+    "none": "Asnjë",
+    "fieldLabels": {
+      "date": "Data",
+      "odometer": "Odometri / orë",
+      "title": "Çfarë u bë",
+      "cost": "Kosto",
+      "notes": "Shënime",
+      "tags": "Etiketa",
+      "fuelVolume": "Sasia e karburantit",
+      "pricePerUnit": "Çmimi për njësi",
+      "isFull": "Serbator plot",
+      "missedPrevious": "Furnizim i paregjistruar",
+      "station": "Pikë karburanti / servis",
+      "grade": "Klasa e karburantit",
+      "expenseCategory": "Kategoria e shpenzimit"
+    },
+    "vehicles": "Automjete",
+    "newVehicle": "Automjet i ri",
+    "existing": "Shto te {{name}}",
+    "vehicleTarget": "Importo te",
+    "previewTitle": "Parashikim",
+    "previewSummary_one": "{{valid}} nga {{count}} rresht është gati për import.",
+    "previewSummary_other": "{{valid}} nga {{count}} rreshta janë gati për import.",
+    "vehicleRecords_one": "{{count}} regjistrim",
+    "vehicleRecords_other": "{{count}} regjistrime",
+    "commit": "Importo gjithçka",
+    "committing": "Po importohet…",
+    "done_one": "U importua {{count}} regjistrim. Ekzistonin tashmë dhe u anashkaluan: {{skipped}}.",
+    "done_other": "U importuan {{count}} regjistrime. Ekzistonin tashmë dhe u anashkaluan: {{skipped}}.",
+    "startOver": "Importo një skedar tjetër",
+    "choose": "Zgjidh një skedar",
+    "columns": "Çfarë përmban secila kolonë",
+    "sample": "Rreshtat e parë",
+    "needs": "Duhen {{fields}} para se të mund të krijohet.",
+    "dateRange": "{{from}} – {{to}}",
+    "problemRows_one": "{{count}} rresht ka problem dhe do të anashkalohet",
+    "problemRows_other": "{{count}} rreshta kanë probleme dhe do të anashkalohen",
+    "sheetRowError": "{{sheet}}, rreshti {{row}}: {{message}}",
+    "problems": {
+      "date": "data nuk u njoh",
+      "date_missing": "pa datë",
+      "odometer": "kilometrazhi nuk është numër",
+      "cost": "kostoja nuk është numër",
+      "fuel_volume": "rresht karburanti pa sasi karburanti",
+      "units": "njësitë nuk përputhen me këtë automjet (orë kundrejt distancës, ose kWh kundrejt karburantit)"
+    }
+  },
+  "schedule": {
+    "suggest": "Sugjero një plan mirëmbajtjeje",
+    "title": "Plani i mirëmbajtjes",
+    "intro": "Zgjidh për çfarë do kujtesa. Intervalet janë një pikënisje; shih manualin e automjetit.",
+    "builtIn": "Plan i integruar ({{category}})",
+    "ai": "Përshtatur nga asistenti lokal ({{model}})",
+    "tailor": "Përshtate për {{name}}",
+    "tailoring": "Po përshtatet…",
+    "every": "Çdo {{interval}}",
+    "everyMonths_one": "{{count}} muaj",
+    "everyMonths_other": "{{count}} muaj",
+    "or": "ose",
+    "lastDone": "Bërë së fundi më {{date}}",
+    "neverDone": "Ende asnjë regjistrim për këtë",
+    "nextDue": "Afati i radhës: {{due}}",
+    "hasReminder": "Ka tashmë kujtesë",
+    "add_one": "Shto {{count}} kujtesë",
+    "add_other": "Shto {{count}} kujtesa",
+    "added_one": "U shtua {{count}} kujtesë.",
+    "added_other": "U shtuan {{count}} kujtesa."
+  },
+  "inspection": {
+    "add": "Inspektim i ri",
+    "save": "Ruaj inspektimin",
+    "empty": "Ende asnjë inspektim. Regjistro këtu DVIR-et para dhe pas udhëtimit.",
+    "types": {
+      "pre_trip": "Para udhëtimit",
+      "post_trip": "Pas udhëtimit",
+      "annual": "Vjetor (DOT)"
+    },
+    "fields": {
+      "date": "Data",
+      "type": "Lloji",
+      "odometer": "Kilometrazh",
+      "inspector": "Inspektuar nga",
+      "notes": "Vërejtje"
+    },
+    "ok": "OK",
+    "defect": "Defekt",
+    "defectNote": "Çfarë nuk shkon me {{item}}",
+    "noDefects": "Pa defekte",
+    "defects_one": "{{count}} defekt",
+    "defects_other": "{{count}} defekte",
+    "correct": "Shëno si të ndrequr",
+    "corrected": "Ndrequr më {{date}}",
+    "correctedBy": "Ndrequr nga",
+    "correctionNotes": "Çfarë u bë",
+    "items": {
+      "service_brakes": "Frenat e punës dhe lidhjet e frenave të rimorkios",
+      "parking_brake": "Freni i dorës",
+      "steering": "Mekanizmi i drejtimit",
+      "lights": "Dritat dhe reflektorët",
+      "tires": "Gomat",
+      "horn": "Boria",
+      "wipers": "Fshirëset e xhamit",
+      "mirrors": "Pasqyrat e pasme",
+      "coupling": "Pajisjet e lidhjes / ralla",
+      "wheels": "Rrotat dhe disqet",
+      "emergency": "Pajisjet e emergjencës",
+      "air_lines": "Tubat dhe zorrët e ajrit",
+      "fluids": "Rrjedhje lëngjesh",
+      "exhaust": "Sistemi i shkarkimit",
+      "body": "Karroceria, dyert dhe shasia",
+      "cargo": "Sigurimi i ngarkesës",
+      "landing_gear": "Këmbët mbështetëse",
+      "suspension": "Suspensioni",
+      "reefer": "Njësia frigoriferike"
+    },
+    "deleteTitle": "Të fshihet ky inspektim?",
+    "deleteBody": "Inspektimi i datës {{date}} do të hiqet. Mbaji DVIR-et të paktën tre muaj nëse e ke detyrim."
+  },
+  "ifta": {
+    "title": "Fleta e punës IFTA",
+    "intro": "Distanca dhe karburanti sipas juridiksionit për tremujorin, nga leximet e kilometrazhit dhe furnizimet që kanë juridiksion. Përdore për të plotësuar deklaratën tënde; nuk është deklarim.",
+    "quarter": "Tremujori",
+    "jurisdiction": "Juridiksioni",
+    "miles": "Distanca",
+    "taxableFuel": "Karburant i tatueshëm",
+    "purchased": "Karburant i blerë",
+    "net": "Neto",
+    "fleet": "Mesatarja e flotës",
+    "empty": "Ende asgjë për këtë tremujor. Shtoju furnizimeve një juridiksion, si dhe leximeve të kilometrazhit kur kalon në një shtet ose provincë tjetër.",
+    "hint": "Kod me dy shkronja, p.sh. TX ose ON",
+    "quarterOption": "T{{quarter}} {{year}}",
+    "unassigned": "{{value}} nuk kanë juridiksion të regjistruar. Shto një te leximi i kilometrazhit ose te furnizimi ku nisi secili udhëtim."
+  },
+  "tips": {
+    "title": "Këshilla për këtë automjet",
+    "hide": "Fshih këshillat",
+    "ask": "Merr këshilla për këtë model",
+    "askAgain": "Rifresko këshillat për këtë model",
+    "asking": "Po mendon…",
+    "fromAi": "Nga asistenti lokal ({{model}}). Kontrollo dy herë gjithçka që lidhet me sigurinë.",
+    "aiOff": "Aktivizo asistentin lokal për këshilla të posaçme për këtë markë dhe model.",
+    "severity": {
+      "warning": "Kërkon vëmendje",
+      "suggestion": "Ia vlen të bëhet",
+      "info": "Mirë ta dish"
+    },
+    "codes": {
+      "no_fuel_data": {
+        "title": "Regjistro disa furnizime",
+        "body": "Mbushe serbatorin plot dhe regjistroje disa herë radhazi. Sapo të ketë dy mbushje të plota, Axlebook mund të llogarisë konsumin tënd real dhe të dallojë ndryshimet."
+      },
+      "economy_down": {
+        "title": "Konsumi është përkeqësuar me {{pct}}%",
+        "body": "Furnizimet e fundit janë dukshëm më keq se zakonisht. Kontrollo presionin e gomave, shih mos fërkojnë frenat dhe mendo për një filtër ajri të ndotur ose një defekt sensori, para se të përkeqësohet."
+      },
+      "economy_up": {
+        "title": "Konsumi është përmirësuar me {{pct}}%",
+        "body": "Furnizimet e fundit janë më mirë se zakonisht. Çfarëdo që ka ndryshuar (ngarja, gomat, një servis) po jep rezultat."
+      },
+      "partial_fills": {
+        "title": "{{pct}}% e furnizimeve të fundit ishin të pjesshme",
+        "body": "Konsumi mund të matet vetëm ndërmjet dy mbushjeve të plota. Po ta mbushësh serbatorin plot më shpesh, shifrat dalin më të sakta."
+      },
+      "missed_fillups": {
+        "title": "{{count}} furnizime të fundit u shënuan si të paregjistruara",
+        "body": "Një furnizim i paregjistruar e prish llogaritjen për atë pjesë të rrugës. Po të regjistrosh çdo furnizim, mesatarja mbetet e saktë."
+      },
+      "overdue_affects_economy": {
+        "title": "Me afat të kaluar: {{title}}",
+        "body": "Kësaj pune i ka kaluar afati dhe mund të të kushtojë karburant. Po ta kryesh, konsumi mund të përmirësohet sërish."
+      },
+      "season_winter_fuel": {
+        "title": "Moti i ftohtë kushton karburant",
+        "body": "Prit që konsumi të rritet në dimër: motorët duan më shumë kohë të ngrohen dhe karburanti dimëror ka më pak energji. Bashkoji udhëtimet e shkurtra kur mundesh."
+      },
+      "season_winter_ev": {
+        "title": "Autonomia bie në dimër",
+        "body": "Bateritë e ftohta mbajnë më pak dhe ngrohja harxhon energji. Ngrohe automjetin paraprakisht sa është në prizë dhe përdor ngrohësit e sediljeve para ngrohjes së kabinës."
+      },
+      "season_storage": {
+        "title": "Përgatitja për ruajtje",
+        "body": "Para se të mbarojë sezoni: mbushe serbatorin dhe shto stabilizues, ndërro vajin, lidhe baterinë me një mbajtës ngarkese dhe mbuloje në një vend të thatë."
+      },
+      "season_spring": {
+        "title": "Zgjimi i pranverës",
+        "body": "Kontrollo gomat, baterinë, frenat dhe zinxhirin ose rripat, dhe shih për fole ose tela të brejtur para daljes së parë."
+      },
+      "season_sled_storage": {
+        "title": "Ruajtja e motosajës për verën",
+        "body": "Spërkate motorin me vaj konservues ose kaloji karburant me stabilizues, lyeje suspensionin me graso, liroje tensionin e shiritit dhe ruaje të ngritur nga toka mbi një mbajtëse."
+      },
+      "season_preseason": {
+        "title": "Kontrolli para sezonit",
+        "body": "Para borës: kontrollo friksionet dhe rripin e transmisionit, shiritin dhe rrëshqitëset (hyfax), karbitet dhe skitë, dhe nëse bateria e mban ngarkesën."
+      },
+      "tire_pressure": {
+        "title": "Kontrollo presionin e gomave çdo muaj",
+        "body": "Gomat me presion të ulët harxhojnë karburant dhe konsumohen më shpejt. Përdor presionin e shënuar te etiketa e derës ose në manual, të matur me goma të ftohta."
+      },
+      "smooth_driving": {
+        "title": "Ngarja e butë kursen karburant",
+        "body": "Nisjet e buta, vështrimi përpara dhe ngadalësimi pa gaz deri në ndalim mund të kursejnë më shumë karburant se çdo aditiv."
+      },
+      "remove_weight": {
+        "title": "Hiq peshën e tepërt",
+        "body": "Mbajtëset dhe kutitë e çatisë, si dhe një bagazh i ngarkuar, të gjitha kushtojnë karburant. Hiq ato që nuk po i përdor."
+      },
+      "cruise_control": {
+        "title": "Përdor kontrollin e shpejtësisë në autostradë",
+        "body": "Mbajtja e një shpejtësie të qëndrueshme në rrugë të rrafshëta harxhon më pak karburant se ndryshimet e vogla të shpejtësisë. Çdo 5 mph mbi 50 kushton dukshëm më shumë."
+      },
+      "moto_chain": {
+        "title": "Mbaje zinxhirin të pastër dhe të rregulluar",
+        "body": "Një zinxhir i thatë ose i tendosur harxhon fuqi dhe konsumon dhëmbëzorët. Pastroje, lubrifikoje dhe kontrolloji lirshmërinë çdo disa qindra milje."
+      },
+      "offroad_air_filter": {
+        "title": "Pastroje shpesh filtrin e ajrit",
+        "body": "Pluhuri i shkatërron motorët e terrenit. Pastroje dhe vajose sërish filtrin prej sfungjeri pas daljeve me pluhur, jo vetëm sipas planit."
+      },
+      "sled_clutch": {
+        "title": "Mbaji friksionet të pastra",
+        "body": "Pluhuri i rripit te friksionet dëmton performancën dhe konsumin. Pastroji dhe kontrollo lirshmërinë e rripit çdo sezon."
+      },
+      "sled_track": {
+        "title": "Rregullo si duhet tensionin e shiritit",
+        "body": "Shumë i tendosur harxhon fuqi, shumë i lirë rrezikon të kërcejë mbi dhëmbë. Kontrollo tensionin dhe drejtimin çdo disa dalje."
+      },
+      "semi_idle": {
+        "title": "Shkurto kohën me motor ndezur në vend",
+        "body": "Motori ndezur në vend djeg afro një gallon në orë. Një APU, një ngrohës kabine ose fikja automatike e shlyen veten shpejt."
+      },
+      "semi_speed": {
+        "title": "Kujdes me shpejtësinë maksimale",
+        "body": "Mbi rreth 60 mph rezistenca e ajrit rritet shpejt. Disa mph më ngadalë mund të shtojnë disa të dhjeta mpg."
+      },
+      "semi_tires_alignment": {
+        "title": "Gomat dhe konvergjenca",
+        "body": "Mbaje çdo gomë në presionin e duhur dhe kontrollo konvergjencën. Gomat me presion të ulët dhe akset e shtrembra kushtojnë karburant në çdo milje."
+      },
+      "semi_aero": {
+        "title": "Mbyll hapësirat",
+        "body": "Panelet anësore, një hapësirë e ngushtë mes kabinës dhe rimorkios dhe bishtat aerodinamikë ulin rezistencën e ajrit. Mbaji deflektorët të rregulluar sipas rimorkios që tërheq."
+      },
+      "trailer_tires": {
+        "title": "Gomat e rimorkios vjetrohen",
+        "body": "Kontrollo kodet e datës. Gomat e rimorkios shpesh dështojnë nga mosha para se t'u konsumohet shtresa, dhe ato me presion të ulët mbinxehen."
+      },
+      "trailer_bearings": {
+        "title": "Kontrollo kushinetat e rrotave",
+        "body": "Preki mocot pas një rruge: një moco i nxehtë do të thotë problem me kushinetën ose frenat. Rimbushi me graso ose kontrollo guarnicionet sipas planit."
+      },
+      "ev_precondition": {
+        "title": "Ngrohe paraprakisht sa është në prizë",
+        "body": "Ngrohja ose ftohja e kabinës dhe e baterisë nga priza, e jo nga bateria, shton autonomi, sidomos në dimër."
+      },
+      "ev_battery_care": {
+        "title": "Kujdes me baterinë",
+        "body": "Për përdorim të përditshëm, ngarkimi deri rreth 80% dhe shmangia e qëndrimit në 0% ose 100% e mban baterinë të shëndetshme më gjatë."
+      }
+    }
+  },
+  "assistant": {
+    "title": "Asistenti lokal (Ollama)",
+    "intro": "Punon në këtë server përmes Ollama. Çfarëdo që plotëson është sugjerim: asgjë nuk ruhet derisa ta kontrollosh formularin dhe të shtypësh Ruaj.",
+    "off": "Asistenti lokal nuk është aktivizuar për këtë server.",
+    "offSettings": "Konfiguroje te Cilësimet.",
+    "vehicle": "Automjeti",
+    "vehicleFromText": "Nxirre nga ajo që shkruaj",
+    "chooseVehicle": "Zgjidh një automjet",
+    "receipt": "Skano një faturë",
+    "receiptHint": "Bëj një foto ose zgjidh një. Data, pika e karburantit ose servisi, shumat dhe karburanti lexohen në formular, dhe fotoja ruhet bashkë me regjistrimin.",
+    "scan": "Skano një faturë",
+    "scanInstead": "Më mirë skano një faturë",
+    "reading": "Po lexohet…",
+    "noVision": "Modeli në përdorim nuk lexon dot foto. Një administrator mund të zgjedhë te Cilësimet një që lexon.",
+    "sentence": "Shkruaje me fjalë",
+    "sentenceLabel": "Çfarë ndodhi",
+    "sentenceHint": "Për shembull: mbusha 10.8 gal me 3.49, 61402 mi, civic",
+    "fill": "Plotëso formularin",
+    "review": "Kontrollo dhe ruaj",
+    "reviewHint": "Ja çfarë lexoi asistenti. Kontrollo çdo fushë, ndreq çfarë ka gabuar, pastaj ruaj.",
+    "problems": {
+      "no_vision": "Modeli në përdorim nuk lexon dot foto, prandaj formulari është bosh. Plotësoje me dorë; fotoja do të bashkëngjitet gjithsesi.",
+      "timeout": "Asistenti u vonua shumë, prandaj formulari është bosh. Plotësoje me dorë.",
+      "invalid_output": "Përgjigjja e asistentit nuk kishte kuptim, prandaj formulari është bosh. Plotësoje me dorë.",
+      "unreachable": "Ollama nuk u arrit, prandaj formulari është bosh. Plotësoje me dorë.",
+      "model_missing": "Modeli nuk është instaluar ende në Ollama, prandaj formulari është bosh. Plotësoje me dorë.",
+      "error": "Asistenti nuk ndihmoi dot këtë herë, prandaj formulari është bosh. Plotësoje me dorë.",
+      "unsupported": "Ky skedar nuk është foto që asistenti mund ta lexojë. Plotësoje formularin me dorë.",
+      "unreadable": "Kjo foto nuk u hap dot. Plotësoje formularin me dorë; foton mund ta bashkëngjitësh vetë.",
+      "off": "Asistenti lokal nuk është aktivizuar, prandaj formulari është bosh."
+    },
+    "ask": "Pyet ditarin tënd",
+    "question": "Pyetja jote",
+    "questionHint": "Përgjigjja jepet vetëm nga regjistrimet e tua, për shembull: kur e kam ndërruar për herë të fundit vajin te Tacoma?",
+    "askButton": "Pyet",
+    "thinking": "Po kërkohet…",
+    "notFound": "Kjo nuk gjendet në regjistrimet e tua.",
+    "sources": "Nga këto regjistrime:",
+    "answeredBy": "Përgjigjur nga {{model}} në këtë server. Kontrollo regjistrimet e lidhura para se të mbështetesh tek ajo."
+  },
+  "recalls": {
+    "title": "Tërheqje për arsye sigurie",
+    "check": "Kontrollo tani",
+    "checking": "Po kontrollohet…",
+    "never": "Ende e pakontrolluar.",
+    "checked_one": "Kontrolluar më {{date}}: {{count}} tërheqje e hapur.",
+    "checked_other": "Kontrolluar më {{date}}: {{count}} tërheqje të hapura.",
+    "details": "Për çfarë bëhet fjalë",
+    "fields": {
+      "summary": "Përmbledhje",
+      "consequence": "Rreziku",
+      "remedy": "Zgjidhja"
+    },
+    "states": {
+      "open": "E hapur",
+      "completed": "E kryer",
+      "dismissed": "E hedhur poshtë"
+    },
+    "markDone": "Shëno si të kryer",
+    "dismiss": "Nuk vlen për mua",
+    "reopen": "Rihap",
+    "source": "Nga NHTSA, sipas markës, modelit dhe vitit. Një tërheqje mund të përfshijë vetëm disa automjete; koncesionari yt mund ta konfirmojë me VIN."
+  },
+  "specs": {
+    "title": "Pjesë dhe lëngje",
+    "edit": "Ndrysho",
+    "empty": "Shëno vajin, filtrat, gomat dhe fshirëset që përdor ky automjet, që t'i kesh këtu kur të jesh te dyqani i pjesëve.",
+    "hint": "Tekst i lirë: një klasë, një përmasë ose një numër pjese. Lëre bosh atë që nuk e di.",
+    "other": "Çdo gjë tjetër",
+    "otherLabel": "Çfarë",
+    "otherValue": "Cila",
+    "add": "Shto një rresht",
+    "remove": "Hiq",
+    "fields": {
+      "oilType": "Vaji i motorit",
+      "oilCapacity": "Sasia e vajit",
+      "oilFilter": "Filtri i vajit",
+      "airFilter": "Filtri i ajrit",
+      "cabinFilter": "Filtri i kabinës",
+      "fuelFilter": "Filtri i karburantit",
+      "tireSize": "Përmasa e gomave",
+      "tirePressure": "Presioni i gomave",
+      "wiperDriver": "Fshirësja, shoferi",
+      "wiperPassenger": "Fshirësja, pasagjeri",
+      "wiperRear": "Fshirësja, pas",
+      "battery": "Bateria",
+      "sparkPlugs": "Kandelat",
+      "coolant": "Lëngu ftohës",
+      "transmissionFluid": "Vaji i kambios",
+      "brakeFluid": "Vaji i frenave"
+    }
+  },
+  "ownership": {
+    "intro_one": "Gjithçka që ka kushtuar ky automjet që nga {{date}} ({{count}} muaj).",
+    "intro_other": "Gjithçka që ka kushtuar ky automjet që nga {{date}} ({{count}} muaj).",
+    "introEmpty": "Gjithçka që të ka kushtuar ky automjet, sapo të ketë diçka të regjistruar.",
+    "total": "Kostoja e zotërimit",
+    "withoutDepreciation": "Pa zhvlerësimin",
+    "perMonth": "Në muaj",
+    "perDistance": "Për {{unit}}",
+    "depreciation": "Zhvlerësimi",
+    "gained": "Vlen më shumë se sa pagove",
+    "needsPrices": "Shto çmimin e blerjes dhe vlerën e sotme për të përfshirë zhvlerësimin.",
+    "empty": "Ende asgjë e shpenzuar. Karburanti, serviset dhe shpenzimet që regjistron shfaqen këtu.",
+    "where": "Ku shkuan",
+    "running": "Kosto të përdorimit",
+    "byYear": "Sipas vitit",
+    "year": "Viti",
+    "groups": {
+      "fuel": "Karburant",
+      "upkeep": "Mirëmbajtje dhe përmirësime",
+      "fixed": "Sigurim, regjistrim, taksë dhe kredi",
+      "other": "Tjetër"
+    },
+    "parts": {
+      "fuel": "Karburant",
+      "maintenance": "Servis dhe riparime",
+      "upgrades": "Përmirësime",
+      "insurance": "Sigurim",
+      "registration": "Regjistrimi i automjetit",
+      "tax": "Taksë",
+      "loan": "Kredi",
+      "other": "Parkim, tarifa rrugore dhe të tjera"
+    }
+  },
+  "trips": {
+    "add": "Regjistro një udhëtim",
+    "edit": "Ndrysho udhëtimin",
+    "year": "Viti",
+    "downloadCsv": "Shkarko CSV",
+    "business": "Distanca për biznes",
+    "total": "Përshkuar gjithsej",
+    "totalHint": "Nga regjistri i kilometrazhit",
+    "share": "Pjesa e biznesit",
+    "percent": "{{value}}%",
+    "count": "Udhëtime",
+    "byPurpose": "Sipas qëllimit",
+    "empty": "Asnjë udhëtim i regjistruar për këtë vit.",
+    "personal": "Personal",
+    "isBusiness": "Udhëtim biznesi",
+    "beforeStart": "Nuk mund të jetë më i ulët se leximi i nisjes",
+    "distanceHint": "{{distance}} {{unit}}",
+    "purposeHint": "Për çfarë ishte udhëtimi, p.sh. klienti ose puna.",
+    "deleteTitle": "Të fshihet ky udhëtim?",
+    "deleteBody": "“{{purpose}}” do të hiqet nga ditari dhe nga raporti i kilometrazhit.",
+    "fields": {
+      "date": "Data",
+      "purpose": "Qëllimi",
+      "start": "Nisja",
+      "end": "Mbarimi",
+      "startUnit": "Nisja ({{unit}})",
+      "endUnit": "Mbarimi ({{unit}})",
+      "distance": "Distanca",
+      "from": "Nga",
+      "to": "Deri",
+      "notes": "Shënime"
+    }
+  },
+  "documents": {
+    "intro": "Regjistrimi i automjetit, sigurimi, certifikatat e kontrollit dhe lejet. Vendosi një dokumenti datë skadimi dhe Axlebook të kujton para se të skadojë.",
+    "add": "Shto një dokument",
+    "edit": "Ndrysho dokumentin",
+    "empty": "Ende asnjë dokument.",
+    "attention": "Dokumente",
+    "open": "Hap {{name}}",
+    "addFile": "Shto një skanim",
+    "replaceFile": "Zëvendëso skanimin",
+    "fileHint": "Një foto ose PDF, opsionale.",
+    "titleHint": "Lëre bosh për të përdorur llojin.",
+    "expiryHint": "Lëre bosh nëse nuk skadon kurrë.",
+    "noExpiry": "Pa skadim",
+    "expiresToday": "Skadon sot",
+    "expiresOn": "Skadon më {{date}}",
+    "expiresIn_one": "Skadon pas {{count}} dite",
+    "expiresIn_other": "Skadon pas {{count}} ditësh",
+    "expiredAgo_one": "Ka skaduar para {{count}} dite",
+    "expiredAgo_other": "Ka skaduar para {{count}} ditësh",
+    "deleteTitle": "Të fshihet ky dokument?",
+    "deleteBody": "“{{title}}” dhe skanimi i tij do të hiqen.",
+    "status": {
+      "overdue": "Ka skaduar",
+      "due_soon": "Skadon së shpejti",
+      "upcoming": "I vlefshëm"
+    },
+    "types": {
+      "registration": "Regjistrimi i automjetit",
+      "insurance": "Sigurim",
+      "dot_inspection": "Inspektimi vjetor DOT",
+      "permit": "Leje",
+      "emissions": "Test i shkarkimeve ose i sigurisë",
+      "other": "Tjetër"
+    },
+    "fields": {
+      "type": "Lloji",
+      "title": "Emri",
+      "number": "Numri",
+      "expiresOn": "Skadon",
+      "notes": "Shënime"
+    }
+  },
+  "history": {
+    "intro": "Çdo servis, riparim dhe përmirësim me datën dhe leximin e kilometrazhit, i renditur për t'ia dhënë një blerësi. Printoje, ruaje si PDF ose ndaj një lidhje vetëm për lexim.",
+    "kicker": "Historiku i servisit",
+    "print": "Printo ose ruaj si PDF",
+    "showCosts": "Kostot",
+    "showVin": "VIN",
+    "showNotes": "Shënime",
+    "odometer": "Kilometrazh",
+    "jobs": "Punë të regjistruara",
+    "period": "Periudha",
+    "range": "{{from}} deri {{to}}",
+    "spent": "Shpenzuar për mirëmbajtje",
+    "empty": "Ende asnjë servis, riparim ose përmirësim i regjistruar.",
+    "generated": "Krijuar më {{date}}",
+    "footer": "Mbajtur me Axlebook",
+    "columns": {
+      "date": "Data",
+      "odometer": "Kilometrazh",
+      "work": "Puna e kryer",
+      "cost": "Kosto"
+    },
+    "share": {
+      "title": "Ndaj një lidhje vetëm për lexim",
+      "intro": "Kushdo që ka lidhjen mund ta lexojë këtë raport pa llogari. Nuk sheh asgjë tjetër, dhe lidhjen mund ta çaktivizosh në çdo kohë.",
+      "label": "Për kë është",
+      "expires": "Skadon",
+      "create": "Krijo lidhje",
+      "usesOptions": "Lidhja shfaq atë që është aktivizuar më sipër: kostot, VIN-i dhe shënimet nuk përfshihen, përveçse kur i aktivizon më parë.",
+      "unnamed": "Lidhje pa emër",
+      "copy": "Kopjo lidhjen",
+      "copied": "U kopjua",
+      "revoke": "Çaktivizo",
+      "until": "deri më {{date}}",
+      "includes": "Përfshin: {{what}}",
+      "views_one": "hapur {{count}} herë",
+      "views_other": "hapur {{count}} herë",
+      "states": {
+        "active": "Aktive",
+        "expired": "Ka skaduar",
+        "revoked": "Çaktivizuar"
+      },
+      "expiry": {
+        "7": "Pas një jave",
+        "30": "Pas 30 ditësh",
+        "90": "Pas 90 ditësh",
+        "365": "Pas një viti",
+        "never": "Asnjëherë"
+      }
+    },
+    "shared": {
+      "readOnly": "Një kopje vetëm për lexim e historikut të servisit të këtij automjeti.",
+      "expires": "Një kopje vetëm për lexim. Kjo lidhje funksionon deri më {{date}}.",
+      "goneTitle": "Kjo lidhje nuk funksionon më",
+      "goneBody": "Ka skaduar ose pronari e ka çaktivizuar. Kërkoji një të re."
+    }
+  }
+}

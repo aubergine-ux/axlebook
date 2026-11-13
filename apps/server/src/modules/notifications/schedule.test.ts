@@ -253,4 +253,16 @@ describe('quiet hours, muting, documents and the weekly digest', () => {
     await scan('12:00');
     expect(received.filter((r) => r.path === '/tidy')).toEqual([]);
   });
+
+  it('writes to each person in their own language', async () => {
+    const u = await t.user('shqiptar');
+    await hook(u, '/sq');
+    await u.req({ method: 'PATCH', url: '/api/v1/me', payload: { locale: 'sq' } });
+    const v = await vehicleWith(u, 'Golf');
+    await overdue(u, v, 'Vaji');
+    await scan('12:30');
+    expect(received.filter((r) => r.path === '/sq').map((r) => r.body.title)).toEqual([
+      'Me afat të kaluar: Vaji për Golf',
+    ]);
+  });
 });

@@ -119,7 +119,8 @@
     },
     "language": "Language",
     "languages": {
-      "en": "English"
+      "en": "English",
+      "sq": "Shqip"
     },
     "currentPassword": "Current password",
     "newPassword": "New password",
@@ -595,7 +596,8 @@
     "vehicle": "Vehicle",
     "saved": "Fill-up logged.",
     "savedOffline": "No connection. Saved on this device and it'll sync when you're back online.",
-    "pending": "{{count}} fill-ups waiting to sync",
+    "pending_one": "{{count}} fill-up waiting to sync",
+    "pending_other": "{{count}} fill-ups waiting to sync",
     "syncNow": "Sync now",
     "lastReading": "Last reading {{value}}",
     "noVehicles": "Add a vehicle first.",

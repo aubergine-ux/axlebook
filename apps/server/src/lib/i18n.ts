@@ -1,6 +1,7 @@
 import en from '@axlebook/shared/locales/en/server.json';
+import sq from '@axlebook/shared/locales/sq/server.json';
 
-const catalogs: Record<string, typeof en> = { en };
+const catalogs: Record<string, typeof en> = { en, sq };
 
 /** Minimal server-side translator for notification text: `t('notify.overdue', { title })`. */
 export function translator(locale: string | null | undefined) {

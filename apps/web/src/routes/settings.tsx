@@ -48,6 +48,7 @@ import { ErrorNote } from '../components/ui/ErrorNote';
 import { FormDialog } from '../components/ui/FormDialog';
 import { SelectField, TextField } from '../components/ui/fields';
 import { ToggleSwitch } from '../components/ui/ToggleSwitch';
+import { SUPPORTED_LANGUAGES, setLanguage } from '../i18n';
 import { withBase } from '../lib/base';
 import { useFormat } from '../lib/format';
 import { useMe } from '../lib/useMe';
@@ -154,10 +155,13 @@ function Profile() {
           label={t('settings.language')}
           value={i18n.language}
           onChange={(v) => {
-            void i18n.changeLanguage(v);
+            void setLanguage(v);
             update.mutate({ locale: v });
           }}
-          options={[{ value: 'en', label: t('settings.languages.en') }]}
+          options={SUPPORTED_LANGUAGES.map((l) => ({
+            value: l,
+            label: t(`settings.languages.${l}` as 'settings.languages.en'),
+          }))}
         />
         <SelectField
           label={t('settings.dateFormat')}

@@ -48,7 +48,7 @@ test('a fill-up logged offline syncs when the connection returns', async ({ page
   await page.getByRole('textbox', { name: /Fuel \(gal\)/ }).fill('9.4');
   await page.getByRole('button', { name: 'Log fuel' }).click();
   await expect(page.getByText(/Saved on this device/)).toBeVisible();
-  await expect(page.getByText(/1 fill-ups waiting to sync/)).toBeVisible();
+  await expect(page.getByText(/1 fill-up waiting to sync/)).toBeVisible();
   await context.setOffline(false);
   await expect(page.getByText(/waiting to sync/)).toBeHidden({ timeout: 10_000 });
 });
