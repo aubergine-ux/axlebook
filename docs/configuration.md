@@ -6,14 +6,15 @@ every variable with a short note.
 
 ## Server
 
-| Variable        | Default | What it does                                                                                                                                                                |
-| --------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PORT`          | `8080`  | Port inside the container                                                                                                                                                   |
-| `AXLEBOOK_PORT` | `8080`  | Port Compose publishes on the host                                                                                                                                          |
-| `BASE_URL`      |         | The address people use, e.g. `https://cars.example.com`. Needed for single sign-on and links in notifications; it also pins the check that refuses changes from other sites |
-| `TRUST_PROXY`   | `false` | Trust `X-Forwarded-*` headers from a reverse proxy                                                                                                                          |
-| `LOG_LEVEL`     | `info`  | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`                                                                                                              |
-| `TZ`            | `UTC`   | Your time zone, so "due today" means your today                                                                                                                             |
+| Variable        | Default | What it does                                                                                                                                                                                                                                                                                                      |
+| --------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`          | `8080`  | Port inside the container                                                                                                                                                                                                                                                                                         |
+| `AXLEBOOK_PORT` | `8080`  | Port Compose publishes on the host                                                                                                                                                                                                                                                                                |
+| `BASE_URL`      |         | The address people use, e.g. `https://cars.example.com` or `https://example.com/axlebook`. Needed for single sign-on and links in notifications; it also pins the check that refuses changes from other sites. A path here is where Axlebook is mounted (see [Running under a subpath](#running-under-a-subpath)) |
+| `BASE_PATH`     |         | The mount path on its own, e.g. `/axlebook`, when you'd rather not set `BASE_URL`. Defaults to the path of `BASE_URL`                                                                                                                                                                                             |
+| `TRUST_PROXY`   | `false` | Trust `X-Forwarded-*` headers from a reverse proxy                                                                                                                                                                                                                                                                |
+| `LOG_LEVEL`     | `info`  | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`                                                                                                                                                                                                                                                    |
+| `TZ`            | `UTC`   | Your time zone, so "due today" means your today                                                                                                                                                                                                                                                                   |
 
 ## Storage
 
@@ -39,10 +40,10 @@ every variable with a short note.
 
 ## Notifications
 
-| Variable                                                                       | Default | What it does                                                              |
-| ------------------------------------------------------------------------------ | ------- | ------------------------------------------------------------------------- |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` |         | Only needed for email. ntfy, Gotify, Discord and webhooks work without it |
-| `REMINDER_SCAN_INTERVAL_MIN`                                                   | `60`    | How often reminders are checked                                           |
+| Variable                                                                       | Default | What it does                                                                             |
+| ------------------------------------------------------------------------------ | ------- | ---------------------------------------------------------------------------------------- |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` |         | Only needed for email. ntfy, Gotify, Discord, Apprise and webhooks work without it       |
+| `REMINDER_SCAN_INTERVAL_MIN`                                                   | `60`    | How often reminders and documents are checked, held messages are sent and digests go out |
 
 ## Defaults and demo
 
@@ -50,8 +51,111 @@ every variable with a short note.
 | --------------------- | ---------- | -------------------------------------------------- |
 | `DEFAULT_UNIT_SYSTEM` | `imperial` | `imperial` or `metric` for new accounts            |
 | `DEFAULT_CURRENCY`    | `USD`      | Currency for the instance (changeable in Settings) |
-| `DEFAULT_LOCALE`      | `en`       | Interface language for new accounts                |
+| `DEFAULT_LOCALE`      | `en`       | Interface language for new accounts: `en` or `sq`  |
 | `SEED_DEMO_DATA`      | `false`    | Add a demo Tacoma and Civic on first start         |
+
+## Running under a subpath
+
+Axlebook can live at `https://example.com/axlebook` instead of its own hostname. Set `BASE_URL`
+to that full address (or just `BASE_PATH=/axlebook`) and `TRUST_PROXY=true`; no rebuild and no
+separate image. Pages, the API, the calendar feed, shared history links and the installable app
+all follow the path. It works whether your proxy strips the prefix or passes it through.
+
+```nginx
+# nginx: pass the prefix through
+location /axlebook/ {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    client_max_body_size 30m;
+}
+```
+
+```caddyfile
+# Caddy: strip it, either works
+example.com {
+    handle_path /axlebook/* {
+        reverse_proxy 127.0.0.1:8080
+    }
+}
+```
+
+```yaml
+# Traefik labels on the axlebook service
+- traefik.http.routers.axlebook.rule=Host(`example.com`) && PathPrefix(`/axlebook`)
+- traefik.http.services.axlebook.loadbalancer.server.port=8080
+```
+
+For single sign-on the redirect URI includes the path:
+`https://example.com/axlebook/api/v1/auth/oidc/callback`.
+
+## Things that go online, and how to switch them on
+
+Out of the box Axlebook contacts nothing outside your server. Each of these is off until someone
+turns it on:
+
+| What            | Who turns it on                     | What leaves the server                                                             |
+| --------------- | ----------------------------------- | ---------------------------------------------------------------------------------- |
+| VIN decoding    | An admin: Settings → Online lookups | The VIN, to NHTSA vPIC (`vpic.nhtsa.dot.gov`), a US government service             |
+| Recall checks   | The same switch                     | Make, model and year, to NHTSA (`api.nhtsa.gov`). No VIN, no account details       |
+| Notifications   | Each person, by adding a channel    | The reminder's title, vehicle name and due details, to the channel that person set |
+| Single sign-on  | You, with the `OIDC_*` variables    | The sign-in exchange with your identity provider                                   |
+| Local assistant | You, with `OLLAMA_URL`              | Requests to your own Ollama server only                                            |
+
+NHTSA covers vehicles sold in the United States. A recall is matched by make, model and year, so
+it may not apply to your exact vehicle; a dealer can confirm by VIN.
+
+## Notifications
+
+Channels are per person, under Settings → Notifications: email, ntfy, Gotify, Discord, Apprise
+and signed webhooks. Each has a Test button.
+
+- **Apprise**: enter the notify endpoint of an [Apprise API](https://github.com/caronc/apprise-api)
+  server. With a saved configuration that's `http://apprise:8000/notify/<key>`. Without one, use
+  `http://apprise:8000/notify` and list the Apprise URLs in the channel.
+- **Quiet hours**: nothing is sent between the two times; what would have been sent is held and
+  goes out when quiet hours end. Times are on the server's clock, so set `TZ`.
+- **Weekly digest**: one message a week, on the day and hour you pick, listing everything overdue,
+  due soon or about to expire. It's skipped when there's nothing to report.
+- **Per vehicle**: the "Notify me about this vehicle" switch on a vehicle's overview mutes it for
+  you alone. Other people it's shared with are not affected.
+- **Documents**: registration, insurance, inspection certificates and permits with an expiry date
+  notify when they enter the "due soon" window and again when they expire.
+
+Webhooks receive `event`: `reminder.status`, `document.status`, `digest` or `test`.
+
+## Backups
+
+Settings → Data downloads a backup at any time: a zip with `backup.json` (what restore reads), a
+CSV of each vehicle's records, and every photo, receipt and document scan.
+
+An admin can also have the server keep backups itself:
+
+- **Back up on a schedule** writes one to `backups/` inside `DATA_DIR` every 6 hours to weekly.
+- **Keep** sets how many are kept; older ones are deleted.
+- **Restore** on a stored backup replaces every vehicle and record with what it holds. What's
+  there now is saved first as a backup ending in `-prerestore`, so it can be undone. Accounts and
+  sign-ins are kept.
+
+A backup on the same disk doesn't survive the disk. Copy the `backups/` folder somewhere else
+(rsync, restic, your NAS's snapshot job).
+
+## Sharing a vehicle's history
+
+The History tab of a vehicle lays out every service, repair and upgrade for a buyer. Print it or
+save it as a PDF from the browser's print dialog. The owner can also create a read-only link:
+anyone holding it can read that report without an account and nothing else. Links expire (a week
+to a year, or never), can be switched off at any moment, and leave out costs, the VIN and notes
+unless you switch those on before creating the link. Set `BASE_URL` so the links carry your
+public address.
+
+## Home Assistant
+
+[integrations/home-assistant](../integrations/home-assistant) turns each vehicle into a Home
+Assistant device with sensors for its odometer, next service and alerts. It reads
+`GET /api/v1/status` with an API token; the same endpoint works with Home Assistant's built-in
+REST sensor if you'd rather not install anything.
 
 ## Local assistant (Ollama)
 

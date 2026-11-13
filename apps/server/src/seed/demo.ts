@@ -476,6 +476,99 @@ export async function seedDemo(
     ])
     .execute();
 
+  // The truck doubles as a work vehicle: engine, parts sheet, what it's worth, and a trip log.
+  await db
+    .updateTable('vehicles')
+    .set({
+      engine: '4.0L V6',
+      usage: 'business',
+      current_value: milli(19_500),
+      specs: JSON.stringify({
+        oilType: '5W-30 full synthetic',
+        oilCapacity: '5.5 qt with filter',
+        tireSize: '265/70R16',
+        tirePressure: '30 psi front and rear',
+        wiperDriver: '22 in',
+        wiperPassenger: '20 in',
+        battery: 'Group 24F',
+        other: [{ label: 'Lug nuts', value: '83 lb-ft' }],
+      }),
+    })
+    .where('id', '=', taco.vehicle.id)
+    .execute();
+  await db
+    .updateTable('vehicles')
+    .set({ engine: '1.5L turbo', current_value: milli(14_800) })
+    .where('id', '=', civic.vehicle.id)
+    .execute();
+  const latest = Number(
+    (
+      await db
+        .selectFrom('odometer_readings')
+        .select((eb) => eb.fn.max('odometer').as('odo'))
+        .where('vehicle_id', '=', taco.vehicle.id)
+        .executeTakeFirst()
+    )?.odo ?? tacoOdo,
+  );
+  await db
+    .insertInto('trips')
+    .values(
+      [
+        { back: 16, miles: 84, purpose: 'Site visit', from: 'Shop', to: 'Maple Street job' },
+        { back: 9, miles: 132, purpose: 'Lumber run', from: 'Shop', to: 'Mill, Cedar Falls' },
+        { back: 3, miles: 58, purpose: 'Site visit', from: 'Shop', to: 'Maple Street job' },
+      ].map((trip) => {
+        // Counted back from the latest reading at the truck's usual 30 miles a day, so the log
+        // never runs ahead of the odometer.
+        const finish = latest - trip.back * 30;
+        return {
+          vehicle_id: taco.vehicle.id,
+          date: addDays(end, -trip.back),
+          start_odometer: finish - trip.miles,
+          end_odometer: finish,
+          purpose: trip.purpose,
+          from_place: trip.from,
+          to_place: trip.to,
+          business: 1,
+          notes: null,
+          created_by: owner.id,
+          created_at: ts,
+          updated_at: ts,
+        };
+      }),
+    )
+    .execute();
+  await db
+    .insertInto('vehicle_documents')
+    .values(
+      [
+        { v: taco, type: 'insurance' as const, title: 'Insurance', number: 'PL-4471-2209', in: 19 },
+        { v: taco, type: 'registration' as const, title: 'Registration', number: null, in: 210 },
+        {
+          v: civic,
+          type: 'insurance' as const,
+          title: 'Insurance',
+          number: 'PL-4471-2210',
+          in: 140,
+        },
+      ].map((d) => ({
+        vehicle_id: d.v.vehicle.id,
+        type: d.type,
+        title: d.title,
+        number: d.number,
+        expires_on: addDays(end, d.in),
+        notes: null,
+        storage_key: null,
+        original_name: null,
+        mime_type: null,
+        size_bytes: null,
+        last_notified_status: null,
+        created_at: ts,
+        updated_at: ts,
+      })),
+    )
+    .execute();
+
   await setSetting(db, 'demo_seeded', true);
   return { seeded: true, createdUser: created };
 }

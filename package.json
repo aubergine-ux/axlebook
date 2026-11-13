@@ -42,5 +42,5 @@
     "esbuild@0.28.2": true,
     "better-sqlite3@13.0.3": true
   },
-  "version": "0.1.0"
+  "version": "1.1.0"
 }

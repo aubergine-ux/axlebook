@@ -54,6 +54,30 @@ describe('demo seed', () => {
     ]);
   });
 
+  it('shows off the work truck: a parts sheet, trips, documents and what it has cost', async () => {
+    const garage = (await t.req({ method: 'GET', url: '/api/v1/vehicles' })).json();
+    const taco = garage.find((v: { model: string }) => v.model === 'Tacoma');
+    expect(taco).toMatchObject({ usage: 'business', engine: '4.0L V6' });
+    expect(taco.specs).toMatchObject({ tireSize: '265/70R16', oilType: '5W-30 full synthetic' });
+    const mileage = (
+      await t.req({ method: 'GET', url: `/api/v1/vehicles/${taco.id}/mileage` })
+    ).json();
+    expect(mileage).toMatchObject({ trips: 3, businessDistance: 274 });
+    // Trips never run past what the odometer says.
+    expect(mileage.endOdometer).toBeLessThanOrEqual(taco.currentOdometer);
+    const docs = (await t.req({ method: 'GET', url: '/api/v1/documents' })).json();
+    expect(docs.map((d: { title: string; status: string }) => [d.title, d.status])).toEqual([
+      ['Insurance', 'due_soon'],
+      ['Insurance', 'upcoming'],
+      ['Registration', 'upcoming'],
+    ]);
+    const own = (
+      await t.req({ method: 'GET', url: `/api/v1/vehicles/${taco.id}/ownership` })
+    ).json();
+    expect(own.depreciation).toBe(5_000_000);
+    expect(own.total).toBeGreaterThan(own.runningTotal);
+  });
+
   it('only runs once', async () => {
     expect(await seedDemo(t.db, t.app.services.records, { timeZone: 'UTC' })).toEqual({
       seeded: false,
