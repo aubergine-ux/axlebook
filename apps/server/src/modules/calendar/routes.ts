@@ -1,4 +1,4 @@
-import { computeReminderStatus, today, vehicleTitle } from '@axlebook/shared';
+import { computeReminderStatus, predictDue, today, vehicleTitle } from '@axlebook/shared';
 import type { FastifyInstance } from 'fastify';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { randomToken } from '../../lib/crypto';
 import { translator } from '../../lib/i18n';
 import { currentUser } from '../../plugins/auth';
 import { currentOdometers } from '../odometer/routes';
+import { vehiclePace } from '../reminders/service';
 import { garageVehicleIds } from '../vehicles/access';
 
 /** Escape text for iCalendar (RFC 5545 §3.3.11). */
@@ -123,11 +124,11 @@ export function registerCalendarFeed(
           .selectAll()
           .where('vehicle_id', 'in', vIds)
           .where('archived_at', 'is', null)
-          .where('due_date', 'is not', null)
           .execute()
       : [];
     const odo = await currentOdometers(db, vIds);
     const t = today(config.timeZone);
+    const pace = await vehiclePace(db, vIds, t);
     const stamp = `${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`;
     const tr = translator(user.locale);
     const lines = [
@@ -140,7 +141,15 @@ export function registerCalendarFeed(
     ];
     for (const r of reminders) {
       const v = vehicles.find((x) => x.id === r.vehicle_id);
-      if (!v || !r.due_date) continue;
+      if (!v) continue;
+      // Distance reminders land on the day the odometer is expected to get there.
+      const { predictedDueDate: day, predictedBy } = predictDue(
+        { dueMode: r.due_mode, dueDate: r.due_date, dueOdometer: r.due_odometer },
+        odo.get(v.id) ?? null,
+        pace.get(v.id) ?? null,
+        t,
+      );
+      if (!day) continue;
       const state = computeReminderStatus(
         {
           dueMode: r.due_mode,
@@ -165,6 +174,12 @@ export function registerCalendarFeed(
               unit: v.odometer_unit,
             })
           : '',
+        predictedBy === 'distance' && pace.has(v.id)
+          ? tr('calendar.estimated', {
+              pace: Math.round(pace.get(v.id) ?? 0).toLocaleString(user.locale ?? 'en'),
+              unit: v.odometer_unit,
+            })
+          : '',
         r.notes ?? '',
       ]
         .filter(Boolean)
@@ -173,8 +188,8 @@ export function registerCalendarFeed(
         'BEGIN:VEVENT',
         `UID:reminder-${r.id}@axlebook`,
         `DTSTAMP:${stamp}`,
-        `DTSTART;VALUE=DATE:${ymd(r.due_date)}`,
-        `DTEND;VALUE=DATE:${ymd(nextDay(r.due_date))}`,
+        `DTSTART;VALUE=DATE:${ymd(day)}`,
+        `DTEND;VALUE=DATE:${ymd(nextDay(day))}`,
         `SUMMARY:${esc(summary)}`,
         ...(desc ? [`DESCRIPTION:${esc(desc)}`] : []),
         ...(config.baseUrl

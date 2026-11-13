@@ -33,6 +33,16 @@ export function useDueText() {
         parts.push(t('reminder.daysLeft', { count: r.daysLeft }));
       else if (r.dueDate) parts.push(t('reminder.dueOn', { date: f.date(r.dueDate) }));
     }
+    // Distance reminders also say when that's likely to be, from how much the vehicle is driven.
+    if (r.predictedBy === 'distance' && r.predictedDueDate && (r.distanceLeft ?? 0) > 0)
+      parts.push(
+        r.distancePerDay != null
+          ? t('reminder.expected', {
+              date: f.date(r.predictedDueDate),
+              pace: f.distance(Math.round(r.distancePerDay), r.odometerUnit),
+            })
+          : t('reminder.dueOn', { date: f.date(r.predictedDueDate) }),
+      );
     return parts.join(' · ');
   };
 }

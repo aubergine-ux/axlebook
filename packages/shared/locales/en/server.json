@@ -15,6 +15,7 @@
     "name": "Axlebook reminders",
     "event": "{{title}} ({{vehicle}})",
     "overdue": "Overdue: {{title}} ({{vehicle}})",
-    "dueAt": "Also due at {{odometer}} {{unit}}."
+    "dueAt": "Also due at {{odometer}} {{unit}}.",
+    "estimated": "Date estimated from about {{pace}} {{unit}} a day."
   }
 }

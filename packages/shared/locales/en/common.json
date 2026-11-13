@@ -556,6 +556,7 @@
     "distanceLeft": "{{distance}} to go",
     "distanceOver": "{{distance}} overdue",
     "dueOn": "Due {{date}}",
+    "expected": "around {{date}} at {{pace}} a day",
     "dueAt": "Due at {{odometer}}",
     "repeats": "Repeats",
     "doneTitle": "Mark “{{title}}” done",

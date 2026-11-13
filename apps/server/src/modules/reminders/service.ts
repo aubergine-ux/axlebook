@@ -1,6 +1,9 @@
 import {
   compareReminders,
   computeReminderStatus,
+  distancePerDay,
+  type OdometerPoint,
+  predictDue,
   type Reminder,
   ReminderInput,
   type ReminderInput as ReminderInputType,
@@ -16,6 +19,32 @@ import { nowIso } from '../../lib/time';
 import { currentOdometers } from '../odometer/routes';
 import { completeReminder } from '../records/service';
 import { garageVehicleIds, requireVehicle, type VehicleAccess } from '../vehicles/access';
+
+/** Each vehicle's usual distance per day, from its odometer log. */
+export async function vehiclePace(
+  db: DB,
+  vehicleIds: number[],
+  todayIso: string,
+): Promise<Map<number, number>> {
+  if (vehicleIds.length === 0) return new Map();
+  const rows = await db
+    .selectFrom('odometer_readings')
+    .select(['vehicle_id', 'date', 'odometer'])
+    .where('vehicle_id', 'in', vehicleIds)
+    .execute();
+  const byVehicle = new Map<number, OdometerPoint[]>();
+  for (const r of rows) {
+    const list = byVehicle.get(r.vehicle_id) ?? [];
+    list.push({ date: r.date, odometer: r.odometer });
+    byVehicle.set(r.vehicle_id, list);
+  }
+  const out = new Map<number, number>();
+  for (const [id, points] of byVehicle) {
+    const perDay = distancePerDay(points, todayIso);
+    if (perDay != null) out.set(id, perDay);
+  }
+  return out;
+}
 
 export class ReminderService {
   constructor(
@@ -47,6 +76,7 @@ export class ReminderService {
       .execute();
     const lastBy = new Map(last.map((l) => [l.reminder_id, String(l.at)]));
     const t = this.today();
+    const pace = await this.pace([...odo.keys()], t);
     const list = rows.map((r) => {
       const v = vehicles.get(r.vehicle_id) as VehicleRow;
       const state = computeReminderStatus(
@@ -61,6 +91,16 @@ export class ReminderService {
         t,
         odo.get(r.vehicle_id) ?? null,
       );
+      const perDay = pace.get(r.vehicle_id) ?? null;
+      const prediction =
+        state.status === 'inactive'
+          ? { predictedDueDate: null, predictedBy: null }
+          : predictDue(
+              { dueMode: r.due_mode, dueDate: r.due_date, dueOdometer: r.due_odometer },
+              odo.get(r.vehicle_id) ?? null,
+              perDay,
+              t,
+            );
       return {
         id: r.id,
         vehicleId: r.vehicle_id,
@@ -77,11 +117,17 @@ export class ReminderService {
         soonDistance: r.soon_distance,
         archivedAt: r.archived_at,
         ...state,
+        ...prediction,
+        distancePerDay: perDay == null ? null : Math.round(perDay * 10) / 10,
         lastCompletedAt: lastBy.get(r.id) ?? null,
         canEdit: (access.get(r.vehicle_id) ?? 'view') !== 'view',
       } satisfies Reminder;
     });
     return list.sort(compareReminders);
+  }
+
+  pace(vehicleIds: number[], todayIso: string) {
+    return vehiclePace(this.db, vehicleIds, todayIso);
   }
 
   async listForVehicle(

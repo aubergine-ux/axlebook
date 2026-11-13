@@ -1,3 +1,4 @@
+import { addDays, today } from '@axlebook/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestApp, type TestApp } from '../../test/helpers';
 
@@ -64,9 +65,42 @@ describe('calendar feed', () => {
     expect(body).toContain('DTSTART;VALUE=DATE:20270331\r\nDTEND;VALUE=DATE:20270401');
     expect(body).toContain('SUMMARY:Registration\\; renewal\\, county (Taco)');
     expect(body).toContain('DESCRIPTION:Bring proof of insurance');
-    // Distance-only reminders have no date to show.
+    // A distance-only reminder has no date until the odometer log shows how much it's driven.
     expect(body).not.toContain('Oil change');
     for (const line of body.split('\r\n')) expect(Buffer.byteLength(line)).toBeLessThanOrEqual(75);
+
+    // 1,200 mi in the last 40 days is 30 a day; 3,000 to go is 100 days from today.
+    const now = today('UTC');
+    for (const [date, odometer] of [
+      [addDays(now, -40), 85_800],
+      [now, 87_000],
+    ] as const)
+      await t.req({
+        method: 'POST',
+        headers: origin,
+        url: `/api/v1/vehicles/${v.id}/odometer`,
+        payload: { date, odometer },
+      });
+    const later = (await t.app.inject({ method: 'GET', url: new URL(url).pathname })).body;
+    const due = addDays(now, 100).replaceAll('-', '');
+    expect(later).toContain(`DTSTART;VALUE=DATE:${due}`);
+    expect(later).toContain('SUMMARY:Oil change (Taco)');
+    expect(later.replace(/\r\n /g, '')).toContain(
+      'Also due at 90\\,000 mi.\\nDate estimated from about 30 mi a day.',
+    );
+    const reminders = (
+      await t.req({ method: 'GET', url: `/api/v1/vehicles/${v.id}/reminders` })
+    ).json();
+    expect(reminders.find((r: { title: string }) => r.title === 'Oil change')).toMatchObject({
+      distanceLeft: 3000,
+      predictedDueDate: addDays(now, 100),
+      predictedBy: 'distance',
+      distancePerDay: 30,
+    });
+    expect(reminders.find((r: { dueMode: string }) => r.dueMode === 'date')).toMatchObject({
+      predictedDueDate: '2027-03-31',
+      predictedBy: 'date',
+    });
 
     // A new link replaces the old one; turning it off stops it.
     const next = (await post('/api/v1/me/calendar')).json().url;

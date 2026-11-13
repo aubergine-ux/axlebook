@@ -169,6 +169,9 @@ describe('reminders', () => {
       status: 'overdue',
       daysLeft: -34,
       distanceLeft: -312,
+      predictedDueDate: null,
+      predictedBy: null,
+      distancePerDay: null,
       lastCompletedAt: null,
       canEdit: true,
     };

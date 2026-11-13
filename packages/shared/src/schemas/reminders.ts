@@ -44,6 +44,14 @@ export const Reminder = z
     status: z.enum(['overdue', 'due_soon', 'upcoming', 'inactive']),
     daysLeft: z.number().int().nullable(),
     distanceLeft: z.number().int().nullable(),
+    /**
+     * The day this is expected to come due: its date, or when the odometer should reach the due
+     * reading at the vehicle's usual pace, whichever is first.
+     */
+    predictedDueDate: z.string().nullable(),
+    predictedBy: z.enum(['date', 'distance']).nullable(),
+    /** The vehicle's recent average, in its odometer unit per day. */
+    distancePerDay: z.number().nullable(),
     lastCompletedAt: z.string().nullable(),
     canEdit: z.boolean(),
   })
