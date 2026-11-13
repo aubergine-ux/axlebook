@@ -135,10 +135,30 @@ async def test_unavailable_when_the_server_is_down(hass: HomeAssistant, aioclien
     assert hass.states.get("sensor.taco_odometer").state == "unavailable"
 
 
-async def test_bad_token_asks_to_sign_in_again(hass: HomeAssistant, aioclient_mock) -> None:
+async def test_bad_token_asks_for_a_new_one(hass: HomeAssistant, aioclient_mock) -> None:
     aioclient_mock.get(STATUS, status=401)
     entry = await setup(hass)
     assert entry.state is ConfigEntryState.SETUP_ERROR
+
+    # Home Assistant opens a flow asking for a new token.
+    flows = hass.config_entries.flow.async_progress()
+    assert [f["step_id"] for f in flows] == ["reauth_confirm"]
+    result = await hass.config_entries.flow.async_configure(
+        flows[0]["flow_id"], {"token": "still-wrong"}
+    )
+    assert result["errors"] == {"base": "invalid_auth"}
+
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(STATUS, json=status(vehicle()))
+    result = await hass.config_entries.flow.async_configure(
+        flows[0]["flow_id"], {"token": " axb_new "}
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reauth_successful"
+    await hass.async_block_till_done()
+    assert entry.data["token"] == "axb_new"
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.states.get("sensor.taco_odometer").state == "84217"
 
 
 async def test_config_flow(hass: HomeAssistant, aioclient_mock) -> None:
