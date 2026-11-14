@@ -135,10 +135,40 @@ jobs:
           name: playwright-traces
           path: test-results/
 
+  # The release builds arm64 natively; build and start it here too, so a release is never the
+  # first time an arm64 image is made.
+  build-arm64:
+    name: Docker image (arm64)
+    runs-on: ubuntu-24.04-arm
+    needs: [lint, test]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: Build image (no push)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: axlebook:ci
+          cache-from: type=gha,scope=linux-arm64
+          cache-to: type=gha,mode=max,scope=linux-arm64
+      - name: Smoke test container
+        run: |
+          docker run -d --name axlebook -p 8080:8080 axlebook:ci
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:8080/api/v1/health && exit 0
+            sleep 1
+          done
+          docker logs axlebook
+          exit 1
+
   build:
     name: Build & Docker image
     runs-on: ubuntu-latest
     needs: [lint, test]
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
